@@ -103,12 +103,18 @@ function sleep(ms) {
 function openTerminal(tabTitle, cmd, cwd, env = {}) {
   const fullEnv = { ...process.env, ...env };
 
+  // Build env prefix for inline shell commands
+  const envPrefix = Object.entries(env)
+    .map(([k, v]) => `export ${k}='${v.replace(/'/g, "'\\''")}'`)
+    .join(" && ");
+  const envAndCmd = envPrefix ? `${envPrefix} && ${cmd}` : cmd;
+
   if (PLATFORM === "darwin") {
     // macOS — open new Terminal.app window
-    const escapedCmd = cmd.replace(/'/g, "'\\''");
+    const escapedCmd = envAndCmd.replace(/\\/g, "\\\\\\\\").replace(/"/g, '\\\\"');
     const script = `tell application "Terminal"
   activate
-  do script "printf '\\\\e]0;${tabTitle}\\\\a' && cd '${cwd}' && ${escapedCmd}"
+  do script "printf '\\\\e]0;${tabTitle}\\\\a' && cd '${cwd.replace(/'/g, "'\\''")}' && ${escapedCmd}"
 end tell`;
     execSync(`osascript -e '${script.replace(/'/g, "'\\''")}'`, {
       stdio: "pipe",
@@ -126,9 +132,9 @@ end tell`;
   } else {
     // Linux — try common terminal emulators
     const terminals = [
-      { cmd: "gnome-terminal", args: ["--title", tabTitle, "--", "bash", "-c", `cd '${cwd}' && ${cmd}; exec bash`] },
-      { cmd: "konsole", args: ["--title", tabTitle, "-e", "bash", "-c", `cd '${cwd}' && ${cmd}; exec bash`] },
-      { cmd: "xterm", args: ["-T", tabTitle, "-e", `cd '${cwd}' && ${cmd}; exec bash`] },
+      { cmd: "gnome-terminal", args: ["--title", tabTitle, "--", "bash", "-c", `cd '${cwd}' && ${envAndCmd}; exec bash`] },
+      { cmd: "konsole", args: ["--title", tabTitle, "-e", "bash", "-c", `cd '${cwd}' && ${envAndCmd}; exec bash`] },
+      { cmd: "xterm", args: ["-T", tabTitle, "-e", `cd '${cwd}' && ${envAndCmd}; exec bash`] },
     ];
     let launched = false;
     for (const t of terminals) {

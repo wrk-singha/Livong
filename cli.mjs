@@ -461,6 +461,7 @@ async function interactiveMenu() {
         case "13": webInstall(); break;
         case "0": case "q": case "quit": case "exit":
           console.log("");
+          await stopAll();
           ok("Bye! 👋");
           console.log("");
           rl.close();

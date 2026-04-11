@@ -70,44 +70,41 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <>
       {/* Desktop sidebar — hidden on mobile */}
       {showNav && (
-        <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-64 z-40 flex-col glass border-r border-white/40">
+        <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-60 z-40 flex-col bg-white border-r border-neutral-200">
           {/* Brand */}
-          <div className="px-6 pt-8 pb-6">
-            <h1 className="text-2xl font-bold gradient-text">Livong</h1>
-            <p className="text-[11px] text-slate-400 mt-1">Find your perfect roommate</p>
+          <div className="px-5 pt-7 pb-5">
+            <h1 className="text-lg font-semibold text-neutral-900 tracking-tight">Livong</h1>
+            <p className="text-[11px] text-neutral-400 mt-0.5">Find your perfect roommate</p>
           </div>
 
           {/* Nav links */}
-          <nav className="flex-1 px-3 space-y-1">
+          <nav className="flex-1 px-3 space-y-0.5">
             {navItems.map((item) => {
               const active = pathname.startsWith(item.href);
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                     active
-                      ? "bg-indigo-50 text-indigo-600"
-                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                      ? "bg-neutral-100 text-neutral-900"
+                      : "text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700"
                   }`}
                 >
                   <item.Icon active={active} />
-                  <span className={`text-sm font-medium ${active ? "text-indigo-600" : ""}`}>
+                  <span className={`text-sm font-medium ${active ? "text-neutral-900" : ""}`}>
                     {item.label}
                   </span>
-                  {active && (
-                    <div className="ml-auto w-1.5 h-1.5 bg-indigo-600 rounded-full" />
-                  )}
                 </Link>
               );
             })}
           </nav>
 
           {/* Logout */}
-          <div className="px-3 pb-3">
+          <div className="px-3 pb-4">
             <button
               onClick={logout}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl w-full text-red-400 hover:bg-red-50 hover:text-red-500 transition-all duration-200"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg w-full text-neutral-400 hover:bg-red-50 hover:text-red-500 transition-colors"
             >
               <LogoutIcon />
               <span className="text-sm font-medium">Logout</span>
@@ -119,7 +116,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* Main content area */}
       <main
         className={`flex-1 ${
-          showNav && !isChat ? "pb-20 lg:pb-0 lg:pl-64" : showNav ? "lg:pl-64" : ""
+          showNav && !isChat ? "pb-16 lg:pb-0 lg:pl-60" : showNav ? "lg:pl-60" : ""
         }`}
       >
         {children}
@@ -127,7 +124,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Mobile bottom nav — hidden on desktop */}
       {showNav && (
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 glass border-t border-white/40">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-neutral-200">
           <div className="max-w-md mx-auto flex justify-around py-1">
             {navItems.map((item) => {
               const active = pathname.startsWith(item.href);
@@ -135,21 +132,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex flex-col items-center py-2 px-4 rounded-xl transition-all duration-200 ${
+                  className={`flex flex-col items-center py-2 px-4 transition-colors ${
                     active
-                      ? "text-indigo-600"
-                      : "text-slate-400 hover:text-slate-600"
+                      ? "text-neutral-900"
+                      : "text-neutral-400 hover:text-neutral-600"
                   }`}
                 >
-                  <div className={`mb-0.5 transition-transform duration-200 ${active ? "scale-110" : ""}`}>
+                  <div className="mb-0.5">
                     <item.Icon active={active} />
                   </div>
-                  <span className={`text-[10px] font-medium ${active ? "text-indigo-600" : ""}`}>
+                  <span className={`text-[10px] font-medium ${active ? "text-neutral-900" : ""}`}>
                     {item.label}
                   </span>
-                  {active && (
-                    <div className="w-1 h-1 bg-indigo-600 rounded-full mt-0.5" />
-                  )}
                 </Link>
               );
             })}

@@ -62,18 +62,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-linear-to-br from-indigo-100 to-purple-100 rounded-full opacity-60 blur-3xl" />
-        <div className="absolute bottom-0 -left-20 w-72 h-72 bg-linear-to-br from-pink-100 to-indigo-100 rounded-full opacity-50 blur-3xl" />
-      </div>
-
+    <div className="min-h-screen flex flex-col">
       {/* Back link */}
-      <div className="relative z-10 px-6 pt-6">
+      <div className="px-6 pt-6">
         <Link
           href="/"
-          className="inline-flex items-center gap-1 text-sm text-slate-400 hover:text-slate-600 transition-colors"
+          className="inline-flex items-center gap-1 text-sm text-neutral-400 hover:text-neutral-600 transition-colors"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="m15 18-6-6 6-6" />
@@ -83,23 +77,23 @@ export default function LoginPage() {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 flex-1 flex items-center justify-center px-6 lg:px-12">
-        <div className="w-full max-w-sm lg:max-w-md animate-fade-in-up lg:bg-white lg:rounded-3xl lg:shadow-xl lg:shadow-indigo-100/50 lg:p-10 lg:border lg:border-slate-100">
+      <div className="flex-1 flex items-center justify-center px-6 lg:px-12">
+        <div className="w-full max-w-sm animate-fade-in-up">
           {/* Logo & Heading */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-indigo-500 to-purple-500 rounded-2xl shadow-lg shadow-indigo-200 mb-4">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-neutral-900 rounded-xl mb-4">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                 <polyline points="9 22 9 12 15 12 15 22" />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-slate-800">
+            <h1 className="text-xl font-semibold text-neutral-900">
               {step === "phone" ? "Welcome to Livong" : "Verify your number"}
             </h1>
-            <p className="text-sm text-slate-400 mt-1.5">
+            <p className="text-sm text-neutral-400 mt-1">
               {step === "phone"
                 ? "Enter your phone number to get started"
-                : <>OTP sent to <span className="font-medium text-slate-500">+91 {phone}</span></>
+                : <>OTP sent to <span className="font-medium text-neutral-600">+91 {phone}</span></>
               }
             </p>
           </div>
@@ -107,11 +101,11 @@ export default function LoginPage() {
           {step === "phone" ? (
             <form onSubmit={handleSendOtp} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wider">
+                <label className="block text-xs font-medium text-neutral-500 mb-1.5">
                   Phone Number
                 </label>
-                <div className="flex items-center border-1.5 border-slate-200 rounded-xl overflow-hidden focus-within:border-indigo-400 focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] transition-all bg-white">
-                  <span className="px-4 py-3.5 bg-slate-50 text-slate-400 text-sm border-r border-slate-200 font-medium">
+                <div className="flex items-center border border-neutral-200 rounded-lg overflow-hidden focus-within:border-neutral-400 focus-within:shadow-[0_0_0_2px_rgba(0,0,0,0.05)] transition-all bg-white">
+                  <span className="px-3.5 py-3 bg-neutral-50 text-neutral-400 text-sm border-r border-neutral-200 font-medium">
                     +91
                   </span>
                   <input
@@ -121,14 +115,14 @@ export default function LoginPage() {
                       setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
                     }
                     placeholder="Enter your number"
-                    className="flex-1 px-4 py-3.5 outline-none text-sm text-slate-700 placeholder:text-slate-300"
+                    className="flex-1 px-3.5 py-3 outline-none text-sm text-neutral-700 placeholder:text-neutral-300"
                     autoFocus
                   />
                 </div>
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 text-red-500 text-sm bg-red-50 px-3 py-2 rounded-lg">
+                <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 px-3 py-2 rounded-lg">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="12" cy="12" r="10" />
                     <path d="m15 9-6 6M9 9l6 6" />
@@ -140,7 +134,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading || phone.length < 10}
-                className="btn-primary w-full py-3.5 rounded-xl text-sm font-semibold"
+                className="btn-primary w-full py-3 rounded-lg text-sm font-medium"
               >
                 {loading ? (
                   <span className="inline-flex items-center gap-2">
@@ -155,7 +149,7 @@ export default function LoginPage() {
           ) : (
             <form onSubmit={handleVerifyOtp} className="space-y-4">
               {devOtp && (
-                <div className="flex items-center gap-2 text-amber-700 bg-amber-50 border border-amber-100 px-3 py-2.5 rounded-xl text-xs">
+                <div className="flex items-center gap-2 text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg text-xs">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M12 9v4M12 17h.01" />
                     <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
@@ -165,7 +159,7 @@ export default function LoginPage() {
               )}
 
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wider">
+                <label className="block text-xs font-medium text-neutral-500 mb-1.5">
                   Verification Code
                 </label>
                 <input
@@ -175,13 +169,13 @@ export default function LoginPage() {
                     setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
                   }
                   placeholder="• • • • • •"
-                  className="input text-center text-lg tracking-[0.5em] font-medium py-3.5!"
+                  className="input text-center text-lg tracking-[0.5em] font-medium py-3!"
                   autoFocus
                 />
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 text-red-500 text-sm bg-red-50 px-3 py-2 rounded-lg">
+                <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 px-3 py-2 rounded-lg">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="12" cy="12" r="10" />
                     <path d="m15 9-6 6M9 9l6 6" />
@@ -193,7 +187,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading || otp.length !== 6}
-                className="btn-primary w-full py-3.5 rounded-xl text-sm font-semibold"
+                className="btn-primary w-full py-3 rounded-lg text-sm font-medium"
               >
                 {loading ? (
                   <span className="inline-flex items-center gap-2">
@@ -212,7 +206,7 @@ export default function LoginPage() {
                   setOtp("");
                   setError("");
                 }}
-                className="w-full text-sm text-slate-400 hover:text-slate-600 transition-colors"
+                className="w-full text-sm text-neutral-400 hover:text-neutral-600 transition-colors"
               >
                 Change number
               </button>

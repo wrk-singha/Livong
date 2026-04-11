@@ -50,31 +50,25 @@ export default function ProfileSetupPage() {
   };
 
   return (
-    <div className="min-h-screen px-4 py-8 relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-32 -right-32 w-80 h-80 bg-linear-to-br from-indigo-100 to-purple-100 rounded-full opacity-50 blur-3xl" />
-        <div className="absolute bottom-20 -left-20 w-60 h-60 bg-linear-to-br from-pink-100 to-indigo-50 rounded-full opacity-40 blur-3xl" />
-      </div>
-
-      <div className="max-w-sm md:max-w-lg lg:max-w-xl mx-auto relative z-10 animate-fade-in-up">
+    <div className="min-h-screen px-4 py-8">
+      <div className="max-w-sm md:max-w-lg lg:max-w-xl mx-auto animate-fade-in-up">
         {/* Progress indicator */}
         <div className="flex items-center gap-2 mb-6">
-          <div className="h-1 flex-1 bg-indigo-500 rounded-full" />
-          <div className="h-1 flex-1 bg-slate-200 rounded-full" />
-          <div className="h-1 flex-1 bg-slate-200 rounded-full" />
+          <div className="h-1 flex-1 bg-neutral-900 rounded-full" />
+          <div className="h-1 flex-1 bg-neutral-200 rounded-full" />
+          <div className="h-1 flex-1 bg-neutral-200 rounded-full" />
         </div>
 
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-slate-800">Set up your profile</h1>
-          <p className="text-slate-400 text-sm mt-1">
+          <h1 className="text-xl font-semibold text-neutral-900">Set up your profile</h1>
+          <p className="text-neutral-400 text-sm mt-1">
             Help us find the best matches for you
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wider">
+            <label className="block text-xs font-medium text-neutral-500 mb-1.5">
               Name
             </label>
             <input
@@ -88,7 +82,7 @@ export default function ProfileSetupPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wider">
+              <label className="block text-xs font-medium text-neutral-500 mb-1.5">
                 Age
               </label>
               <input
@@ -102,7 +96,7 @@ export default function ProfileSetupPage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wider">
+              <label className="block text-xs font-medium text-neutral-500 mb-1.5">
                 Gender
               </label>
               <select
@@ -121,7 +115,7 @@ export default function ProfileSetupPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wider">
+            <label className="block text-xs font-medium text-neutral-500 mb-1.5">
               Preferred Location
             </label>
             <input
@@ -134,7 +128,7 @@ export default function ProfileSetupPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wider">
+            <label className="block text-xs font-medium text-neutral-500 mb-1.5">
               Budget Range (₹/month)
             </label>
             <div className="grid grid-cols-2 gap-3">
@@ -156,7 +150,7 @@ export default function ProfileSetupPage() {
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 text-red-500 text-sm bg-red-50 px-3 py-2 rounded-lg">
+            <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 px-3 py-2 rounded-lg">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10" />
                 <path d="m15 9-6 6M9 9l6 6" />
@@ -168,7 +162,7 @@ export default function ProfileSetupPage() {
           <button
             type="submit"
             disabled={loading}
-            className="btn-primary w-full py-3.5 rounded-xl text-sm font-semibold"
+            className="btn-primary w-full py-3 rounded-lg text-sm font-medium"
           >
             {loading ? (
               <span className="inline-flex items-center gap-2">

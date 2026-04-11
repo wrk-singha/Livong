@@ -72,18 +72,18 @@ export default function BottomNav() {
               href={item.href}
               className={`flex flex-col items-center py-2 px-4 rounded-xl transition-all duration-200 ${
                 active
-                  ? "text-indigo-600"
-                  : "text-slate-400 hover:text-slate-600"
+                  ? "text-neutral-900"
+                  : "text-neutral-400 hover:text-neutral-600"
               }`}
             >
               <div className={`mb-0.5 transition-transform duration-200 ${active ? "scale-110" : ""}`}>
                 <item.Icon active={active} />
               </div>
-              <span className={`text-[10px] font-medium ${active ? "text-indigo-600" : ""}`}>
+              <span className={`text-[10px] font-medium ${active ? "text-neutral-900" : ""}`}>
                 {item.label}
               </span>
               {active && (
-                <div className="w-1 h-1 bg-indigo-600 rounded-full mt-0.5" />
+                <div className="w-1 h-1 bg-neutral-900 rounded-full mt-0.5" />
               )}
             </Link>
           );

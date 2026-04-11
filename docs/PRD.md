@@ -37,7 +37,21 @@ Users currently:
 # 💡 Core Value Proposition
 
 👉 “Find the right place and the right people to live with”
+---
 
+# 🏆 Unique Selling Proposition
+
+### Trust-First Living Platform
+Livong is the only roommate platform that **verifies real people** before they connect.
+
+| USP | What it means |
+|-----|---------------|
+| **Verified identities** | Live video selfie + KYC document check — no fake profiles |
+| **Safe contact sharing** | Phone/email shared only after mutual match, inside chat |
+| **Location intelligence** | See listings on a real map, search by radius around any point |
+| **AI-powered insights (Phase 2)** | Know what's near a listing — hospitals, metros, groceries — before you visit |
+
+👉 Competitors let anyone message anyone. Livong ensures **trust before connection**.
 ---
 
 # 🧩 MVP Features
@@ -90,6 +104,35 @@ Users currently:
 
 ## 7. Chat
 - 1:1 chat after match
+- Contact info sharing (phone/email) within chat after match
+
+---
+
+## 8. Trust & Verification
+
+### Live Video Authentication
+- Selfie liveness check on signup
+- Captures a short video to confirm real person
+- Stores verification status on profile
+
+### KYC Document Verification
+- Upload government ID (Aadhaar / PAN / Passport)
+- Backend validates document and marks profile as KYC-verified
+- Verified badge shown on profile & listings
+
+---
+
+## 9. Location & Maps
+
+### Location Sharing
+- Listings include lat/lng coordinates + full text address
+- Map view (Google Maps) on listing detail page
+- Users can pin location when creating a listing
+
+### Radius-Based Search
+- Search rooms within X km of a chosen location
+- Filter by distance on explore page
+- Backend uses PostGIS or Haversine distance calculation
 
 ---
 
@@ -120,6 +163,16 @@ Login → Profile Setup → Explore → Send Interest → Match → Chat
 
 ---
 
+# 🔮 Phase 2 Roadmap
+
+| Feature | Description |
+|---------|-------------|
+| **AI Facilities Agent** | AI-powered chat agent that tells users about nearby facilities (hospitals, metros, groceries, gyms, schools) for any listing location |
+| **Smart Matching** | AI-based compatibility scoring using preference history |
+| **Reviews & Ratings** | Post-living reviews for roommates and listings |
+
+---
+
 # 🧠 Product Principles
 
 - Keep onboarding simple
@@ -133,10 +186,14 @@ Login → Profile Setup → Explore → Send Interest → Match → Chat
 
 - User can login
 - Create profile
+- **Verify identity** (live video + KYC)
 - Explore listings/users
+- **Search by location radius**
+- **View listings on map**
 - Send interest
 - Match
 - Chat
+- **Share contact info in chat**
 
 ---
 

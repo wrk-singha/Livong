@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env.local
+
+# Build outputs
+apps/web/.next/
+apps/web/out/
+apps/backend/bin/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# Go
+apps/backend/tmp/
+
+# Logs
+*.log

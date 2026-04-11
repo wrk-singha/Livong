@@ -14,6 +14,9 @@ Database: PostgreSQL
 CREATE TABLE users (
     id UUID PRIMARY KEY,
     phone VARCHAR(15) UNIQUE NOT NULL,
+    email VARCHAR(255),
+    video_verified BOOLEAN DEFAULT FALSE,
+    kyc_verified BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
@@ -61,11 +64,16 @@ CREATE TABLE listings (
 
     rent INT,
     location TEXT,
+    address TEXT,
+    latitude DOUBLE PRECISION,
+    longitude DOUBLE PRECISION,
     property_type VARCHAR(20),
 
     available_from DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX idx_listings_location ON listings (latitude, longitude);
 ```
 
 ---
@@ -116,10 +124,37 @@ CREATE TABLE messages (
 
     sender_id UUID REFERENCES users(id),
     message TEXT,
+    message_type VARCHAR(20) DEFAULT 'text',
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
+
+> `message_type`: `"text"` | `"contact_share"`  
+> For `contact_share`, the `message` field contains JSON: `{"contactType": "phone", "contactValue": "+91..."}`
+
+---
+
+# 🛡️ Verifications Table
+
+```sql
+CREATE TABLE verifications (
+    id UUID PRIMARY KEY,
+    user_id UUID REFERENCES users(id),
+
+    type VARCHAR(20) NOT NULL,
+    document_type VARCHAR(20),
+    file_path TEXT NOT NULL,
+    status VARCHAR(20) DEFAULT 'pending',
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+> `type`: `"video"` | `"kyc"`  
+> `document_type`: `"aadhaar"` | `"pan"` | `"passport"` (only for KYC)  
+> `status`: `"pending"` | `"verified"` | `"rejected"`  
+> `file_path`: path to stored file (never exposed to other users)
 
 ---
 
@@ -147,7 +182,9 @@ CREATE TABLE reviews (
 - users → profiles (1:1)
 - users → listings (1:N)
 - users → interests (N:N via interests)
+- users → verifications (1:N)
 - interests → matches
+- matches → messages (including contact shares)
 - matches → messages
 
 ---

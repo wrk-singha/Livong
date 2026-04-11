@@ -37,9 +37,13 @@ Built using **Next.js**.
 ### Key Features:
 - Authentication (OTP-based login)
 - Profile setup & editing
+- **Identity verification UI** (live video capture + KYC upload)
 - Explore listings & users
+- **Map view** (Google Maps integration for listing locations)
+- **Radius-based location search**
 - Interest & match flow
 - Chat interface
+- **Contact info sharing** (phone/email reveal in chat)
 
 ---
 
@@ -63,7 +67,10 @@ listing/
 interest/
 match/
 chat/
-review/ (future)
+verification/   → Live video + KYC handling
+location/        → Geocoding, radius search, map data
+ai/              → Facilities agent (Phase 2)
+review/          (future)
 
 ---
 
@@ -123,6 +130,39 @@ Login → OTP Verify → Token → Authenticated Requests
 
 ---
 
+# 🛡️ Trust & Verification Architecture
+
+## Live Video Authentication
+- Frontend captures short selfie video via browser MediaRecorder API
+- Video uploaded to backend and stored securely
+- Backend marks profile `video_verified = true`
+- Future: integrate liveness detection API (e.g., AWS Rekognition, FaceTec)
+
+## KYC Document Verification
+- User uploads government ID image (Aadhaar / PAN / Passport)
+- Backend stores document reference, marks `kyc_verified = true`
+- Future: integrate OCR + ID validation API
+- Verified badge displayed on profile & listing cards
+
+---
+
+# 📍 Location Architecture
+
+## Geocoding
+- When user creates a listing, frontend uses Google Maps Places API for address autocomplete
+- Lat/lng coordinates stored alongside text address in the listings table
+
+## Radius-Based Search
+- Backend uses **Haversine formula** (or PostGIS extension) to calculate distance
+- Explore API accepts `lat`, `lng`, `radiusKm` query params
+- Returns listings sorted by distance
+
+## Map View
+- Frontend renders listing locations on an interactive Google Map
+- Listing cards link to map markers
+
+---
+
 # 🧠 Matching Logic (MVP)
 
 Matching is based on:
@@ -174,7 +214,10 @@ apps/backend/.env
 - Do not expose backend secrets to frontend  
 - Use HTTPS for all communication  
 - Validate all inputs on backend  
-- Use authentication tokens securely  
+- Use authentication tokens securely
+- **KYC documents stored encrypted, never exposed to other users**
+- **Video files stored in private bucket, access-controlled**
+- **Contact info only shared to matched users, never public**  
 
 ---
 

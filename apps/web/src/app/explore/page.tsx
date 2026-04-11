@@ -15,9 +15,9 @@ type Listing = {
 };
 
 const TYPE_COLORS: Record<string, string> = {
-  room: "bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400",
-  flat: "bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400",
-  shared: "bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400",
+  room: "bg-info-surface text-info",
+  flat: "bg-success-surface text-success",
+  shared: "bg-warning-surface text-warning",
 };
 
 export default function ExplorePage() {
@@ -62,8 +62,8 @@ export default function ExplorePage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Explore</h1>
-            <p className="text-xs text-neutral-400 mt-0.5">
+            <h1 className="text-xl font-semibold text-foreground">Explore</h1>
+            <p className="text-xs text-dim mt-0.5">
               {listings.length} listing{listings.length !== 1 ? "s" : ""} available
             </p>
           </div>
@@ -72,7 +72,7 @@ export default function ExplorePage() {
             className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
               showFilters
                 ? "bg-neutral-900 text-white"
-                : "bg-white dark:bg-neutral-900 text-neutral-500 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600"
+                : "bg-surface text-muted border border-border hover:border-muted"
             }`}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -93,7 +93,7 @@ export default function ExplorePage() {
             className="card p-4 mb-4 space-y-3 animate-fade-in-up md:flex md:items-end md:gap-3 md:space-y-0"
           >
             <div className="relative">
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-300" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-faint" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
               </svg>
               <input
@@ -138,21 +138,21 @@ export default function ExplorePage() {
         {/* Content */}
         {loading ? (
           <div className="flex flex-col items-center py-16">
-            <div className="w-8 h-8 border-3 border-neutral-200 dark:border-neutral-700 border-t-neutral-600 dark:border-t-neutral-300 rounded-full animate-spin" />
-            <p className="text-sm text-neutral-400 mt-3">Loading listings...</p>
+            <div className="w-8 h-8 border-3 border-border border-t-secondary rounded-full animate-spin" />
+            <p className="text-sm text-dim mt-3">Loading listings...</p>
           </div>
         ) : listings.length === 0 ? (
           <div className="text-center py-16 animate-fade-in-up">
-            <div className="w-16 h-16 bg-neutral-50 dark:bg-neutral-800 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2">
+            <div className="w-16 h-16 bg-surface-alt rounded-full flex items-center justify-center mx-auto mb-4 text-dim">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                 <polyline points="9 22 9 12 15 12 15 22" />
               </svg>
             </div>
-            <p className="text-neutral-400 mb-1">No listings found</p>
+            <p className="text-dim mb-1">No listings found</p>
             <Link
               href="/create-listing"
-              className="text-neutral-900 dark:text-neutral-100 font-medium text-sm hover:underline transition-colors"
+              className="text-foreground font-medium text-sm hover:underline transition-colors"
             >
               Post the first listing →
             </Link>
@@ -167,10 +167,10 @@ export default function ExplorePage() {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm text-neutral-900 dark:text-neutral-100 group-hover:text-neutral-600 dark:group-hover:text-neutral-300 transition-colors truncate">
+                    <h3 className="font-semibold text-sm text-foreground group-hover:text-secondary transition-colors truncate">
                       {listing.title}
                     </h3>
-                    <div className="flex items-center gap-1 mt-1 text-neutral-400">
+                    <div className="flex items-center gap-1 mt-1 text-dim">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
                         <circle cx="12" cy="10" r="3" />
@@ -178,23 +178,23 @@ export default function ExplorePage() {
                       <span className="text-xs">{listing.location}</span>
                     </div>
                     {listing.description && (
-                      <p className="text-xs text-neutral-400 mt-1.5 line-clamp-2">
+                      <p className="text-xs text-dim mt-1.5 line-clamp-2">
                         {listing.description}
                       </p>
                     )}
                   </div>
                   <div className="text-right ml-4 shrink-0">
-                    <p className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
+                    <p className="text-lg font-bold text-foreground">
                       ₹{listing.rent?.toLocaleString()}
                     </p>
-                    <p className="text-[10px] text-neutral-400">/month</p>
+                    <p className="text-[10px] text-dim">/month</p>
                   </div>
                 </div>
                 <div className="mt-3 flex items-center justify-between">
-                  <span className={`inline-block px-2.5 py-1 rounded-md text-[11px] font-medium ${TYPE_COLORS[listing.propertyType] || "bg-neutral-50 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400"}`}>
+                  <span className={`inline-block px-2.5 py-1 rounded-md text-[11px] font-medium ${TYPE_COLORS[listing.propertyType] || "bg-surface-alt text-muted"}`}>
                     {listing.propertyType}
                   </span>
-                  <svg className="text-neutral-300 group-hover:text-neutral-500 transition-colors" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="text-faint group-hover:text-muted transition-colors" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="m9 18 6-6-6-6" />
                   </svg>
                 </div>

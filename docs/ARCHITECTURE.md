@@ -115,7 +115,7 @@ OTP is stored in-memory (Go map). JWT uses `JWT_SECRET` env var with a hardcoded
 
 - **App Router** with layout wrapping all authenticated pages in `AppShell`
 - **AuthContext** — loads JWT from localStorage in `useEffect`, exposes `hydrated` flag to prevent SSR mismatch
-- **ThemeContext** — dark/light mode with system preference detection, localStorage persistence, `.dark` class on `<html>`
+- **ThemeContext** — dark/light mode with system preference detection, localStorage persistence, `.dark` class on `<html>`. Colors are centralized in `globals.css` as CSS variables (31 tokens in `:root` / `.dark`), registered in `@theme inline` as Tailwind utilities (`bg-surface`, `text-foreground`, `border-border`, etc.). Components use semantic token classes — no scattered `dark:` prefixes.
 - **API client** (`lib/api.ts`) — typed methods for every endpoint, auto-attaches JWT
 - **PWA** — service worker, manifest, installable on mobile
 - **Responsive** — desktop sidebar nav + mobile bottom nav (both in `AppShell`)

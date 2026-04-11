@@ -7,7 +7,7 @@ import { useTheme } from "@/contexts/theme";
 
 function LogoutIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
       <polyline points="16 17 21 12 16 7" />
       <line x1="21" y1="12" x2="9" y2="12" />
@@ -89,11 +89,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <>
       {/* Desktop sidebar */}
       {showNav && (
-        <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-60 z-40 flex-col bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800">
+        <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-60 z-40 flex-col bg-surface border-r border-border">
           {/* Brand */}
           <div className="px-5 pt-7 pb-5">
-            <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 tracking-tight">Livong</h1>
-            <p className="text-[11px] text-neutral-400 dark:text-neutral-500 mt-0.5">Find your perfect roommate</p>
+            <h1 className="text-lg font-semibold text-foreground tracking-tight">Livong</h1>
+            <p className="text-[11px] text-dim mt-0.5">Find your perfect roommate</p>
           </div>
 
           {/* Nav links */}
@@ -106,12 +106,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   href={item.href}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                     active
-                      ? "bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
-                      : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 hover:text-neutral-700 dark:hover:text-neutral-300"
+                      ? "bg-surface-alt text-foreground"
+                      : "text-muted hover:bg-surface-alt hover:text-secondary"
                   }`}
                 >
                   <item.Icon active={active} />
-                  <span className={`text-sm font-medium ${active ? "text-neutral-900 dark:text-neutral-100" : ""}`}>
+                  <span className={`text-sm font-medium ${active ? "text-foreground" : ""}`}>
                     {item.label}
                   </span>
                 </Link>
@@ -123,14 +123,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <div className="px-3 pb-4 space-y-1">
             <button
               onClick={toggle}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg w-full text-neutral-400 dark:text-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg w-full text-dim hover:bg-surface-alt hover:text-secondary transition-colors"
             >
               {theme === "dark" ? <SunIcon /> : <MoonIcon />}
               <span className="text-sm font-medium">{theme === "dark" ? "Light mode" : "Dark mode"}</span>
             </button>
             <button
               onClick={logout}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg w-full text-neutral-400 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-500 transition-colors"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg w-full text-dim hover:bg-error-surface hover:text-red-500 transition-colors"
             >
               <LogoutIcon />
               <span className="text-sm font-medium">Logout</span>
@@ -150,7 +150,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Mobile bottom nav */}
       {showNav && (
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-800">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface border-t border-border">
           <div className="max-w-md mx-auto flex justify-around py-1">
             {navItems.map((item) => {
               const active = pathname.startsWith(item.href);
@@ -160,14 +160,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   href={item.href}
                   className={`flex flex-col items-center py-2 px-4 transition-colors ${
                     active
-                      ? "text-neutral-900 dark:text-neutral-100"
-                      : "text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300"
+                      ? "text-foreground"
+                      : "text-dim hover:text-secondary"
                   }`}
                 >
                   <div className="mb-0.5">
                     <item.Icon active={active} />
                   </div>
-                  <span className={`text-[10px] font-medium ${active ? "text-neutral-900 dark:text-neutral-100" : ""}`}>
+                  <span className={`text-[10px] font-medium ${active ? "text-foreground" : ""}`}>
                     {item.label}
                   </span>
                 </Link>
@@ -176,7 +176,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             {/* Mobile theme toggle */}
             <button
               onClick={toggle}
-              className="flex flex-col items-center py-2 px-4 text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
+              className="flex flex-col items-center py-2 px-4 text-dim hover:text-secondary transition-colors"
             >
               <div className="mb-0.5">
                 {theme === "dark" ? <SunIcon /> : <MoonIcon />}

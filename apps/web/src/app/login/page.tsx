@@ -67,7 +67,7 @@ export default function LoginPage() {
       <div className="px-6 pt-6">
         <Link
           href="/"
-          className="inline-flex items-center gap-1 text-sm text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
+          className="inline-flex items-center gap-1 text-sm text-dim hover:text-secondary transition-colors"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="m15 18-6-6 6-6" />
@@ -87,13 +87,13 @@ export default function LoginPage() {
                 <polyline points="9 22 9 12 15 12 15 22" />
               </svg>
             </div>
-            <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">
+            <h1 className="text-xl font-semibold text-foreground">
               {step === "phone" ? "Welcome to Livong" : "Verify your number"}
             </h1>
-            <p className="text-sm text-neutral-400 mt-1">
+            <p className="text-sm text-dim mt-1">
               {step === "phone"
                 ? "Enter your phone number to get started"
-                : <>OTP sent to <span className="font-medium text-neutral-600 dark:text-neutral-300">+91 {phone}</span></>
+                : <>OTP sent to <span className="font-medium text-secondary">+91 {phone}</span></>
               }
             </p>
           </div>
@@ -101,11 +101,11 @@ export default function LoginPage() {
           {step === "phone" ? (
             <form onSubmit={handleSendOtp} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-neutral-500 mb-1.5">
+                <label className="block text-xs font-medium text-muted mb-1.5">
                   Phone Number
                 </label>
-                <div className="flex items-center border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden focus-within:border-neutral-400 dark:focus-within:border-neutral-500 focus-within:shadow-[0_0_0_2px_rgba(0,0,0,0.05)] transition-all bg-white dark:bg-neutral-900">
-                  <span className="px-3.5 py-3 bg-neutral-50 dark:bg-neutral-800 text-neutral-400 text-sm border-r border-neutral-200 dark:border-neutral-700 font-medium">
+                <div className="flex items-center border border-border rounded-lg overflow-hidden focus-within:border-muted focus-within:shadow-[0_0_0_2px_var(--ring)] transition-all bg-surface">
+                  <span className="px-3.5 py-3 bg-surface-alt text-dim text-sm border-r border-border font-medium">
                     +91
                   </span>
                   <input
@@ -115,14 +115,14 @@ export default function LoginPage() {
                       setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
                     }
                     placeholder="Enter your number"
-                    className="flex-1 px-3.5 py-3 outline-none text-sm text-neutral-700 dark:text-neutral-200 placeholder:text-neutral-300 dark:placeholder:text-neutral-600 bg-transparent"
+                    className="flex-1 px-3.5 py-3 outline-none text-sm text-secondary placeholder:text-faint bg-transparent"
                     autoFocus
                   />
                 </div>
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 px-3 py-2 rounded-lg">
+                <div className="flex items-center gap-2 text-error text-sm bg-error-surface px-3 py-2 rounded-lg">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="12" cy="12" r="10" />
                     <path d="m15 9-6 6M9 9l6 6" />
@@ -149,7 +149,7 @@ export default function LoginPage() {
           ) : (
             <form onSubmit={handleVerifyOtp} className="space-y-4">
               {devOtp && (
-                <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-3 py-2 rounded-lg text-xs">
+                <div className="flex items-center gap-2 text-warning bg-warning-surface border border-warning-border px-3 py-2 rounded-lg text-xs">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M12 9v4M12 17h.01" />
                     <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
@@ -159,7 +159,7 @@ export default function LoginPage() {
               )}
 
               <div>
-                <label className="block text-xs font-medium text-neutral-500 mb-1.5">
+                <label className="block text-xs font-medium text-muted mb-1.5">
                   Verification Code
                 </label>
                 <input
@@ -175,7 +175,7 @@ export default function LoginPage() {
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 px-3 py-2 rounded-lg">
+                <div className="flex items-center gap-2 text-error text-sm bg-error-surface px-3 py-2 rounded-lg">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="12" cy="12" r="10" />
                     <path d="m15 9-6 6M9 9l6 6" />
@@ -206,7 +206,7 @@ export default function LoginPage() {
                   setOtp("");
                   setError("");
                 }}
-                className="w-full text-sm text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
+                className="w-full text-sm text-dim hover:text-secondary transition-colors"
               >
                 Change number
               </button>

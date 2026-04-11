@@ -19,10 +19,10 @@ export default function Home() {
     <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="px-6 lg:px-12 pt-6 flex items-center justify-between max-w-6xl mx-auto w-full">
-        <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 tracking-tight">Livong</h2>
+        <h2 className="text-lg font-semibold text-foreground tracking-tight">Livong</h2>
         <Link
           href="/login"
-          className="text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors px-4 py-2 border border-neutral-200 dark:border-neutral-700 rounded-lg hover:border-neutral-300 dark:hover:border-neutral-600"
+          className="text-sm font-medium text-secondary hover:text-foreground transition-colors px-4 py-2 border border-border rounded-lg hover:border-muted"
         >
           Sign in
         </Link>
@@ -31,20 +31,20 @@ export default function Home() {
       {/* Hero */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 lg:px-12 text-center lg:text-left lg:flex-row lg:gap-20 max-w-6xl mx-auto w-full">
         <div className="animate-fade-in-up">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-neutral-100 dark:bg-neutral-800 rounded-full mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-surface-alt rounded-full mb-6">
             <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-            <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
+            <span className="text-xs font-medium text-secondary">
               Smart roommate matching
             </span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-tight mb-4 text-neutral-900 dark:text-neutral-100">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-tight mb-4 text-foreground">
             Find your
             <br />
             perfect roommate
           </h1>
 
-          <p className="text-base lg:text-lg text-neutral-500 max-w-xs lg:max-w-md mx-auto lg:mx-0 mb-8 leading-relaxed">
+          <p className="text-base lg:text-lg text-muted max-w-xs lg:max-w-md mx-auto lg:mx-0 mb-8 leading-relaxed">
             The smarter way to find compatible people to share a home with.
             Match on lifestyle, budget & location.
           </p>
@@ -79,10 +79,10 @@ export default function Home() {
           ].map((f) => (
             <div
               key={f.label}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-surface"
             >
               <span>{f.icon}</span>
-              <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
+              <span className="text-xs font-medium text-secondary">
                 {f.label}
               </span>
             </div>
@@ -92,7 +92,7 @@ export default function Home() {
 
       {/* Bottom */}
       <div className="pb-8 text-center">
-        <p className="text-xs text-neutral-400">
+        <p className="text-xs text-dim">
           Trusted by people across India
         </p>
       </div>

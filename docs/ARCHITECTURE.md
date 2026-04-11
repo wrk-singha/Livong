@@ -43,7 +43,7 @@ Livong/
 │           │   ├── matches/          # Matched users
 │           │   └── chat/[matchId]/   # 1:1 chat
 │           ├── components/   # AppShell, ServiceWorkerRegistrar
-│           ├── contexts/     # AuthContext (JWT + localStorage)
+│           ├── contexts/     # AuthContext, ThemeContext
 │           └── lib/          # API client, types, constants
 ├── docs/                     # PRD, Architecture, API, DB Schema
 ├── cli.mjs                   # Cross-platform dev CLI (Node.js)
@@ -115,6 +115,7 @@ OTP is stored in-memory (Go map). JWT uses `JWT_SECRET` env var with a hardcoded
 
 - **App Router** with layout wrapping all authenticated pages in `AppShell`
 - **AuthContext** — loads JWT from localStorage in `useEffect`, exposes `hydrated` flag to prevent SSR mismatch
+- **ThemeContext** — dark/light mode with system preference detection, localStorage persistence, `.dark` class on `<html>`
 - **API client** (`lib/api.ts`) — typed methods for every endpoint, auto-attaches JWT
 - **PWA** — service worker, manifest, installable on mobile
 - **Responsive** — desktop sidebar nav + mobile bottom nav (both in `AppShell`)

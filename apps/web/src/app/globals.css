@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #fafafa;
   --foreground: #111111;
@@ -10,6 +12,20 @@
   --surface-hover: #fafafa;
   --muted: #737373;
   --border: #e5e5e5;
+  --success: #22c55e;
+  --danger: #ef4444;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #e5e5e5;
+  --primary: #e5e5e5;
+  --primary-hover: #ffffff;
+  --accent: #818cf8;
+  --surface: #171717;
+  --surface-hover: #1a1a1a;
+  --muted: #a3a3a3;
+  --border: #262626;
   --success: #22c55e;
   --danger: #ef4444;
 }
@@ -49,27 +65,30 @@ body {
   background: #d4d4d4;
   border-radius: 99px;
 }
+.dark ::-webkit-scrollbar-thumb {
+  background: #404040;
+}
 
-/* Solid surface — replaces glass */
+/* Solid surface */
 .glass {
-  background: #ffffff;
+  background: var(--surface);
 }
 
 /* Accent text */
 .gradient-text {
-  color: #111111;
+  color: var(--foreground);
 }
 
 /* Primary button — solid, clean */
 .btn-primary {
-  background: #111111;
-  color: white;
+  background: var(--primary);
+  color: var(--background);
   border: none;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 .btn-primary:hover {
-  background: #000000;
+  background: var(--primary-hover);
 }
 .btn-primary:active {
   transform: scale(0.98);
@@ -82,14 +101,17 @@ body {
 
 /* Card style — clean, minimal */
 .card {
-  background: white;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
   transition: all 0.15s ease;
 }
 .card:hover {
-  border-color: #d4d4d4;
+  border-color: var(--border);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+.dark .card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* Input style */
@@ -101,11 +123,19 @@ body {
   font-size: 14px;
   outline: none;
   transition: all 0.15s ease;
-  background: white;
+  background: var(--surface);
+  color: var(--foreground);
 }
 .input:focus {
-  border-color: #a3a3a3;
+  border-color: var(--muted);
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
+}
+.dark .input:focus {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.05);
+}
+.input::placeholder {
+  color: var(--muted);
+  opacity: 0.6;
 }
 
 @keyframes fadeInUp {

@@ -64,7 +64,13 @@ Long-term: a complete living experience platform.
 - 1:1 messaging between matched users
 - Contact sharing (phone or email) as a special message type within chat
 
-### 7. PWA Support
+### 7. Dark Mode / Light Mode
+- System preference detection on first visit
+- Manual toggle in sidebar (desktop) and bottom nav (mobile)
+- Persisted to localStorage
+- Full dark theme across all pages
+
+### 8. PWA Support
 - Installable on mobile devices
 - Service worker for offline shell
 - Responsive layout (sidebar on desktop, bottom nav on mobile)

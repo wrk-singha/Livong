@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/auth";
+import { useTheme } from "@/contexts/theme";
 
 function LogoutIcon() {
   return (
@@ -14,9 +15,26 @@ function LogoutIcon() {
   );
 }
 
+function SunIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+    </svg>
+  );
+}
+
+function MoonIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  );
+}
+
 function ExploreIcon({ active }: { active: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "#6366f1" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "currentColor" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={active ? "opacity-100" : "opacity-50"}>
       <circle cx="11" cy="11" r="8" />
       <path d="m21 21-4.3-4.3" />
     </svg>
@@ -25,7 +43,7 @@ function ExploreIcon({ active }: { active: boolean }) {
 
 function MatchesIcon({ active }: { active: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "#6366f1" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={active ? "opacity-100" : "opacity-50"}>
       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
       <circle cx="9" cy="7" r="4" />
       <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
@@ -36,7 +54,7 @@ function MatchesIcon({ active }: { active: boolean }) {
 
 function PostIcon({ active }: { active: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "#6366f1" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={active ? "opacity-100" : "opacity-50"}>
       <circle cx="12" cy="12" r="10" />
       <path d="M12 8v8M8 12h8" />
     </svg>
@@ -45,7 +63,7 @@ function PostIcon({ active }: { active: boolean }) {
 
 function ProfileIcon({ active }: { active: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "#6366f1" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={active ? "opacity-100" : "opacity-50"}>
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
       <circle cx="12" cy="7" r="4" />
     </svg>
@@ -62,19 +80,20 @@ const navItems = [
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { isAuthenticated, hydrated, logout } = useAuth();
+  const { theme, toggle } = useTheme();
 
   const showNav = hydrated && isAuthenticated;
   const isChat = pathname.startsWith("/chat/");
 
   return (
     <>
-      {/* Desktop sidebar — hidden on mobile */}
+      {/* Desktop sidebar */}
       {showNav && (
-        <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-60 z-40 flex-col bg-white border-r border-neutral-200">
+        <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-60 z-40 flex-col bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800">
           {/* Brand */}
           <div className="px-5 pt-7 pb-5">
-            <h1 className="text-lg font-semibold text-neutral-900 tracking-tight">Livong</h1>
-            <p className="text-[11px] text-neutral-400 mt-0.5">Find your perfect roommate</p>
+            <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 tracking-tight">Livong</h1>
+            <p className="text-[11px] text-neutral-400 dark:text-neutral-500 mt-0.5">Find your perfect roommate</p>
           </div>
 
           {/* Nav links */}
@@ -87,12 +106,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   href={item.href}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                     active
-                      ? "bg-neutral-100 text-neutral-900"
-                      : "text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700"
+                      ? "bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
+                      : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 hover:text-neutral-700 dark:hover:text-neutral-300"
                   }`}
                 >
                   <item.Icon active={active} />
-                  <span className={`text-sm font-medium ${active ? "text-neutral-900" : ""}`}>
+                  <span className={`text-sm font-medium ${active ? "text-neutral-900 dark:text-neutral-100" : ""}`}>
                     {item.label}
                   </span>
                 </Link>
@@ -100,11 +119,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             })}
           </nav>
 
-          {/* Logout */}
-          <div className="px-3 pb-4">
+          {/* Bottom actions */}
+          <div className="px-3 pb-4 space-y-1">
+            <button
+              onClick={toggle}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg w-full text-neutral-400 dark:text-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
+            >
+              {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+              <span className="text-sm font-medium">{theme === "dark" ? "Light mode" : "Dark mode"}</span>
+            </button>
             <button
               onClick={logout}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg w-full text-neutral-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg w-full text-neutral-400 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-500 transition-colors"
             >
               <LogoutIcon />
               <span className="text-sm font-medium">Logout</span>
@@ -122,9 +148,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      {/* Mobile bottom nav — hidden on desktop */}
+      {/* Mobile bottom nav */}
       {showNav && (
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-neutral-200">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-800">
           <div className="max-w-md mx-auto flex justify-around py-1">
             {navItems.map((item) => {
               const active = pathname.startsWith(item.href);
@@ -134,19 +160,29 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   href={item.href}
                   className={`flex flex-col items-center py-2 px-4 transition-colors ${
                     active
-                      ? "text-neutral-900"
-                      : "text-neutral-400 hover:text-neutral-600"
+                      ? "text-neutral-900 dark:text-neutral-100"
+                      : "text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300"
                   }`}
                 >
                   <div className="mb-0.5">
                     <item.Icon active={active} />
                   </div>
-                  <span className={`text-[10px] font-medium ${active ? "text-neutral-900" : ""}`}>
+                  <span className={`text-[10px] font-medium ${active ? "text-neutral-900 dark:text-neutral-100" : ""}`}>
                     {item.label}
                   </span>
                 </Link>
               );
             })}
+            {/* Mobile theme toggle */}
+            <button
+              onClick={toggle}
+              className="flex flex-col items-center py-2 px-4 text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
+            >
+              <div className="mb-0.5">
+                {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+              </div>
+              <span className="text-[10px] font-medium">Theme</span>
+            </button>
           </div>
         </nav>
       )}

@@ -51,7 +51,7 @@ export default function CreateListingPage() {
     <div className="min-h-screen px-4 py-6">
       <div className="max-w-sm md:max-w-lg lg:max-w-xl mx-auto animate-fade-in-up">
         <div className="mb-6">
-          <h1 className="text-xl font-semibold text-neutral-900">Post a Listing</h1>
+          <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Post a Listing</h1>
           <p className="text-neutral-400 text-sm mt-1">
             Help others find a place to live
           </p>
@@ -104,7 +104,7 @@ export default function CreateListingPage() {
               <select
                 value={form.propertyType}
                 onChange={(e) => update("propertyType", e.target.value)}
-                className="input bg-white"
+                className="input bg-white dark:bg-neutral-900"
               >
                 <option value="">Select</option>
                 {PROPERTY_TYPES.map((t) => (
@@ -130,7 +130,7 @@ export default function CreateListingPage() {
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 px-3 py-2 rounded-lg">
+            <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 px-3 py-2 rounded-lg">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10" />
                 <path d="m15 9-6 6M9 9l6 6" />

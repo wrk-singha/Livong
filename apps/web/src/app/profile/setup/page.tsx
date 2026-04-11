@@ -54,13 +54,13 @@ export default function ProfileSetupPage() {
       <div className="max-w-sm md:max-w-lg lg:max-w-xl mx-auto animate-fade-in-up">
         {/* Progress indicator */}
         <div className="flex items-center gap-2 mb-6">
-          <div className="h-1 flex-1 bg-neutral-900 rounded-full" />
-          <div className="h-1 flex-1 bg-neutral-200 rounded-full" />
-          <div className="h-1 flex-1 bg-neutral-200 rounded-full" />
+          <div className="h-1 flex-1 bg-neutral-900 dark:bg-neutral-100 rounded-full" />
+          <div className="h-1 flex-1 bg-neutral-200 dark:bg-neutral-700 rounded-full" />
+          <div className="h-1 flex-1 bg-neutral-200 dark:bg-neutral-700 rounded-full" />
         </div>
 
         <div className="mb-6">
-          <h1 className="text-xl font-semibold text-neutral-900">Set up your profile</h1>
+          <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Set up your profile</h1>
           <p className="text-neutral-400 text-sm mt-1">
             Help us find the best matches for you
           </p>
@@ -102,7 +102,7 @@ export default function ProfileSetupPage() {
               <select
                 value={form.gender}
                 onChange={(e) => update("gender", e.target.value)}
-                className="input bg-white"
+                className="input bg-white dark:bg-neutral-900"
               >
                 <option value="">Select</option>
                 {GENDER_OPTIONS.map((g) => (
@@ -150,7 +150,7 @@ export default function ProfileSetupPage() {
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 px-3 py-2 rounded-lg">
+            <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 px-3 py-2 rounded-lg">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10" />
                 <path d="m15 9-6 6M9 9l6 6" />

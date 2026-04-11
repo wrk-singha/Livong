@@ -57,6 +57,7 @@ export interface Message {
   id: string;
   senderId: string;
   message: string;
+  messageType: string;
   createdAt: string;
 }
 
@@ -96,19 +97,4 @@ export interface CreateListingRequest {
   rent: number;
   location: string;
   propertyType: string;
-}
-
-export interface SendInterestRequest {
-  receiverId: string;
-  listingId: string;
-}
-
-export interface SendMessageRequest {
-  matchId: string;
-  message: string;
-}
-
-export interface AuthResponse {
-  userId: string;
-  token: string;
 }

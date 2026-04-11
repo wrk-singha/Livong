@@ -1,23 +1,16 @@
 # Livong
 
-A living experience platform to find compatible roommates and shared spaces.
+A roommate and shared-living platform. Find compatible people, discover rooms, connect and chat.
 
-## Project Structure
+## Structure
 
 ```
 apps/
-  backend/    → Go API server (Gin + PostgreSQL)
-  web/        → Next.js frontend (TypeScript + Tailwind)
+  backend/    Go API (Gin + PostgreSQL)
+  web/        Next.js frontend (TypeScript + Tailwind CSS v4)
 
-packages/
-  types/      → Shared TypeScript types
-  constants/  → Shared enums and constants
-  utils/      → Shared utilities
-
-docs/         → Product documentation
-cli.mjs       → Cross-platform CLI (Node.js)
-livong        → macOS/Linux launcher
-livong.bat    → Windows launcher
+docs/         Documentation (PRD, Architecture, API, DB Schema)
+cli.mjs       Cross-platform dev CLI
 ```
 
 ## Getting Started
@@ -26,11 +19,11 @@ livong.bat    → Windows launcher
 - Go 1.21+
 - Node.js 18+
 - PostgreSQL 15+
-- pnpm (`npm i -g pnpm`)
+- pnpm
 
-### Quick Start (Recommended)
+### Quick Start
 
-Use the interactive CLI to start everything:
+Use the interactive CLI:
 
 ```bash
 # macOS / Linux
@@ -40,31 +33,13 @@ Use the interactive CLI to start everything:
 livong.bat
 ```
 
-This opens an interactive menu where you can start/stop servers, install dependencies, and more. Each server runs in its own terminal window. Exiting the menu stops everything.
-
-### CLI Commands
-
-You can also run commands directly:
+Or run commands directly:
 
 ```bash
-./livong start              # Start backend + frontend
-./livong stop               # Stop everything
-./livong restart            # Restart everything
-./livong status             # Show what's running
-./livong fresh              # Clean + install + start all
-
-./livong server:start       # Start Go backend only
-./livong server:stop        # Stop backend
-./livong server:restart     # Restart backend
-
-./livong web:dev            # Start Next.js dev server
-./livong web:stop           # Stop frontend
-./livong web:restart        # Restart frontend
-./livong web:build          # Production build
-./livong web:prod           # Start production server
-./livong web:clean          # Clear .next cache
-./livong web:lint           # Run ESLint
-./livong web:install        # Install pnpm dependencies
+./livong start        # Start backend + frontend
+./livong stop         # Stop everything
+./livong status       # Show what's running
+./livong fresh        # Clean + install + start all
 ```
 
 ### Manual Setup
@@ -72,7 +47,7 @@ You can also run commands directly:
 **Backend:**
 ```bash
 cd apps/backend
-DATABASE_URL="postgres://youruser@localhost:5432/livong?sslmode=disable" \
+DATABASE_URL="postgres://user@localhost:5432/livong?sslmode=disable" \
 JWT_SECRET="your-secret" \
 go run cmd/server/main.go
 ```
@@ -89,14 +64,29 @@ pnpm dev
 **Backend** (`apps/backend/.env`):
 - `PORT` — Server port (default: 8080)
 - `DATABASE_URL` — PostgreSQL connection string
-- `JWT_SECRET` — Secret key for JWT tokens
+- `JWT_SECRET` — JWT signing key
 
 **Frontend** (`apps/web/.env.local`):
-- `NEXT_PUBLIC_API_URL` — Backend API URL (default: http://localhost:8080)
+- `NEXT_PUBLIC_API_URL` — Backend URL (default: http://localhost:8080)
+
+## CLI Commands
+
+```bash
+./livong server:start     # Start Go backend
+./livong server:stop      # Stop backend
+./livong web:dev          # Start Next.js dev server
+./livong web:stop         # Stop frontend
+./livong web:build        # Production build
+./livong web:clean        # Clear .next cache
+./livong web:install      # Install pnpm dependencies
+```
+
+## Tech Stack
+
+- **Backend:** Go 1.26, Gin, PostgreSQL, JWT
+- **Frontend:** Next.js 16, React 19, TypeScript, Tailwind CSS v4
+- **Tooling:** pnpm, Node.js CLI
 
 ## Platform Support
 
-The CLI works on **macOS**, **Windows**, and **Linux**:
-- **macOS** — Opens Terminal.app windows
-- **Windows** — Opens cmd.exe windows
-- **Linux** — Uses gnome-terminal, konsole, or xterm
+macOS, Windows, and Linux. The CLI adapts to each platform automatically.

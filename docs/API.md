@@ -1,84 +1,81 @@
-# 🔗 Livong API Documentation (MVP)
+# Livong API Documentation
 
-## 📌 Overview
+## Overview
 
-This document defines the API contract between frontend and backend for Livong.
+REST API built with Go + Gin. All endpoints return JSON.
 
-Base URL:
-```
-https://api.livong.app
-```
+**Base URL (dev):** `http://localhost:8080`
+**Base URL (prod):** `https://api.livong.app`
 
 ---
 
-# 🔐 Authentication
+## Authentication
 
-## POST /auth/login
-
-### Request:
-```json
-{
-  "phone": "string"
-}
-```
-
-### Response:
-```json
-{
-  "userId": "string",
-  "token": "string"
-}
-```
-
----
-
-## POST /auth/verify-otp
-
-### Request:
-```json
-{
-  "phone": "string",
-  "otp": "string"
-}
-```
-
-### Response:
-```json
-{
-  "token": "string"
-}
-```
-
----
-
-# 👤 Profile
-
-## GET /profile
-
-### Headers:
+All protected routes require:
 ```
 Authorization: Bearer <token>
 ```
 
-### Response:
+### POST /auth/login
+
+Request:
 ```json
-{
-  "id": "string",
-  "name": "string",
-  "budgetMin": 10000,
-  "budgetMax": 20000,
-  "location": "string"
-}
+{ "phone": "+919876543210" }
+```
+
+Response:
+```json
+{ "message": "OTP sent", "otp": "123456" }
+```
+
+> In dev mode, OTP is returned in the response. In production, it will be sent via SMS.
+
+### POST /auth/verify-otp
+
+Request:
+```json
+{ "phone": "+919876543210", "otp": "123456" }
+```
+
+Response:
+```json
+{ "userId": "uuid", "token": "jwt-token" }
 ```
 
 ---
 
-## POST /profile
+## Profile
 
-### Request:
+### GET /profile
+Returns the authenticated user's profile.
+
+Response:
 ```json
 {
-  "name": "string",
+  "id": "uuid",
+  "name": "Rohit",
+  "age": 25,
+  "gender": "male",
+  "budgetMin": 10000,
+  "budgetMax": 20000,
+  "location": "Bangalore",
+  "smoking": "no",
+  "drinking": "occasionally",
+  "cleanliness": "high",
+  "sleepSchedule": "late",
+  "workSchedule": "hybrid",
+  "pets": "no",
+  "foodPreference": "veg"
+}
+```
+
+### POST /profile
+Create profile (required fields).
+
+Request:
+```json
+{
+  "name": "Rohit",
   "age": 25,
   "gender": "male",
   "budgetMin": 10000,
@@ -87,241 +84,202 @@ Authorization: Bearer <token>
 }
 ```
 
----
+Response:
+```json
+{ "id": "uuid" }
+```
 
-## PATCH /profile
+### PATCH /profile
+Partial update (any subset of optional fields).
 
-### Request:
+Request:
 ```json
 {
   "smoking": "no",
   "drinking": "occasionally",
-  "cleanliness": "moderate",
-  "sleepSchedule": "late"
+  "cleanliness": "moderate"
 }
+```
+
+Response:
+```json
+{ "message": "Profile updated" }
 ```
 
 ---
 
-# 🏠 Listings
+## Listings
 
-## POST /listings
+### GET /listings
+List all listings. Supports optional filters.
 
-### Request:
+Query params:
+- `location` — text match (ILIKE)
+- `minBudget` — minimum rent
+- `maxBudget` — maximum rent
+
+Response:
+```json
+[
+  {
+    "id": "uuid",
+    "userId": "uuid",
+    "title": "1 Room Available",
+    "description": "Furnished room near metro",
+    "rent": 15000,
+    "location": "HSR Layout",
+    "propertyType": "room"
+  }
+]
+```
+
+### GET /listings/:id
+Get a single listing by ID.
+
+### POST /listings
+Create a new listing.
+
+Request:
 ```json
 {
   "title": "1 Room Available",
-  "description": "Furnished room",
+  "description": "Furnished room near metro",
   "rent": 15000,
   "location": "HSR Layout",
-  "address": "123, 27th Main, HSR Layout Sector 1, Bangalore 560102",
-  "latitude": 12.9141,
-  "longitude": 77.6368,
   "propertyType": "room"
 }
 ```
 
----
-
-## GET /listings
-
-### Query Params:
-- location
-- minBudget
-- maxBudget
-- **lat** (optional — for radius search)
-- **lng** (optional — for radius search)
-- **radiusKm** (optional — default 5, max 50)
-
----
-
-## GET /listings/:id
-
----
-
-# ❤️ Interests
-
-## POST /interests
-
-### Request:
+Response:
 ```json
-{
-  "receiverId": "string",
-  "listingId": "string"
-}
+{ "id": "uuid" }
 ```
 
 ---
 
-## PATCH /interests/:id
+## Interests
 
-### Request:
+### POST /interests
+Send interest to a listing owner.
+
+Request:
 ```json
 {
-  "status": "accepted"
+  "receiverId": "uuid",
+  "listingId": "uuid"
 }
 ```
 
+Response:
+```json
+{ "id": "uuid" }
+```
+
+> Prevents duplicate interests and self-interests.
+
+### PATCH /interests/:id
+Accept or reject an interest.
+
+Request:
+```json
+{ "status": "accepted" }
+```
+
+Response:
+```json
+{ "message": "Interest updated" }
+```
+
+> When status is "accepted", a match is automatically created.
+
 ---
 
-# 🤝 Matches
+## Matches
 
-## GET /matches
+### GET /matches
+Get all matches for the authenticated user.
 
-### Response:
+Response:
 ```json
 [
   {
-    "matchId": "string",
-    "user": {}
+    "matchId": "uuid",
+    "listingId": "uuid",
+    "user": { "id": "uuid", "name": "Priya" }
   }
 ]
 ```
 
 ---
 
-# 💬 Messages
+## Messages
 
-## GET /messages/:matchId
+### GET /messages/:matchId
+Get all messages in a match conversation.
 
----
+Response:
+```json
+[
+  {
+    "id": "uuid",
+    "senderId": "uuid",
+    "message": "Hey, is the room still available?",
+    "messageType": "text",
+    "createdAt": "2026-04-10T10:30:00Z"
+  },
+  {
+    "id": "uuid",
+    "senderId": "uuid",
+    "message": "{\"contactType\":\"phone\",\"contactValue\":\"+919876543210\"}",
+    "messageType": "contact_share",
+    "createdAt": "2026-04-10T10:35:00Z"
+  }
+]
+```
 
-## POST /messages
+### POST /messages
+Send a text message.
 
-### Request:
+Request:
 ```json
 {
-  "matchId": "string",
-  "message": "Hello!"
+  "matchId": "uuid",
+  "message": "Hey, is the room still available?"
 }
 ```
 
----
+Response:
+```json
+{ "id": "uuid" }
+```
 
-## POST /messages/share-contact
+### POST /messages/share-contact
+Share contact info with a matched user.
 
-Share contact info with a matched user inside chat.
-
-### Request:
+Request:
 ```json
 {
-  "matchId": "string",
+  "matchId": "uuid",
   "contactType": "phone",
   "contactValue": "+919876543210"
 }
 ```
 
-### Response:
+Response:
 ```json
 {
-  "id": "string",
-  "matchId": "string",
-  "senderId": "string",
-  "contactType": "phone",
-  "contactValue": "+919876543210",
-  "createdAt": "timestamp"
+  "id": "uuid",
+  "messageType": "contact_share"
 }
 ```
 
-### Notes:
-- `contactType`: `"phone"` or `"email"`
-- Only allowed between matched users
-- Stored as a special message type
+> `contactType`: "phone" or "email". Only allowed between matched users.
 
 ---
 
-# 🛡️ Verification
+## Notes
 
-## POST /verification/video
-
-Upload a live video selfie for identity verification.
-
-### Headers:
-```
-Authorization: Bearer <token>
-Content-Type: multipart/form-data
-```
-
-### Request:
-- `video` — video file (max 10MB, mp4/webm)
-
-### Response:
-```json
-{
-  "status": "submitted",
-  "videoVerified": false
-}
-```
-
----
-
-## POST /verification/kyc
-
-Upload a government ID document for KYC verification.
-
-### Headers:
-```
-Authorization: Bearer <token>
-Content-Type: multipart/form-data
-```
-
-### Request:
-- `document` — image file (max 5MB, jpg/png/pdf)
-- `documentType` — `"aadhaar"` | `"pan"` | `"passport"`
-
-### Response:
-```json
-{
-  "status": "submitted",
-  "kycVerified": false,
-  "documentType": "aadhaar"
-}
-```
-
----
-
-## GET /verification/status
-
-### Response:
-```json
-{
-  "videoVerified": true,
-  "kycVerified": false,
-  "kycDocumentType": "aadhaar",
-  "submittedAt": "timestamp"
-}
-```
-
----
-
-# 🎯 Notes
-
-- All protected routes require JWT token
-- Keep responses simple for MVP
-- Expand later with filters, pagination, and validations
-- **Verification endpoints accept multipart/form-data, not JSON**
-- **Contact sharing is only permitted between matched users**
-- **Radius search uses Haversine distance on the backend**
-
----
-
-# 🔮 Phase 2 APIs (Planned)
-
-## GET /ai/facilities?lat=X&lng=Y
-
-Returns nearby facilities (hospitals, metros, groceries, gyms) for a given location using an AI agent.
-
-### Response:
-```json
-{
-  "facilities": [
-    { "type": "metro", "name": "HSR Metro Station", "distanceKm": 0.8 },
-    { "type": "hospital", "name": "Apollo Clinic", "distanceKm": 1.2 },
-    { "type": "grocery", "name": "DMart", "distanceKm": 0.5 }
-  ]
-}
-```
-
----
-
-**Livong API 🚀**
+- All protected routes require JWT token in Authorization header
+- All request/response bodies are JSON
+- UUIDs used for all IDs
+- Errors return `{ "error": "message" }` with appropriate HTTP status

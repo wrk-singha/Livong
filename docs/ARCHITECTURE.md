@@ -1,297 +1,157 @@
-# 🏗️ Livong Architecture
+# Livong Architecture
 
-## 📌 Overview
+## Overview
 
-**Livong** is a living experience platform designed to help users:
+Livong is a roommate/shared-living platform. Users sign up, create a profile, post or browse listings, express interest, match, and chat — including sharing contact info after matching.
 
-- Find compatible roommates  
-- Discover rooms / shared spaces  
-- Connect and communicate  
+The system is a monorepo with a Go backend and Next.js frontend, both talking to PostgreSQL.
 
-The system follows a **monorepo architecture** with clear separation between frontend and backend.
-
----
-
-# 🧠 High-Level Architecture
-
-Frontend (Next.js - apps/web)
-        ↓
-API Layer (Go - apps/backend)
-        ↓
-Database (PostgreSQL)
+```
+Frontend (Next.js)  →  REST API (Go/Gin)  →  PostgreSQL
+```
 
 ---
 
-# 🧩 Core Components
+## Project Structure
 
-## 1. Frontend (`apps/web`)
-
-Built using **Next.js**.
-
-### Responsibilities:
-- User interface (UI/UX)
-- API consumption
-- Client-side state management
-- Routing & navigation
-
-### Key Features:
-- Authentication (OTP-based login)
-- Profile setup & editing
-- **Identity verification UI** (live video capture + KYC upload)
-- Explore listings & users
-- **Map view** (Google Maps integration for listing locations)
-- **Radius-based location search**
-- Interest & match flow
-- Chat interface
-- **Contact info sharing** (phone/email reveal in chat)
-
----
-
-## 2. Backend (`apps/backend`)
-
-Built using **Go**.
-
-### Responsibilities:
-- API development
-- Business logic
-- Authentication & authorization
-- Database management
-- Matching logic
-- Chat handling (WebSocket later)
-
-### Modules (planned):
-
-auth/
-user/
-listing/
-interest/
-match/
-chat/
-verification/   → Live video + KYC handling
-location/        → Geocoding, radius search, map data
-ai/              → Facilities agent (Phase 2)
-review/          (future)
+```
+Livong/
+├── apps/
+│   ├── backend/              # Go API server
+│   │   ├── cmd/server/       # Entry point (main.go)
+│   │   ├── internal/
+│   │   │   ├── auth/         # Login, OTP, JWT
+│   │   │   ├── user/         # Profile CRUD
+│   │   │   ├── listing/      # Listing CRUD + filters
+│   │   │   ├── interest/     # Send/accept/reject interests
+│   │   │   ├── match/        # Auto-created on accept
+│   │   │   ├── chat/         # Messages + contact sharing
+│   │   │   ├── database/     # Connection + inline migrations
+│   │   │   └── middleware/    # JWT auth middleware
+│   │   ├── migrations/       # (empty — migrations run inline)
+│   │   ├── go.mod
+│   │   └── go.sum
+│   └── web/                  # Next.js frontend
+│       └── src/
+│           ├── app/          # Pages (App Router)
+│           │   ├── page.tsx          # Landing
+│           │   ├── login/            # Phone + OTP login
+│           │   ├── profile/          # View + setup
+│           │   ├── explore/          # Browse listings
+│           │   ├── listings/[id]/    # Listing detail
+│           │   ├── create-listing/   # Post a listing
+│           │   ├── matches/          # Matched users
+│           │   └── chat/[matchId]/   # 1:1 chat
+│           ├── components/   # AppShell, ServiceWorkerRegistrar
+│           ├── contexts/     # AuthContext (JWT + localStorage)
+│           └── lib/          # API client, types, constants
+├── docs/                     # PRD, Architecture, API, DB Schema
+├── cli.mjs                   # Cross-platform dev CLI (Node.js)
+├── livong                    # macOS/Linux launcher
+├── livong.bat                # Windows launcher
+└── README.md
+```
 
 ---
 
-## 3. Database
+## Tech Stack
 
-Recommended: **PostgreSQL**
-
-### Core Entities:
-- Users
-- Profiles
-- Listings
-- Interests
-- Matches
-- Messages
-- Reviews (future)
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS v4, App Router |
+| Backend | Go 1.26, Gin v1.12, lib/pq |
+| Auth | JWT (golang-jwt/jwt/v5), HS256, 7-day expiry |
+| Database | PostgreSQL 16 |
+| Package Manager | pnpm |
+| Dev Tooling | Node.js CLI (cli.mjs) |
 
 ---
 
-## 4. Shared Layer (`packages/`)
+## Backend Modules
 
-Used to maintain consistency between frontend and backend.
+Each module in `internal/` owns its handler, routes, and queries:
 
-### Includes:
-
-- `types/` → API contracts & interfaces  
-- `constants/` → Enums (status, types, etc.)  
-- `utils/` → Shared helpers  
-
----
-
-# 🔄 Data Flow
-
-## User Journey:
-
-User → Frontend → API → Database
-                     ↓
-                Response → Frontend → UI Update
+| Module | Responsibility |
+|--------|---------------|
+| `auth` | Phone login, OTP generation (in-memory, no SMS yet), JWT token issuance |
+| `user` | Profile create, read, partial update |
+| `listing` | CRUD, filter by location (ILIKE) and budget range |
+| `interest` | Send interest, accept/reject, duplicate prevention |
+| `match` | Auto-created when interest is accepted |
+| `chat` | Text messages, contact sharing (phone/email as special message type) |
+| `database` | PostgreSQL connection, inline `CREATE TABLE IF NOT EXISTS` migrations |
+| `middleware` | JWT extraction and user ID injection into context |
 
 ---
 
-## Example Flow (Interest → Match):
+## Data Flow
 
-1. User sends interest
-2. Backend stores interest
-3. Receiver accepts
-4. Backend creates match
-5. Chat becomes enabled
+### Interest → Match → Chat
 
----
-
-# 🔐 Authentication Flow
-
-- OTP-based login (MVP)
-- Token-based session (JWT or session cookies)
-
-Login → OTP Verify → Token → Authenticated Requests
+```
+User A sends interest on User B's listing
+  → Backend stores interest (status: pending)
+    → User B accepts interest
+      → Backend creates match (user1_id, user2_id, listing_id)
+        → Chat enabled between A and B
+          → Either user can share contact info
+```
 
 ---
 
-# 🛡️ Trust & Verification Architecture
+## Authentication
 
-## Live Video Authentication
-- Frontend captures short selfie video via browser MediaRecorder API
-- Video uploaded to backend and stored securely
-- Backend marks profile `video_verified = true`
-- Future: integrate liveness detection API (e.g., AWS Rekognition, FaceTec)
+```
+POST /auth/login     { phone }     → OTP generated (returned in dev, SMS in prod)
+POST /auth/verify-otp { phone, otp } → JWT token returned
+All other routes     Authorization: Bearer <token>
+```
 
-## KYC Document Verification
-- User uploads government ID image (Aadhaar / PAN / Passport)
-- Backend stores document reference, marks `kyc_verified = true`
-- Future: integrate OCR + ID validation API
-- Verified badge displayed on profile & listing cards
+OTP is stored in-memory (Go map). JWT uses `JWT_SECRET` env var with a hardcoded dev fallback.
 
 ---
 
-# 📍 Location Architecture
+## Frontend Architecture
 
-## Geocoding
-- When user creates a listing, frontend uses Google Maps Places API for address autocomplete
-- Lat/lng coordinates stored alongside text address in the listings table
-
-## Radius-Based Search
-- Backend uses **Haversine formula** (or PostGIS extension) to calculate distance
-- Explore API accepts `lat`, `lng`, `radiusKm` query params
-- Returns listings sorted by distance
-
-## Map View
-- Frontend renders listing locations on an interactive Google Map
-- Listing cards link to map markers
+- **App Router** with layout wrapping all authenticated pages in `AppShell`
+- **AuthContext** — loads JWT from localStorage in `useEffect`, exposes `hydrated` flag to prevent SSR mismatch
+- **API client** (`lib/api.ts`) — typed methods for every endpoint, auto-attaches JWT
+- **PWA** — service worker, manifest, installable on mobile
+- **Responsive** — desktop sidebar nav + mobile bottom nav (both in `AppShell`)
+- **Design** — minimal clean aesthetic (neutral palette, solid backgrounds, no glassmorphism)
 
 ---
 
-# 🧠 Matching Logic (MVP)
+## Environment Variables
 
-Matching is based on:
+**Backend:**
+- `PORT` — server port (default: 8080)
+- `DATABASE_URL` — PostgreSQL connection string
+- `JWT_SECRET` — JWT signing key
 
-- Budget overlap  
-- Location match  
-- Optional preferences:
-  - Smoking  
-  - Drinking  
-  - Cleanliness  
-  - Sleep schedule  
-
-👉 Simple scoring system (no AI in MVP)
+**Frontend:**
+- `NEXT_PUBLIC_API_URL` — backend URL (default: http://localhost:8080)
 
 ---
 
-# 🌐 Deployment Architecture
+## Deployment (Planned)
 
-## Frontend
-- Hosted on Vercel  
-- Uses only `apps/web`
-
----
-
-## Backend
-- Hosted on VPS  
-- Runs only `apps/backend`
+| Component | Target |
+|-----------|--------|
+| Frontend | Vercel |
+| Backend | VPS |
+| Database | Managed PostgreSQL |
+| Domain | livong.app / api.livong.app |
 
 ---
 
-## Domain Setup
+## Not Yet Implemented
 
-Frontend → livong.app
-Backend  → api.livong.app
+These are documented in the PRD as future work but have no code:
 
----
-
-# ⚙️ Environment Configuration
-
-Separate environment files:
-
-apps/web/.env
-apps/backend/.env
-
----
-
-# 🔒 Security Considerations
-
-- Do not expose backend secrets to frontend  
-- Use HTTPS for all communication  
-- Validate all inputs on backend  
-- Use authentication tokens securely
-- **KYC documents stored encrypted, never exposed to other users**
-- **Video files stored in private bucket, access-controlled**
-- **Contact info only shared to matched users, never public**  
-
----
-
-# 📦 Monorepo Strategy
-
-## Why Monorepo?
-
-- Single source of truth  
-- Faster development  
-- Easier collaboration  
-- Shared types & contracts  
-
----
-
-## Structure:
-
-apps/
-  web/
-  backend/
-
-packages/
-  types/
-  utils/
-  constants/
-
-docs/
-
----
-
-# 🔄 Development Workflow
-
-- `main` → production  
-- `dev` → staging/integration  
-- `feature/*` → development  
-
-All changes go through **Pull Requests (PRs)**.
-
----
-
-# 🚀 Future Architecture (Scalable Vision)
-
-As the product grows:
-
-- Introduce microservices (if needed)
-- Add caching layer (Redis)
-- Add real-time chat service
-- Introduce recommendation engine
-- Add service marketplace (tiffin, cleaning, etc.)
-
----
-
-# 🎯 Design Principles
-
-- Keep it simple (MVP first)  
-- Separate concerns clearly  
-- Backend owns business logic  
-- Frontend remains lightweight  
-- Build for scalability, not complexity  
-
----
-
-# ✅ Summary
-
-Livong uses a **clean monorepo architecture** with:
-
-- Next.js frontend  
-- Go backend  
-- PostgreSQL database  
-
-👉 Designed for:
-- Fast iteration  
-- Clear structure  
-- Future scalability  
-
----
-
-**Livong = Living Experience Platform 🚀**
+- Identity verification (video selfie, KYC documents)
+- Location/maps (geocoding, lat/lng on listings, radius search)
+- AI facilities agent
+- Smart matching / compatibility scoring
+- WebSocket real-time chat
+- Reviews & ratings

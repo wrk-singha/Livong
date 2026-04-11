@@ -1,200 +1,124 @@
-# 🧾 Livong PRD (Product Requirements Document)
+# Livong PRD (Product Requirements Document)
 
-## 🏷️ Product Name
+## Product Name
 Livong
 
----
+## Vision
 
-# 🎯 Vision
+A platform where users find compatible roommates, discover rooms/shared spaces, and connect safely.
 
-Build a platform where users can:
-- Find compatible roommates  
-- Discover rooms / shared spaces  
-- Connect and communicate  
-
-👉 Long-term: Become a complete living experience platform.
+Long-term: a complete living experience platform.
 
 ---
 
-# 🚨 Problem Statement
+## Problem
 
-Users currently:
-- Use multiple platforms (Housing, WhatsApp, Facebook groups)
-- Lack trust in unknown roommates
-- Spend too much time searching
+- Users juggle multiple platforms (Housing, WhatsApp groups, Facebook)
+- No trust mechanism for unknown roommates
+- Too much time spent searching
 
-👉 Need: One platform combining people + place + trust.
-
----
-
-# 👥 Target Users
-
-- Working professionals (22–35)
-- People relocating to cities (start with Bangalore)
+**Need:** One platform combining people + place + trust.
 
 ---
 
-# 💡 Core Value Proposition
+## Target Users
 
-👉 “Find the right place and the right people to live with”
----
-
-# 🏆 Unique Selling Proposition
-
-### Trust-First Living Platform
-Livong is the only roommate platform that **verifies real people** before they connect.
-
-| USP | What it means |
-|-----|---------------|
-| **Verified identities** | Live video selfie + KYC document check — no fake profiles |
-| **Safe contact sharing** | Phone/email shared only after mutual match, inside chat |
-| **Location intelligence** | See listings on a real map, search by radius around any point |
-| **AI-powered insights (Phase 2)** | Know what's near a listing — hospitals, metros, groceries — before you visit |
-
-👉 Competitors let anyone message anyone. Livong ensures **trust before connection**.
----
-
-# 🧩 MVP Features
-
-## 1. Authentication
-- Phone OTP login
+- Working professionals (22-35)
+- People relocating to cities (starting with Bangalore)
 
 ---
 
-## 2. Profile (Quick + Progressive)
+## Core Value Proposition
 
-### Mandatory:
-- Budget
-- Location
-- Gender
-
-### Optional (collected over time):
-- Smoking
-- Drinking
-- Cleanliness
-- Sleep schedule
-- Work schedule
-- Pets
-- Food preference
+> "Find the right place and the right people to live with"
 
 ---
 
-## 3. Listings
-- Post room / flat
-- Add rent, location, description
+## MVP Features (Implemented)
+
+### 1. Authentication
+- Phone number + OTP login
+- JWT-based sessions (7-day expiry)
+- OTP returned in response (dev mode, no SMS integration yet)
+
+### 2. Profile
+**Mandatory:** name, age, gender, budget range, location
+
+**Optional (editable anytime):** smoking, drinking, cleanliness, sleep schedule, work schedule, pets, food preference
+
+### 3. Listings
+- Post room/flat with title, description, rent, location, property type
+- Browse all listings
+- Filter by location and budget range
+
+### 4. Interest System
+- Send interest on a listing
+- Accept or reject received interests
+- Duplicate and self-interest prevention
+
+### 5. Match System
+- Match auto-created when interest is accepted
+- Both users can then chat
+
+### 6. Chat
+- 1:1 messaging between matched users
+- Contact sharing (phone or email) as a special message type within chat
+
+### 7. PWA Support
+- Installable on mobile devices
+- Service worker for offline shell
+- Responsive layout (sidebar on desktop, bottom nav on mobile)
 
 ---
 
-## 4. Explore
-- Browse listings and users
-- Filter by location and budget
+## User Flow
+
+```
+Login -> Profile Setup -> Explore Listings -> Send Interest -> Match -> Chat -> Share Contact
+```
 
 ---
 
-## 5. Interest System
-- Send interest
-- Accept / reject
+## Success Metrics
 
----
+**Primary:** % users getting at least 1 match
 
-## 6. Match System
-- Match created on acceptance
-
----
-
-## 7. Chat
-- 1:1 chat after match
-- Contact info sharing (phone/email) within chat after match
-
----
-
-## 8. Trust & Verification
-
-### Live Video Authentication
-- Selfie liveness check on signup
-- Captures a short video to confirm real person
-- Stores verification status on profile
-
-### KYC Document Verification
-- Upload government ID (Aadhaar / PAN / Passport)
-- Backend validates document and marks profile as KYC-verified
-- Verified badge shown on profile & listings
-
----
-
-## 9. Location & Maps
-
-### Location Sharing
-- Listings include lat/lng coordinates + full text address
-- Map view (Google Maps) on listing detail page
-- Users can pin location when creating a listing
-
-### Radius-Based Search
-- Search rooms within X km of a chosen location
-- Filter by distance on explore page
-- Backend uses PostGIS or Haversine distance calculation
-
----
-
-# 🔄 User Flow
-
-Login → Profile Setup → Explore → Send Interest → Match → Chat
-
----
-
-# 📊 Success Metrics
-
-## Primary:
-- % users getting at least 1 match
-
-## Secondary:
+**Secondary:**
 - Profile completion rate
-- Match to chat conversion
+- Match-to-chat conversion
 - Time to first match
 
 ---
 
-# 🚫 Out of Scope (MVP)
+## Out of Scope (MVP)
 
 - PG / full rentals
 - Payments
 - Services (tiffin, cleaning)
 - Expense splitting
+- Identity verification (video/KYC)
+- Maps / geocoding / radius search
+- AI matching or recommendations
 
 ---
 
-# 🔮 Phase 2 Roadmap
+## Phase 2 Roadmap
 
 | Feature | Description |
 |---------|-------------|
-| **AI Facilities Agent** | AI-powered chat agent that tells users about nearby facilities (hospitals, metros, groceries, gyms, schools) for any listing location |
-| **Smart Matching** | AI-based compatibility scoring using preference history |
-| **Reviews & Ratings** | Post-living reviews for roommates and listings |
+| Identity verification | Live video selfie + KYC document upload for trust badges |
+| Location & maps | Geocoding, lat/lng on listings, radius search, map view |
+| AI facilities agent | Tell users about nearby hospitals, metros, groceries for any listing |
+| Smart matching | Compatibility scoring based on preferences |
+| Reviews & ratings | Post-living reviews for roommates |
+| Real-time chat | WebSocket-based messaging |
 
 ---
 
-# 🧠 Product Principles
+## Design Principles
 
 - Keep onboarding simple
 - Collect data gradually
 - Focus on matching success
 - Build trust
-
----
-
-# ✅ MVP Definition of Done
-
-- User can login
-- Create profile
-- **Verify identity** (live video + KYC)
-- Explore listings/users
-- **Search by location radius**
-- **View listings on map**
-- Send interest
-- Match
-- Chat
-- **Share contact info in chat**
-
----
-
-**Livong = Living Experience Platform 🚀**
+- Performance over visual complexity

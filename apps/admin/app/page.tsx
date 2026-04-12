@@ -26,7 +26,20 @@ export default function LoginPage() {
     setError("");
     try {
       const data = await admin.sendOTP(phone);
-      if (data.otp) setOtp(data.otp);
+      if (data.otp) {
+        // Dev mode: auto-verify with returned OTP
+        try {
+          const res = await admin.verifyOTP(phone, data.otp);
+          admin.setToken(res.token);
+          await admin.getStats();
+          router.push("/dashboard");
+          return;
+        } catch {
+          localStorage.removeItem("admin_token");
+          setError("This account is not an admin");
+          return;
+        }
+      }
       setStep("otp");
     } catch {
       setError("Failed to send OTP");

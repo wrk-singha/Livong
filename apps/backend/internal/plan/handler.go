@@ -45,10 +45,16 @@ func (h *Handler) UpdatePlan(c *gin.Context) {
 		return
 	}
 
+	prices := map[string]int{"free": 0, "basic": 99, "pro": 249}
+
 	_, err := h.db.Exec(`UPDATE users SET plan = $1 WHERE id = $2`, req.Plan, userId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update plan"})
 		return
+	}
+
+	if amount := prices[req.Plan]; amount > 0 {
+		h.db.Exec(`INSERT INTO payments (user_id, plan, amount) VALUES ($1, $2, $3)`, userId, req.Plan, amount)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"plan": req.Plan})

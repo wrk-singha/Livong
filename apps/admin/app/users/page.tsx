@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Shell from "../Shell";
+import Pagination from "../components/Pagination";
 import { admin } from "../lib/api";
 
 type User = {
@@ -32,12 +33,35 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [search, setSearch] = useState("");
+  const [planFilter, setPlanFilter] = useState("");
+  const [verifiedFilter, setVerifiedFilter] = useState("");
+  const [genderFilter, setGenderFilter] = useState("");
+  const limit = 50;
 
-  const load = () => {
-    admin.getUsers().then((d) => setUsers(d || [])).catch(() => {}).finally(() => setLoading(false));
-  };
+  const load = useCallback(() => {
+    setLoading(true);
+    admin.getUsers(page, limit).then((d) => {
+      setUsers(d?.data || []);
+      setTotal(d?.total || 0);
+    }).catch(() => {}).finally(() => setLoading(false));
+  }, [page]);
 
-  useEffect(load, []);
+  useEffect(load, [load]);
+
+  const filtered = users.filter((u) => {
+    if (search) {
+      const q = search.toLowerCase();
+      if (!(u.name?.toLowerCase().includes(q) || u.phone.includes(q) || u.location?.toLowerCase().includes(q))) return false;
+    }
+    if (planFilter && u.plan !== planFilter) return false;
+    if (verifiedFilter === "yes" && !u.verified) return false;
+    if (verifiedFilter === "no" && u.verified) return false;
+    if (genderFilter && (u.gender || "") !== genderFilter) return false;
+    return true;
+  });
 
   const toggleVerify = async (u: User) => {
     await admin.updateUser(u.id, { verified: !u.verified });
@@ -60,12 +84,47 @@ export default function UsersPage() {
   return (
     <Shell>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold">Users ({users.length})</h2>
+        <h2 className="text-lg font-bold">Users ({filtered.length}<span className="text-text-dim font-normal">/{total}</span>)</h2>
+      </div>
+
+      <div className="flex flex-wrap gap-2 mb-4">
+        <input
+          type="text"
+          placeholder="Search name, phone, location..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="bg-surface-alt border border-border rounded px-3 py-1.5 text-xs text-text placeholder:text-text-dim w-56"
+        />
+        <select value={planFilter} onChange={(e) => setPlanFilter(e.target.value)}
+          className="bg-surface-alt border border-border rounded px-2 py-1.5 text-xs text-text-secondary">
+          <option value="">All Plans</option>
+          <option value="free">Free</option>
+          <option value="basic">Basic</option>
+          <option value="pro">Pro</option>
+        </select>
+        <select value={verifiedFilter} onChange={(e) => setVerifiedFilter(e.target.value)}
+          className="bg-surface-alt border border-border rounded px-2 py-1.5 text-xs text-text-secondary">
+          <option value="">All Verified</option>
+          <option value="yes">Verified</option>
+          <option value="no">Unverified</option>
+        </select>
+        <select value={genderFilter} onChange={(e) => setGenderFilter(e.target.value)}
+          className="bg-surface-alt border border-border rounded px-2 py-1.5 text-xs text-text-secondary">
+          <option value="">All Genders</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other</option>
+        </select>
+        {(search || planFilter || verifiedFilter || genderFilter) && (
+          <button onClick={() => { setSearch(""); setPlanFilter(""); setVerifiedFilter(""); setGenderFilter(""); }}
+            className="text-xs text-text-dim hover:text-text transition-colors px-2">✕ Clear</button>
+        )}
       </div>
 
       {loading ? (
         <p className="text-xs text-text-muted">Loading...</p>
       ) : (
+        <>
         <div className="table-container">
           <table>
             <thead>
@@ -84,9 +143,9 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody>
-              {users.map((u) => (
-                <>
-                  <tr key={u.id} className="cursor-pointer" onClick={() => setExpanded(expanded === u.id ? null : u.id)}>
+              {filtered.map((u) => (
+                <React.Fragment key={u.id}>
+                  <tr className="cursor-pointer" onClick={() => setExpanded(expanded === u.id ? null : u.id)}>
                     <td className="font-medium text-text">{u.name || <span className="text-text-dim">—</span>}</td>
                     <td className="text-text-secondary">{u.phone}</td>
                     <td className="capitalize text-text-muted">{u.gender || "—"}</td>
@@ -139,11 +198,13 @@ export default function UsersPage() {
                       </td>
                     </tr>
                   )}
-                </>
+                </React.Fragment>
               ))}
             </tbody>
           </table>
         </div>
+        <Pagination page={page} total={total} limit={limit} onPageChange={setPage} />
+        </>
       )}
     </Shell>
   );

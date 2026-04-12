@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Shell from "../Shell";
+import Pagination from "../components/Pagination";
 import { admin } from "../lib/api";
 
 type Listing = {
@@ -24,12 +25,32 @@ type Listing = {
 export default function ListingsPage() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [furnishFilter, setFurnishFilter] = useState("");
+  const limit = 50;
 
-  const load = () => {
-    admin.getListings().then((d) => setListings(d || [])).catch(() => {}).finally(() => setLoading(false));
-  };
+  const load = useCallback(() => {
+    setLoading(true);
+    admin.getListings(page, limit).then((d) => {
+      setListings(d?.data || []);
+      setTotal(d?.total || 0);
+    }).catch(() => {}).finally(() => setLoading(false));
+  }, [page]);
 
-  useEffect(load, []);
+  useEffect(load, [load]);
+
+  const filtered = listings.filter((l) => {
+    if (search) {
+      const q = search.toLowerCase();
+      if (!(l.title?.toLowerCase().includes(q) || l.ownerName?.toLowerCase().includes(q) || l.location?.toLowerCase().includes(q))) return false;
+    }
+    if (typeFilter && (l.roomType || "") !== typeFilter) return false;
+    if (furnishFilter && (l.furnishing || "") !== furnishFilter) return false;
+    return true;
+  });
 
   const deleteListing = async (l: Listing) => {
     if (!confirm(`Delete listing "${l.title}"?`)) return;
@@ -42,12 +63,41 @@ export default function ListingsPage() {
   return (
     <Shell>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold">Listings ({listings.length})</h2>
+        <h2 className="text-lg font-bold">Listings ({filtered.length}<span className="text-text-dim font-normal">/{total}</span>)</h2>
+      </div>
+
+      <div className="flex flex-wrap gap-2 mb-4">
+        <input
+          type="text"
+          placeholder="Search title, owner, location..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="bg-surface-alt border border-border rounded px-3 py-1.5 text-xs text-text placeholder:text-text-dim w-56"
+        />
+        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}
+          className="bg-surface-alt border border-border rounded px-2 py-1.5 text-xs text-text-secondary">
+          <option value="">All Types</option>
+          <option value="single">Single</option>
+          <option value="shared">Shared</option>
+          <option value="pg">PG</option>
+        </select>
+        <select value={furnishFilter} onChange={(e) => setFurnishFilter(e.target.value)}
+          className="bg-surface-alt border border-border rounded px-2 py-1.5 text-xs text-text-secondary">
+          <option value="">All Furnishing</option>
+          <option value="furnished">Furnished</option>
+          <option value="semi-furnished">Semi-furnished</option>
+          <option value="unfurnished">Unfurnished</option>
+        </select>
+        {(search || typeFilter || furnishFilter) && (
+          <button onClick={() => { setSearch(""); setTypeFilter(""); setFurnishFilter(""); }}
+            className="text-xs text-text-dim hover:text-text transition-colors px-2">✕ Clear</button>
+        )}
       </div>
 
       {loading ? (
         <p className="text-xs text-text-muted">Loading...</p>
       ) : (
+        <>
         <div className="table-container">
           <table>
             <thead>
@@ -68,7 +118,7 @@ export default function ListingsPage() {
               </tr>
             </thead>
             <tbody>
-              {listings.map((l) => (
+              {filtered.map((l) => (
                 <tr key={l.id}>
                   <td className="font-medium text-text max-w-[200px] truncate">{l.title}</td>
                   <td className="text-text-secondary">{l.ownerName}</td>
@@ -90,6 +140,8 @@ export default function ListingsPage() {
             </tbody>
           </table>
         </div>
+        <Pagination page={page} total={total} limit={limit} onPageChange={setPage} />
+        </>
       )}
     </Shell>
   );

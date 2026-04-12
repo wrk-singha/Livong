@@ -97,7 +97,14 @@ func RunMigrations(db *sql.DB) error {
 			ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false;
 		EXCEPTION WHEN others THEN NULL;
 		END $$`,
-		`UPDATE users SET is_admin = true WHERE phone = '7908038179'`,
+		`INSERT INTO users (phone, is_admin) VALUES ('7908038179', true) ON CONFLICT (phone) DO UPDATE SET is_admin = true`,
+		`CREATE TABLE IF NOT EXISTS payments (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			user_id UUID REFERENCES users(id),
+			plan VARCHAR(20) NOT NULL,
+			amount INT NOT NULL,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		)`,
 	}
 
 	for i, m := range migrations {

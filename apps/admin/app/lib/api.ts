@@ -46,18 +46,34 @@ export const admin = {
     }).then((r) => { if (!r.ok) throw new Error("Failed"); return r.json(); }),
 
   // Admin endpoints
-  getStats: () => request("/admin/stats"),
-  getUsers: () => request("/admin/users"),
+  getStats: (days?: number) => request(`/admin/stats${days ? `?days=${days}` : ""}`),
+  getUsers: (page = 1, limit = 50) => request(`/admin/users?page=${page}&limit=${limit}`),
   updateUser: (id: string, data: { verified?: boolean; plan?: string }) =>
     request(`/admin/users/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
   deleteUser: (id: string) =>
     request(`/admin/users/${id}`, { method: "DELETE" }),
-  getListings: () => request("/admin/listings"),
+  getListings: (page = 1, limit = 50) => request(`/admin/listings?page=${page}&limit=${limit}`),
   deleteListing: (id: string) =>
     request(`/admin/listings/${id}`, { method: "DELETE" }),
-  getReviews: () => request("/admin/reviews"),
+  getReviews: (page = 1, limit = 50) => request(`/admin/reviews?page=${page}&limit=${limit}`),
   deleteReview: (id: string) =>
     request(`/admin/reviews/${id}`, { method: "DELETE" }),
-  getMatches: () => request("/admin/matches"),
-  getInterests: () => request("/admin/interests"),
+  getMatches: (page = 1, limit = 50) => request(`/admin/matches?page=${page}&limit=${limit}`),
+  getInterests: (page = 1, limit = 50) => request(`/admin/interests?page=${page}&limit=${limit}`),
+  getRevenue: (from?: string, to?: string, interval?: string) => {
+    const params = new URLSearchParams();
+    if (from) params.set("from", from);
+    if (to) params.set("to", to);
+    if (interval) params.set("interval", interval);
+    const q = params.toString();
+    return request(`/admin/revenue${q ? `?${q}` : ""}`);
+  },
+  getAnalytics: (opts?: { days?: number; from?: string; to?: string }) => {
+    const params = new URLSearchParams();
+    if (opts?.from) params.set("from", opts.from);
+    if (opts?.to) params.set("to", opts.to);
+    if (!opts?.from) params.set("days", String(opts?.days ?? 30));
+    const q = params.toString();
+    return request(`/admin/analytics${q ? `?${q}` : ""}`);
+  },
 };

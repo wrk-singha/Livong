@@ -108,6 +108,8 @@ func main() {
 		adminGroup.DELETE("/reviews/:id", adminHandler.DeleteReview)
 		adminGroup.GET("/matches", adminHandler.GetMatches)
 		adminGroup.GET("/interests", adminHandler.GetInterests)
+		adminGroup.GET("/revenue", adminHandler.GetRevenue)
+		adminGroup.GET("/analytics", adminHandler.GetAnalytics)
 	}
 
 	log.Printf("Server starting on :%s", port)

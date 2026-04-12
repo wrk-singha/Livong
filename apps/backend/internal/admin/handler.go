@@ -2,7 +2,9 @@ package admin
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/rohit/livong-backend/internal/auth"
@@ -51,47 +53,121 @@ func AdminAuth(db *sql.DB) gin.HandlerFunc {
 }
 
 func (h *Handler) GetStats(c *gin.Context) {
+	daysStr := c.Query("days")
 	stats := gin.H{}
 
 	var count int
-	h.db.QueryRow(`SELECT COUNT(*) FROM users`).Scan(&count)
-	stats["totalUsers"] = count
 
-	h.db.QueryRow(`SELECT COUNT(*) FROM profiles`).Scan(&count)
-	stats["totalProfiles"] = count
+	if daysStr != "" {
+		days, err := strconv.Atoi(daysStr)
+		if err != nil || days <= 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid days parameter"})
+			return
+		}
+		interval := fmt.Sprintf("%d days", days)
 
-	h.db.QueryRow(`SELECT COUNT(*) FROM listings`).Scan(&count)
-	stats["totalListings"] = count
+		h.db.QueryRow(`SELECT COUNT(*) FROM users WHERE created_at > NOW() - $1::INTERVAL`, interval).Scan(&count)
+		stats["totalUsers"] = count
 
-	h.db.QueryRow(`SELECT COUNT(*) FROM interests`).Scan(&count)
-	stats["totalInterests"] = count
+		h.db.QueryRow(`SELECT COUNT(*) FROM profiles WHERE created_at > NOW() - $1::INTERVAL`, interval).Scan(&count)
+		stats["totalProfiles"] = count
 
-	h.db.QueryRow(`SELECT COUNT(*) FROM matches`).Scan(&count)
-	stats["totalMatches"] = count
+		h.db.QueryRow(`SELECT COUNT(*) FROM listings WHERE created_at > NOW() - $1::INTERVAL`, interval).Scan(&count)
+		stats["totalListings"] = count
 
-	h.db.QueryRow(`SELECT COUNT(*) FROM messages`).Scan(&count)
-	stats["totalMessages"] = count
+		h.db.QueryRow(`SELECT COUNT(*) FROM interests WHERE created_at > NOW() - $1::INTERVAL`, interval).Scan(&count)
+		stats["totalInterests"] = count
 
-	h.db.QueryRow(`SELECT COUNT(*) FROM reviews`).Scan(&count)
-	stats["totalReviews"] = count
+		h.db.QueryRow(`SELECT COUNT(*) FROM matches WHERE created_at > NOW() - $1::INTERVAL`, interval).Scan(&count)
+		stats["totalMatches"] = count
 
-	h.db.QueryRow(`SELECT COUNT(*) FROM listing_images`).Scan(&count)
-	stats["totalImages"] = count
+		h.db.QueryRow(`SELECT COUNT(*) FROM messages WHERE created_at > NOW() - $1::INTERVAL`, interval).Scan(&count)
+		stats["totalMessages"] = count
 
-	h.db.QueryRow(`SELECT COUNT(*) FROM users WHERE is_verified = true`).Scan(&count)
-	stats["verifiedUsers"] = count
+		h.db.QueryRow(`SELECT COUNT(*) FROM reviews WHERE created_at > NOW() - $1::INTERVAL`, interval).Scan(&count)
+		stats["totalReviews"] = count
 
-	h.db.QueryRow(`SELECT COUNT(*) FROM users WHERE plan != 'free'`).Scan(&count)
-	stats["paidUsers"] = count
+		h.db.QueryRow(`SELECT COUNT(*) FROM listing_images WHERE created_at > NOW() - $1::INTERVAL`, interval).Scan(&count)
+		stats["totalImages"] = count
 
-	// Recent signups (last 7 days)
-	h.db.QueryRow(`SELECT COUNT(*) FROM users WHERE created_at > NOW() - INTERVAL '7 days'`).Scan(&count)
-	stats["recentSignups"] = count
+		h.db.QueryRow(`SELECT COUNT(*) FROM users WHERE is_verified = true AND created_at > NOW() - $1::INTERVAL`, interval).Scan(&count)
+		stats["verifiedUsers"] = count
+
+		h.db.QueryRow(`SELECT COUNT(*) FROM users WHERE plan != 'free' AND created_at > NOW() - $1::INTERVAL`, interval).Scan(&count)
+		stats["paidUsers"] = count
+
+		h.db.QueryRow(`SELECT COUNT(*) FROM users WHERE created_at > NOW() - INTERVAL '7 days'`).Scan(&count)
+		stats["recentSignups"] = count
+
+		var totalRevenue sql.NullInt64
+		h.db.QueryRow(`SELECT COALESCE(SUM(amount), 0) FROM payments WHERE created_at > NOW() - $1::INTERVAL`, interval).Scan(&totalRevenue)
+		stats["totalRevenue"] = totalRevenue.Int64
+		stats["monthRevenue"] = totalRevenue.Int64
+	} else {
+		h.db.QueryRow(`SELECT COUNT(*) FROM users`).Scan(&count)
+		stats["totalUsers"] = count
+
+		h.db.QueryRow(`SELECT COUNT(*) FROM profiles`).Scan(&count)
+		stats["totalProfiles"] = count
+
+		h.db.QueryRow(`SELECT COUNT(*) FROM listings`).Scan(&count)
+		stats["totalListings"] = count
+
+		h.db.QueryRow(`SELECT COUNT(*) FROM interests`).Scan(&count)
+		stats["totalInterests"] = count
+
+		h.db.QueryRow(`SELECT COUNT(*) FROM matches`).Scan(&count)
+		stats["totalMatches"] = count
+
+		h.db.QueryRow(`SELECT COUNT(*) FROM messages`).Scan(&count)
+		stats["totalMessages"] = count
+
+		h.db.QueryRow(`SELECT COUNT(*) FROM reviews`).Scan(&count)
+		stats["totalReviews"] = count
+
+		h.db.QueryRow(`SELECT COUNT(*) FROM listing_images`).Scan(&count)
+		stats["totalImages"] = count
+
+		h.db.QueryRow(`SELECT COUNT(*) FROM users WHERE is_verified = true`).Scan(&count)
+		stats["verifiedUsers"] = count
+
+		h.db.QueryRow(`SELECT COUNT(*) FROM users WHERE plan != 'free'`).Scan(&count)
+		stats["paidUsers"] = count
+
+		h.db.QueryRow(`SELECT COUNT(*) FROM users WHERE created_at > NOW() - INTERVAL '7 days'`).Scan(&count)
+		stats["recentSignups"] = count
+
+		var totalRevenue sql.NullInt64
+		h.db.QueryRow(`SELECT COALESCE(SUM(amount), 0) FROM payments`).Scan(&totalRevenue)
+		stats["totalRevenue"] = totalRevenue.Int64
+
+		var monthRevenue sql.NullInt64
+		h.db.QueryRow(`SELECT COALESCE(SUM(amount), 0) FROM payments WHERE created_at > NOW() - INTERVAL '30 days'`).Scan(&monthRevenue)
+		stats["monthRevenue"] = monthRevenue.Int64
+	}
 
 	c.JSON(http.StatusOK, stats)
 }
 
+func parsePagination(c *gin.Context) (page, limit, offset int) {
+	page = 1
+	limit = 50
+	if v, err := strconv.Atoi(c.Query("page")); err == nil && v > 0 {
+		page = v
+	}
+	if v, err := strconv.Atoi(c.Query("limit")); err == nil && v > 0 && v <= 200 {
+		limit = v
+	}
+	offset = (page - 1) * limit
+	return
+}
+
 func (h *Handler) GetUsers(c *gin.Context) {
+	page, limit, offset := parsePagination(c)
+
+	var total int
+	h.db.QueryRow(`SELECT COUNT(*) FROM users`).Scan(&total)
+
 	rows, err := h.db.Query(`
 		SELECT u.id, u.phone, u.plan, u.is_verified, u.created_at,
 			p.name, p.age, p.gender, p.location, p.budget_min, p.budget_max,
@@ -103,7 +179,8 @@ func (h *Handler) GetUsers(c *gin.Context) {
 		FROM users u
 		LEFT JOIN profiles p ON p.user_id = u.id
 		ORDER BY u.created_at DESC
-	`)
+		LIMIT $1 OFFSET $2
+	`, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch users"})
 		return
@@ -182,7 +259,7 @@ func (h *Handler) GetUsers(c *gin.Context) {
 		users = append(users, u)
 	}
 
-	c.JSON(http.StatusOK, users)
+	c.JSON(http.StatusOK, gin.H{"data": users, "total": total, "page": page, "limit": limit})
 }
 
 func (h *Handler) UpdateUser(c *gin.Context) {
@@ -224,6 +301,11 @@ func (h *Handler) DeleteUser(c *gin.Context) {
 }
 
 func (h *Handler) GetListings(c *gin.Context) {
+	page, limit, offset := parsePagination(c)
+
+	var total int
+	h.db.QueryRow(`SELECT COUNT(*) FROM listings`).Scan(&total)
+
 	rows, err := h.db.Query(`
 		SELECT l.id, l.user_id, l.title, l.description, l.rent, l.location,
 			l.property_type, l.available_from, l.created_at,
@@ -235,7 +317,8 @@ func (h *Handler) GetListings(c *gin.Context) {
 		FROM listings l
 		LEFT JOIN profiles p ON p.user_id = l.user_id
 		ORDER BY l.created_at DESC
-	`)
+		LIMIT $1 OFFSET $2
+	`, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch listings"})
 		return
@@ -285,7 +368,7 @@ func (h *Handler) GetListings(c *gin.Context) {
 		listings = append(listings, l)
 	}
 
-	c.JSON(http.StatusOK, listings)
+	c.JSON(http.StatusOK, gin.H{"data": listings, "total": total, "page": page, "limit": limit})
 }
 
 func (h *Handler) DeleteListing(c *gin.Context) {
@@ -298,6 +381,11 @@ func (h *Handler) DeleteListing(c *gin.Context) {
 }
 
 func (h *Handler) GetReviews(c *gin.Context) {
+	page, limit, offset := parsePagination(c)
+
+	var total int
+	h.db.QueryRow(`SELECT COUNT(*) FROM reviews`).Scan(&total)
+
 	rows, err := h.db.Query(`
 		SELECT r.id, r.reviewer_id, r.listing_id, r.rating, r.comment, r.created_at,
 			p1.name AS reviewer_name,
@@ -308,7 +396,8 @@ func (h *Handler) GetReviews(c *gin.Context) {
 		LEFT JOIN listings l ON l.id = r.listing_id
 		LEFT JOIN profiles p2 ON p2.user_id = l.user_id
 		ORDER BY r.created_at DESC
-	`)
+		LIMIT $1 OFFSET $2
+	`, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch reviews"})
 		return
@@ -352,7 +441,7 @@ func (h *Handler) GetReviews(c *gin.Context) {
 		reviews = append(reviews, r)
 	}
 
-	c.JSON(http.StatusOK, reviews)
+	c.JSON(http.StatusOK, gin.H{"data": reviews, "total": total, "page": page, "limit": limit})
 }
 
 func (h *Handler) DeleteReview(c *gin.Context) {
@@ -362,6 +451,11 @@ func (h *Handler) DeleteReview(c *gin.Context) {
 }
 
 func (h *Handler) GetMatches(c *gin.Context) {
+	page, limit, offset := parsePagination(c)
+
+	var total int
+	h.db.QueryRow(`SELECT COUNT(*) FROM matches`).Scan(&total)
+
 	rows, err := h.db.Query(`
 		SELECT m.id, m.user1_id, m.user2_id, m.listing_id, m.created_at,
 			p1.name, p2.name, l.title,
@@ -371,7 +465,8 @@ func (h *Handler) GetMatches(c *gin.Context) {
 		LEFT JOIN profiles p2 ON p2.user_id = m.user2_id
 		LEFT JOIN listings l ON l.id = m.listing_id
 		ORDER BY m.created_at DESC
-	`)
+		LIMIT $1 OFFSET $2
+	`, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch matches"})
 		return
@@ -412,10 +507,15 @@ func (h *Handler) GetMatches(c *gin.Context) {
 		matches = append(matches, m)
 	}
 
-	c.JSON(http.StatusOK, matches)
+	c.JSON(http.StatusOK, gin.H{"data": matches, "total": total, "page": page, "limit": limit})
 }
 
 func (h *Handler) GetInterests(c *gin.Context) {
+	page, limit, offset := parsePagination(c)
+
+	var total int
+	h.db.QueryRow(`SELECT COUNT(*) FROM interests`).Scan(&total)
+
 	rows, err := h.db.Query(`
 		SELECT i.id, i.sender_id, i.receiver_id, i.listing_id, i.status, i.created_at,
 			p1.name AS sender_name,
@@ -426,7 +526,8 @@ func (h *Handler) GetInterests(c *gin.Context) {
 		LEFT JOIN profiles p2 ON p2.user_id = i.receiver_id
 		LEFT JOIN listings l ON l.id = i.listing_id
 		ORDER BY i.created_at DESC
-	`)
+		LIMIT $1 OFFSET $2
+	`, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch interests"})
 		return
@@ -466,5 +567,293 @@ func (h *Handler) GetInterests(c *gin.Context) {
 		interests = append(interests, i)
 	}
 
-	c.JSON(http.StatusOK, interests)
+	c.JSON(http.StatusOK, gin.H{"data": interests, "total": total, "page": page, "limit": limit})
+}
+
+func (h *Handler) GetRevenue(c *gin.Context) {
+	from := c.Query("from")
+	to := c.Query("to")
+	interval := c.DefaultQuery("interval", "day")
+
+	truncMap := map[string]string{
+		"day":   "day",
+		"week":  "week",
+		"month": "month",
+		"year":  "year",
+	}
+	trunc, ok := truncMap[interval]
+	if !ok {
+		trunc = "day"
+	}
+
+	// Summary stats
+	summary := gin.H{}
+
+	// Total revenue all time
+	var totalRevenue sql.NullInt64
+	h.db.QueryRow(`SELECT COALESCE(SUM(amount), 0) FROM payments`).Scan(&totalRevenue)
+	summary["totalRevenue"] = totalRevenue.Int64
+
+	// Total payments count
+	var totalPayments int
+	h.db.QueryRow(`SELECT COUNT(*) FROM payments`).Scan(&totalPayments)
+	summary["totalPayments"] = totalPayments
+
+	// Revenue in selected range
+	var rangeRevenue sql.NullInt64
+	var rangePayments int
+	if from != "" && to != "" {
+		h.db.QueryRow(`SELECT COALESCE(SUM(amount), 0) FROM payments WHERE created_at >= $1::date AND created_at < ($2::date + INTERVAL '1 day')`, from, to).Scan(&rangeRevenue)
+		h.db.QueryRow(`SELECT COUNT(*) FROM payments WHERE created_at >= $1::date AND created_at < ($2::date + INTERVAL '1 day')`, from, to).Scan(&rangePayments)
+	} else {
+		rangeRevenue = totalRevenue
+		rangePayments = totalPayments
+	}
+	summary["rangeRevenue"] = rangeRevenue.Int64
+	summary["rangePayments"] = rangePayments
+
+	// Revenue by plan
+	planRows, _ := h.db.Query(`
+		SELECT plan, COUNT(*), COALESCE(SUM(amount), 0)
+		FROM payments
+		WHERE ($1::date IS NULL OR created_at >= $1::date)
+		  AND ($2::date IS NULL OR created_at < ($2::date + INTERVAL '1 day'))
+		GROUP BY plan ORDER BY plan
+	`, sqlNull(from), sqlNull(to))
+	var byPlan []map[string]interface{}
+	if planRows != nil {
+		defer planRows.Close()
+		for planRows.Next() {
+			var plan string
+			var cnt int
+			var amt int64
+			if planRows.Scan(&plan, &cnt, &amt) == nil {
+				byPlan = append(byPlan, map[string]interface{}{
+					"plan":   plan,
+					"count":  cnt,
+					"amount": amt,
+				})
+			}
+		}
+	}
+	summary["byPlan"] = byPlan
+
+	// Time series
+	query := `
+		SELECT DATE_TRUNC($1, created_at) AS period,
+			COUNT(*), COALESCE(SUM(amount), 0)
+		FROM payments
+		WHERE ($2::date IS NULL OR created_at >= $2::date)
+		  AND ($3::date IS NULL OR created_at < ($3::date + INTERVAL '1 day'))
+		GROUP BY period ORDER BY period
+	`
+	rows, _ := h.db.Query(query, trunc, sqlNull(from), sqlNull(to))
+	var timeSeries []map[string]interface{}
+	if rows != nil {
+		defer rows.Close()
+		for rows.Next() {
+			var period sql.NullTime
+			var cnt int
+			var amt int64
+			if rows.Scan(&period, &cnt, &amt) == nil {
+				entry := map[string]interface{}{
+					"count":  cnt,
+					"amount": amt,
+				}
+				if period.Valid {
+					entry["period"] = period.Time
+				}
+				timeSeries = append(timeSeries, entry)
+			}
+		}
+	}
+	summary["timeSeries"] = timeSeries
+
+	// Recent payments
+	recent, _ := h.db.Query(`
+		SELECT p.id, p.plan, p.amount, p.created_at, pr.name, u.phone
+		FROM payments p
+		JOIN users u ON u.id = p.user_id
+		LEFT JOIN profiles pr ON pr.user_id = p.user_id
+		ORDER BY p.created_at DESC LIMIT 50
+	`)
+	var recentPayments []map[string]interface{}
+	if recent != nil {
+		defer recent.Close()
+		for recent.Next() {
+			var id, plan, phone string
+			var amount int
+			var createdAt sql.NullTime
+			var name sql.NullString
+			if recent.Scan(&id, &plan, &amount, &createdAt, &name, &phone) == nil {
+				r := map[string]interface{}{
+					"id":     id,
+					"plan":   plan,
+					"amount": amount,
+					"phone":  phone,
+				}
+				if createdAt.Valid {
+					r["createdAt"] = createdAt.Time
+				}
+				if name.Valid {
+					r["name"] = name.String
+				}
+				recentPayments = append(recentPayments, r)
+			}
+		}
+	}
+	summary["recentPayments"] = recentPayments
+
+	c.JSON(http.StatusOK, summary)
+}
+
+func sqlNull(s string) interface{} {
+	if s == "" {
+		return nil
+	}
+	return s
+}
+
+func (h *Handler) GetAnalytics(c *gin.Context) {
+	from := c.Query("from")
+	to := c.Query("to")
+	days := c.DefaultQuery("days", "30")
+
+	// Build date filter: prefer from/to, fall back to days
+	dateFilter := "created_at > NOW() - ($1 || ' days')::INTERVAL"
+	dateArgs := []interface{}{days}
+	if from != "" {
+		dateFilter = "created_at >= $1::date"
+		dateArgs = []interface{}{from}
+		if to != "" {
+			dateFilter = "created_at >= $1::date AND created_at < ($2::date + INTERVAL '1 day')"
+			dateArgs = []interface{}{from, to}
+		}
+	}
+
+	result := gin.H{}
+
+	// helper to run time-series queries
+	queryTimeSeries := func(table string, extraCols string, scanFn func(*sql.Rows) map[string]interface{}) []map[string]interface{} {
+		q := "SELECT DATE_TRUNC('day', created_at)::date AS d" + extraCols + " FROM " + table + " WHERE " + dateFilter + " GROUP BY d ORDER BY d"
+		rows, _ := h.db.Query(q, dateArgs...)
+		var out []map[string]interface{}
+		if rows != nil {
+			defer rows.Close()
+			for rows.Next() {
+				if m := scanFn(rows); m != nil {
+					out = append(out, m)
+				}
+			}
+		}
+		return out
+	}
+
+	countScan := func(rows *sql.Rows) map[string]interface{} {
+		var d string
+		var cnt int
+		if rows.Scan(&d, &cnt) == nil {
+			return map[string]interface{}{"date": d, "count": cnt}
+		}
+		return nil
+	}
+
+	result["signupsByDay"] = queryTimeSeries("users", ", COUNT(*)", countScan)
+	result["listingsByDay"] = queryTimeSeries("listings", ", COUNT(*)", countScan)
+	result["matchesByDay"] = queryTimeSeries("matches", ", COUNT(*)", countScan)
+	result["messagesByDay"] = queryTimeSeries("messages", ", COUNT(*)", countScan)
+
+	result["revenueByDay"] = queryTimeSeries("payments", ", COUNT(*), COALESCE(SUM(amount), 0)", func(rows *sql.Rows) map[string]interface{} {
+		var d string
+		var cnt int
+		var amt int64
+		if rows.Scan(&d, &cnt, &amt) == nil {
+			return map[string]interface{}{"date": d, "count": cnt, "amount": amt}
+		}
+		return nil
+	})
+
+	// Conversion funnel
+	funnel := gin.H{}
+	var totalUsers, totalProfiles, totalListings, totalInterests, totalMatches int
+	h.db.QueryRow(`SELECT COUNT(*) FROM users`).Scan(&totalUsers)
+	h.db.QueryRow(`SELECT COUNT(*) FROM profiles`).Scan(&totalProfiles)
+	h.db.QueryRow(`SELECT COUNT(*) FROM listings`).Scan(&totalListings)
+	h.db.QueryRow(`SELECT COUNT(*) FROM interests`).Scan(&totalInterests)
+	h.db.QueryRow(`SELECT COUNT(*) FROM matches`).Scan(&totalMatches)
+	funnel["users"] = totalUsers
+	funnel["profiles"] = totalProfiles
+	funnel["listings"] = totalListings
+	funnel["interests"] = totalInterests
+	funnel["matches"] = totalMatches
+	result["funnel"] = funnel
+
+	// Plan distribution
+	planRows, _ := h.db.Query(`SELECT COALESCE(plan, 'free'), COUNT(*) FROM users GROUP BY plan ORDER BY plan`)
+	var planDist []map[string]interface{}
+	if planRows != nil {
+		defer planRows.Close()
+		for planRows.Next() {
+			var plan string
+			var cnt int
+			if planRows.Scan(&plan, &cnt) == nil {
+				planDist = append(planDist, map[string]interface{}{"plan": plan, "count": cnt})
+			}
+		}
+	}
+	result["planDistribution"] = planDist
+
+	// Interest status breakdown
+	intRows, _ := h.db.Query(`SELECT status, COUNT(*) FROM interests GROUP BY status ORDER BY status`)
+	var intDist []map[string]interface{}
+	if intRows != nil {
+		defer intRows.Close()
+		for intRows.Next() {
+			var status string
+			var cnt int
+			if intRows.Scan(&status, &cnt) == nil {
+				intDist = append(intDist, map[string]interface{}{"status": status, "count": cnt})
+			}
+		}
+	}
+	result["interestsByStatus"] = intDist
+
+	// Top locations
+	locRows, _ := h.db.Query(`
+		SELECT COALESCE(location, 'Unknown'), COUNT(*)
+		FROM listings
+		GROUP BY location ORDER BY COUNT(*) DESC LIMIT 10
+	`)
+	var topLocations []map[string]interface{}
+	if locRows != nil {
+		defer locRows.Close()
+		for locRows.Next() {
+			var loc string
+			var cnt int
+			if locRows.Scan(&loc, &cnt) == nil {
+				topLocations = append(topLocations, map[string]interface{}{"location": loc, "count": cnt})
+			}
+		}
+	}
+	result["topLocations"] = topLocations
+
+	// Avg rating
+	var avgRating sql.NullFloat64
+	h.db.QueryRow(`SELECT AVG(rating) FROM reviews`).Scan(&avgRating)
+	if avgRating.Valid {
+		result["avgRating"] = avgRating.Float64
+	} else {
+		result["avgRating"] = 0
+	}
+
+	// Engagement: avg messages per match
+	var avgMessages sql.NullFloat64
+	h.db.QueryRow(`SELECT AVG(cnt) FROM (SELECT COUNT(*) AS cnt FROM messages GROUP BY match_id) sub`).Scan(&avgMessages)
+	if avgMessages.Valid {
+		result["avgMessagesPerMatch"] = avgMessages.Float64
+	} else {
+		result["avgMessagesPerMatch"] = 0
+	}
+
+	c.JSON(http.StatusOK, result)
 }

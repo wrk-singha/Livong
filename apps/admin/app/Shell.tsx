@@ -6,6 +6,8 @@ import { admin } from "./lib/api";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: "◈" },
+  { href: "/analytics", label: "Analytics", icon: "◊" },
+  { href: "/revenue", label: "Revenue", icon: "₹" },
   { href: "/users", label: "Users", icon: "◉" },
   { href: "/listings", label: "Listings", icon: "⊞" },
   { href: "/reviews", label: "Reviews", icon: "★" },

@@ -208,10 +208,7 @@ async function backendStart() {
     return;
   }
 
-  const cmd =
-    PLATFORM === "win32"
-      ? `go run cmd\\server\\main.go`
-      : `go run cmd/server/main.go`;
+  const cmd = `go run main.go`;
 
   openTerminal("Livong Backend", cmd, BACKEND_DIR, {
     PORT: BACKEND_PORT,
@@ -268,10 +265,7 @@ async function adminBackendStart() {
     return;
   }
 
-  const cmd =
-    PLATFORM === "win32"
-      ? `go run cmd\\server\\main.go`
-      : `go run cmd/server/main.go`;
+  const cmd = `go run main.go`;
 
   openTerminal("Livong Admin Backend", cmd, ADMIN_BACKEND_DIR, {
     PORT: ADMIN_BACKEND_PORT,

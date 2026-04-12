@@ -6,11 +6,13 @@ A roommate and shared-living platform. Find compatible people, discover rooms, c
 
 ```
 apps/
-  backend/    Go API (Gin + PostgreSQL)
-  web/        Next.js frontend (TypeScript + Tailwind CSS v4)
+  backend/         Go API (Gin + PostgreSQL, :8080)
+  admin-backend/   Admin API (Go, independent module, :8081)
+  web/             Next.js frontend (TypeScript + Tailwind CSS v4, :3000)
+  admin/           Admin panel (Next.js, :3100)
 
-docs/         Documentation (PRD, Architecture, API, DB Schema)
-cli.mjs       Cross-platform dev CLI
+docs/              Documentation (PRD, Architecture, API, DB Schema)
+cli.mjs            Cross-platform dev CLI
 ```
 
 ## Getting Started
@@ -49,7 +51,7 @@ Or run commands directly:
 cd apps/backend
 DATABASE_URL="postgres://user@localhost:5432/livong?sslmode=disable" \
 JWT_SECRET="your-secret" \
-go run cmd/server/main.go
+go run main.go
 ```
 
 **Frontend:**
@@ -72,13 +74,17 @@ pnpm dev
 ## CLI Commands
 
 ```bash
-./livong server:start     # Start Go backend
-./livong server:stop      # Stop backend
-./livong web:dev          # Start Next.js dev server
-./livong web:stop         # Stop frontend
-./livong web:build        # Production build
-./livong web:clean        # Clear .next cache
-./livong web:install      # Install pnpm dependencies
+./livong server:start         # Start Go backend (:8080)
+./livong server:stop          # Stop backend
+./livong admin-server:start   # Start admin backend (:8081)
+./livong admin-server:stop    # Stop admin backend
+./livong web:dev              # Start Next.js dev server (:3000)
+./livong web:stop             # Stop frontend
+./livong web:build            # Production build
+./livong web:clean            # Clear .next cache
+./livong web:install          # Install pnpm dependencies
+./livong admin:dev            # Start admin panel (:3100)
+./livong admin:stop           # Stop admin panel
 ```
 
 ## Tech Stack

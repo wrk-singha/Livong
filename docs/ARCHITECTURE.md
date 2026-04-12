@@ -17,8 +17,8 @@ Frontend (Next.js)  →  REST API (Go/Gin)  →  PostgreSQL
 ```
 Livong/
 ├── apps/
-│   ├── backend/              # Go API server
-│   │   ├── cmd/server/       # Entry point (main.go)
+│   ├── backend/              # Go API server (:8080)
+│   │   ├── main.go           # Entry point
 │   │   ├── internal/
 │   │   │   ├── auth/         # Login, OTP, JWT
 │   │   │   ├── user/         # Profile CRUD
@@ -26,12 +26,23 @@ Livong/
 │   │   │   ├── interest/     # Send/accept/reject interests
 │   │   │   ├── match/        # Auto-created on accept
 │   │   │   ├── chat/         # Messages + contact sharing
+│   │   │   ├── review/       # Listing reviews
+│   │   │   ├── plan/         # Subscription plans
 │   │   │   ├── database/     # Connection + inline migrations
 │   │   │   └── middleware/    # JWT auth middleware
-│   │   ├── migrations/       # (empty — migrations run inline)
 │   │   ├── go.mod
 │   │   └── go.sum
-│   └── web/                  # Next.js frontend
+│   ├── admin-backend/        # Admin API server (:8081, independent Go module)
+│   │   ├── main.go           # Entry point
+│   │   ├── internal/
+│   │   │   ├── admin/        # Admin endpoints (stats, CRUD, revenue, analytics)
+│   │   │   ├── auth/         # Login, OTP, JWT (own copy)
+│   │   │   ├── database/     # Connection + migrations (own copy)
+│   │   │   └── middleware/    # JWT auth + CORS (own copy)
+│   │   ├── go.mod
+│   │   └── go.sum
+│   ├── admin/                # Admin panel (Next.js, :3100)
+│   └── web/                  # Next.js frontend (:3000)
 │       └── src/
 │           ├── app/          # Pages (App Router)
 │           │   ├── page.tsx          # Landing
@@ -155,4 +166,3 @@ These are documented in the PRD as future work but have no code:
 - AI facilities agent
 - Smart matching / compatibility scoring
 - WebSocket real-time chat
-- Reviews & ratings

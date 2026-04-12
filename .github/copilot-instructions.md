@@ -5,9 +5,11 @@ Livong is a roommate/shared-living platform. Go backend + Next.js frontend + Pos
 ## Architecture
 
 ```
-apps/backend/   → Go API (Gin, raw SQL, JWT auth)
-apps/web/       → Next.js 16 frontend (React 19, TypeScript, Tailwind v4, App Router)
-docs/           → PRD, Architecture, API, DB Schema
+apps/backend/        → Go API (Gin, raw SQL, JWT auth, :8080)
+apps/admin-backend/  → Admin API (Go, independent module, :8081)
+apps/web/            → Next.js 16 frontend (React 19, TypeScript, Tailwind v4, App Router, :3000)
+apps/admin/          → Admin panel (Next.js, :3100)
+docs/                → PRD, Architecture, API, DB Schema
 ```
 
 Do not create new top-level directories. Do not add ORMs, UI component libraries (shadcn, Chakra, etc.), or state management libraries (Redux, Zustand). This project uses raw SQL, raw Tailwind, and React Context.
@@ -144,7 +146,7 @@ func (h *Handler) Create(c *gin.Context) {
 
 - One handler file per feature: `internal/{feature}/handler.go`
 - Handler struct holds `*sql.DB`, created via `NewHandler(db)`
-- Register routes in `cmd/server/main.go` — public vs protected groups
+- Register routes in `main.go` — public vs protected groups
 - Use `c.ShouldBindJSON()` for request parsing with inline structs
 - Use `gin.H{}` for all JSON responses
 - Raw SQL with parameterized queries (`$1`, `$2`) — no ORM

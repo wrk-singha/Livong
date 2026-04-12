@@ -65,7 +65,7 @@ Colors are centralized in `apps/web/src/app/globals.css` as CSS variables. Compo
 - DB columns: `snake_case`. JSON: `camelCase`
 - Tables: plural, UUID PKs, `CURRENT_TIMESTAMP`
 - Migrations: append to `internal/database/migrations.go`, `CREATE TABLE IF NOT EXISTS`
-- Routes: register in `cmd/server/main.go`, public vs protected groups
+- Routes: register in `main.go`, public vs protected groups
 
 ## Code Style
 

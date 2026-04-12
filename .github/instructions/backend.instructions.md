@@ -9,7 +9,7 @@ applyTo: "apps/backend/**"
 
 | What | Where |
 |------|-------|
-| Entry point | `cmd/server/main.go` |
+| Entry point | `main.go` |
 | Feature handlers | `internal/{feature}/handler.go` |
 | Database connection | `internal/database/db.go` |
 | Migrations | `internal/database/migrations.go` |
@@ -76,7 +76,7 @@ func (h *Handler) Create(c *gin.Context) {
 
 ## Routes
 
-Register in `cmd/server/main.go`:
+Register in `main.go`:
 
 ```go
 // Public

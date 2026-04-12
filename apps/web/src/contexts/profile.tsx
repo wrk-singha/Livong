@@ -9,9 +9,8 @@ export type Profile = {
   name: string;
   age: number;
   gender: string;
-  budgetMin: number;
-  budgetMax: number;
   location: string;
+  avatar?: string;
   smoking?: string;
   drinking?: string;
   cleanliness?: string;

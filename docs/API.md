@@ -56,8 +56,6 @@ Response:
   "name": "Rohit",
   "age": 25,
   "gender": "male",
-  "budgetMin": 10000,
-  "budgetMax": 20000,
   "location": "Bangalore",
   "smoking": "no",
   "drinking": "occasionally",
@@ -78,8 +76,6 @@ Request:
   "name": "Rohit",
   "age": 25,
   "gender": "male",
-  "budgetMin": 10000,
-  "budgetMax": 20000,
   "location": "Bangalore"
 }
 ```

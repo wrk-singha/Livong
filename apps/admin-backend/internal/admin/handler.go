@@ -170,7 +170,7 @@ func (h *Handler) GetUsers(c *gin.Context) {
 
 	rows, err := h.db.Query(`
 		SELECT u.id, u.phone, u.plan, u.is_verified, u.created_at,
-			p.name, p.age, p.gender, p.location, p.budget_min, p.budget_max,
+			p.name, p.age, p.gender, p.location,
 			p.smoking, p.drinking, p.cleanliness, p.sleep_schedule, p.work_schedule,
 			p.pets, p.food_preference,
 			(SELECT COUNT(*) FROM listings WHERE user_id = u.id),
@@ -193,12 +193,12 @@ func (h *Handler) GetUsers(c *gin.Context) {
 		var verified bool
 		var createdAt sql.NullTime
 		var name, gender, location sql.NullString
-		var age, budgetMin, budgetMax sql.NullInt64
+		var age sql.NullInt64
 		var smoking, drinking, cleanliness, sleepSchedule, workSchedule, pets, foodPref sql.NullString
 		var listingCount, interestCount, matchCount int
 
 		if err := rows.Scan(&id, &phone, &plan, &verified, &createdAt,
-			&name, &age, &gender, &location, &budgetMin, &budgetMax,
+			&name, &age, &gender, &location,
 			&smoking, &drinking, &cleanliness, &sleepSchedule, &workSchedule,
 			&pets, &foodPref,
 			&listingCount, &interestCount, &matchCount); err != nil {
@@ -228,12 +228,6 @@ func (h *Handler) GetUsers(c *gin.Context) {
 		}
 		if location.Valid {
 			u["location"] = location.String
-		}
-		if budgetMin.Valid {
-			u["budgetMin"] = budgetMin.Int64
-		}
-		if budgetMax.Valid {
-			u["budgetMax"] = budgetMax.Int64
 		}
 		if smoking.Valid {
 			u["smoking"] = smoking.String

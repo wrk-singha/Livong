@@ -129,9 +129,8 @@ export const api = {
       name: string;
       age: number;
       gender: string;
-      budgetMin: number;
-      budgetMax: number;
       location: string;
+      avatar?: string;
       smoking?: string;
       drinking?: string;
       cleanliness?: string;
@@ -145,8 +144,6 @@ export const api = {
     name: string;
     age: number;
     gender: string;
-    budgetMin: number;
-    budgetMax: number;
     location: string;
   }) =>
     request<{ id: string }>("/profile", {
@@ -159,6 +156,16 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
+
+  uploadAvatar: (file: File) => {
+    const formData = new FormData();
+    formData.append("avatar", file);
+    return request<{ avatar: string }>("/profile/avatar", {
+      method: "POST",
+      body: formData,
+      headers: {},
+    });
+  },
 
   // Listings
   getListings: (params?: {

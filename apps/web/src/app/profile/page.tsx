@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { api, imageUrl } from "@/lib/api";
 import { useAuth } from "@/contexts/auth";
 import { useProfile, type Profile } from "@/contexts/profile";
 import { Input, Select, Alert, Button } from "@/components/ui";
@@ -49,9 +49,11 @@ export default function ProfilePage() {
   const [message, setMessage] = useState("");
   const pendingRef = useRef<Record<string, string>>({});
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [setupForm, setSetupForm] = useState({ name: "", age: "", gender: "", budgetMin: "", budgetMax: "", location: "" });
+  const [setupForm, setSetupForm] = useState({ name: "", age: "", gender: "", location: "" });
   const [setupError, setSetupError] = useState("");
   const [setupLoading, setSetupLoading] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
 
   const saveMutation = useMutation({
     mutationFn: (batch: Record<string, string>) => api.updateProfile(batch),
@@ -77,6 +79,22 @@ export default function ProfilePage() {
     }, 800);
   };
 
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !profile) return;
+    setAvatarUploading(true);
+    try {
+      const res = await api.uploadAvatar(file);
+      setProfile({ ...profile, avatar: res.avatar });
+    } catch {
+      setMessage("Failed to upload photo");
+      setTimeout(() => setMessage(""), 2000);
+    } finally {
+      setAvatarUploading(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = "";
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -92,7 +110,7 @@ export default function ProfilePage() {
     const handleCreate = async (e: React.FormEvent) => {
       e.preventDefault();
       setSetupError("");
-      if (!setupForm.name || !setupForm.age || !setupForm.gender || !setupForm.budgetMin || !setupForm.budgetMax || !setupForm.location) {
+      if (!setupForm.name || !setupForm.age || !setupForm.gender || !setupForm.location) {
         setSetupError("All fields are required");
         return;
       }
@@ -102,8 +120,6 @@ export default function ProfilePage() {
           name: setupForm.name,
           age: parseInt(setupForm.age),
           gender: setupForm.gender,
-          budgetMin: parseInt(setupForm.budgetMin),
-          budgetMax: parseInt(setupForm.budgetMax),
           location: setupForm.location,
         });
         const full = await api.getProfile();
@@ -156,23 +172,6 @@ export default function ProfilePage() {
               onChange={(e) => updateField("location", e.target.value)}
               placeholder="e.g. HSR Layout, Bangalore"
             />
-            <div>
-              <label className="block text-xs font-medium text-muted mb-1.5">Budget Range (₹/month)</label>
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  type="number"
-                  value={setupForm.budgetMin}
-                  onChange={(e) => updateField("budgetMin", e.target.value)}
-                  placeholder="Min ₹8,000"
-                />
-                <Input
-                  type="number"
-                  value={setupForm.budgetMax}
-                  onChange={(e) => updateField("budgetMax", e.target.value)}
-                  placeholder="Max ₹15,000"
-                />
-              </div>
-            </div>
 
             {setupError && <Alert>{setupError}</Alert>}
 
@@ -201,9 +200,40 @@ export default function ProfilePage() {
         {/* Profile Card */}
         <div className="card p-5 mb-5">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-xl flex items-center justify-center text-xl font-semibold text-white shrink-0" style={{background: 'linear-gradient(135deg, var(--accent), var(--accent-secondary))'}}>
-              {profile.name.charAt(0).toUpperCase()}
-            </div>
+            <button
+              onClick={() => avatarInputRef.current?.click()}
+              className="relative w-14 h-14 rounded-xl shrink-0 overflow-hidden group"
+              disabled={avatarUploading}
+            >
+              {profile.avatar ? (
+                <img
+                  src={imageUrl(profile.avatar)}
+                  alt={profile.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-xl font-semibold text-white" style={{background: 'linear-gradient(135deg, var(--accent), var(--accent-secondary))'}}>
+                  {profile.name.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                {avatarUploading ? (
+                  <div className="w-5 h-5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                    <circle cx="12" cy="13" r="4" />
+                  </svg>
+                )}
+              </div>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
+            </button>
             <div>
               <h2 className="font-semibold text-lg text-foreground">{profile.name}</h2>
               <p className="text-sm text-dim">
@@ -211,14 +241,8 @@ export default function ProfilePage() {
               </p>
             </div>
           </div>
-          <div className="mt-4 flex items-center gap-2">
-            <div className="flex-1 bg-surface-alt rounded-lg px-3 py-2.5 text-center border border-border-light">
-              <p className="text-[10px] text-dim uppercase font-medium tracking-wider">Budget</p>
-              <p className="text-sm font-semibold text-foreground">
-                ₹{profile.budgetMin?.toLocaleString()} – ₹{profile.budgetMax?.toLocaleString()}
-              </p>
-            </div>
-            <div className="flex-1 bg-surface-alt rounded-lg px-3 py-2.5 text-center border border-border-light">
+          <div className="mt-4">
+            <div className="bg-surface-alt rounded-lg px-3 py-2.5 text-center border border-border-light">
               <p className="text-[10px] text-dim uppercase font-medium tracking-wider">Location</p>
               <p className="text-sm font-semibold text-foreground">{profile.location}</p>
             </div>

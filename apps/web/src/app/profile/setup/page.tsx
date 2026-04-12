@@ -19,8 +19,6 @@ export default function ProfileSetupPage() {
     name: "",
     age: "",
     gender: "",
-    budgetMin: "",
-    budgetMax: "",
     location: "",
   });
 
@@ -31,7 +29,7 @@ export default function ProfileSetupPage() {
     e.preventDefault();
     setError("");
 
-    if (!form.name || !form.age || !form.gender || !form.budgetMin || !form.budgetMax || !form.location) {
+    if (!form.name || !form.age || !form.gender || !form.location) {
       setError("All fields are required");
       return;
     }
@@ -42,8 +40,6 @@ export default function ProfileSetupPage() {
         name: form.name,
         age: parseInt(form.age),
         gender: form.gender,
-        budgetMin: parseInt(form.budgetMin),
-        budgetMax: parseInt(form.budgetMax),
         location: form.location,
       });
       router.push("/explore");
@@ -106,26 +102,6 @@ export default function ProfileSetupPage() {
             onChange={(e) => update("location", e.target.value)}
             placeholder="e.g. HSR Layout, Bangalore"
           />
-
-          <div>
-            <label className="block text-xs font-medium text-muted mb-1.5">
-              Budget Range (₹/month)
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <Input
-                type="number"
-                value={form.budgetMin}
-                onChange={(e) => update("budgetMin", e.target.value)}
-                placeholder="Min ₹8,000"
-              />
-              <Input
-                type="number"
-                value={form.budgetMax}
-                onChange={(e) => update("budgetMax", e.target.value)}
-                placeholder="Max ₹15,000"
-              />
-            </div>
-          </div>
 
           {error && <Alert>{error}</Alert>}
 

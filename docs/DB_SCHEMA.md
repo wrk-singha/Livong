@@ -27,8 +27,6 @@ CREATE TABLE profiles (
     name VARCHAR(100),
     age INT,
     gender VARCHAR(10),
-    budget_min INT,
-    budget_max INT,
     location TEXT,
     smoking VARCHAR(20),
     drinking VARCHAR(20),

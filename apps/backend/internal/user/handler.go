@@ -1,8 +1,13 @@
 package user
 
 import (
+	"crypto/rand"
 	"database/sql"
+	"encoding/hex"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,9 +28,8 @@ func (h *Handler) GetProfile(c *gin.Context) {
 		Name          *string `json:"name"`
 		Age           *int    `json:"age"`
 		Gender        *string `json:"gender"`
-		BudgetMin     *int    `json:"budgetMin"`
-		BudgetMax     *int    `json:"budgetMax"`
 		Location      *string `json:"location"`
+		Avatar        *string `json:"avatar"`
 		Smoking       *string `json:"smoking"`
 		Drinking      *string `json:"drinking"`
 		Cleanliness   *string `json:"cleanliness"`
@@ -36,12 +40,12 @@ func (h *Handler) GetProfile(c *gin.Context) {
 	}
 
 	err := h.db.QueryRow(`
-		SELECT id, name, age, gender, budget_min, budget_max, location,
+		SELECT id, name, age, gender, location, avatar,
 			smoking, drinking, cleanliness, sleep_schedule, work_schedule, pets, food_preference
 		FROM profiles WHERE user_id = $1
 	`, userID).Scan(
 		&profile.ID, &profile.Name, &profile.Age, &profile.Gender,
-		&profile.BudgetMin, &profile.BudgetMax, &profile.Location,
+		&profile.Location, &profile.Avatar,
 		&profile.Smoking, &profile.Drinking, &profile.Cleanliness,
 		&profile.SleepSchedule, &profile.WorkSchedule, &profile.Pets, &profile.FoodPref,
 	)
@@ -65,8 +69,6 @@ func (h *Handler) CreateProfile(c *gin.Context) {
 		Name      string `json:"name" binding:"required"`
 		Age       int    `json:"age" binding:"required"`
 		Gender    string `json:"gender" binding:"required"`
-		BudgetMin int    `json:"budgetMin" binding:"required"`
-		BudgetMax int    `json:"budgetMax" binding:"required"`
 		Location  string `json:"location" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -76,10 +78,10 @@ func (h *Handler) CreateProfile(c *gin.Context) {
 
 	var id string
 	err := h.db.QueryRow(`
-		INSERT INTO profiles (user_id, name, age, gender, budget_min, budget_max, location)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		INSERT INTO profiles (user_id, name, age, gender, location)
+		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id
-	`, userID, req.Name, req.Age, req.Gender, req.BudgetMin, req.BudgetMax, req.Location).Scan(&id)
+	`, userID, req.Name, req.Age, req.Gender, req.Location).Scan(&id)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create profile"})
@@ -108,8 +110,6 @@ func (h *Handler) UpdateProfile(c *gin.Context) {
 		"pets":          "pets",
 		"foodPreference": "food_preference",
 		"name":          "name",
-		"budgetMin":     "budget_min",
-		"budgetMax":     "budget_max",
 		"location":      "location",
 	}
 
@@ -126,4 +126,62 @@ func (h *Handler) UpdateProfile(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "profile updated"})
+}
+
+var avatarExts = map[string]bool{
+	".jpg": true, ".jpeg": true, ".png": true, ".webp": true,
+}
+
+func (h *Handler) UploadAvatar(c *gin.Context) {
+	userID := c.GetString("userId")
+
+	file, err := c.FormFile("avatar")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "no file provided"})
+		return
+	}
+
+	if file.Size > 5*1024*1024 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "file too large (max 5MB)"})
+		return
+	}
+
+	ext := strings.ToLower(filepath.Ext(file.Filename))
+	if !avatarExts[ext] {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "only jpg, png, webp allowed"})
+		return
+	}
+
+	uploadDir := filepath.Join("uploads", "avatars")
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create upload directory"})
+		return
+	}
+
+	// Delete old avatar file if exists
+	var oldAvatar sql.NullString
+	h.db.QueryRow(`SELECT avatar FROM profiles WHERE user_id = $1`, userID).Scan(&oldAvatar)
+	if oldAvatar.Valid && oldAvatar.String != "" {
+		os.Remove(filepath.Join("uploads", oldAvatar.String))
+	}
+
+	b := make([]byte, 16)
+	rand.Read(b)
+	filename := hex.EncodeToString(b) + ext
+	relPath := filepath.Join("avatars", filename)
+	fullPath := filepath.Join("uploads", relPath)
+
+	if err := c.SaveUploadedFile(file, fullPath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save file"})
+		return
+	}
+
+	_, err = h.db.Exec(`UPDATE profiles SET avatar = $1 WHERE user_id = $2`, relPath, userID)
+	if err != nil {
+		os.Remove(fullPath)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update avatar"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"avatar": "/uploads/" + relPath})
 }

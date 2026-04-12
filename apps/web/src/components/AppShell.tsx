@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth";
 import { useTheme } from "@/contexts/theme";
 
@@ -77,13 +78,23 @@ const navItems = [
   { href: "/profile", label: "Profile", Icon: ProfileIcon },
 ];
 
+const PUBLIC_PATHS = ["/", "/login"];
+
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { isAuthenticated, hydrated, logout } = useAuth();
   const { theme, toggle } = useTheme();
 
   const showNav = hydrated && isAuthenticated;
   const isChat = pathname.startsWith("/chat/");
+  const needsRedirect = hydrated && !isAuthenticated && !PUBLIC_PATHS.includes(pathname);
+
+  useEffect(() => {
+    if (needsRedirect) router.replace("/");
+  }, [needsRedirect, router]);
+
+  if (!hydrated || needsRedirect) return null;
 
   return (
     <>

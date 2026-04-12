@@ -53,6 +53,7 @@ func main() {
 		protected.GET("/profile", profileHandler.GetProfile)
 		protected.POST("/profile", profileHandler.CreateProfile)
 		protected.PATCH("/profile", profileHandler.UpdateProfile)
+		protected.POST("/profile/avatar", profileHandler.UploadAvatar)
 
 		// Listings
 		listingHandler := listing.NewHandler(db)

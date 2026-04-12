@@ -71,7 +71,7 @@ export default function MatchesPage() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 stagger">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
             {matches.map((match, i) => (
               <Link
                 key={match.matchId}

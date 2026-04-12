@@ -80,7 +80,7 @@ export default function ExplorePage() {
         {showFilters && (
           <form
             onSubmit={handleSearch}
-            className="card p-4 mb-4 space-y-3 animate-fade-in-up md:flex md:items-end md:gap-3 md:space-y-0"
+            className="card p-4 mb-4 space-y-3 md:flex md:items-end md:gap-3 md:space-y-0"
           >
             <div className="relative">
               <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-faint" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -164,7 +164,7 @@ export default function ExplorePage() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 stagger">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {listings.map((listing) => (
               <Link
                 key={listing.id}

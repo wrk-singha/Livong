@@ -147,7 +147,7 @@ export default function ProfilePage() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 stagger">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
           {Object.entries(PREF_OPTIONS).map(([key, options]) => (
             <div key={key} className="card p-4">
               <div className="flex items-center gap-2 mb-2.5">

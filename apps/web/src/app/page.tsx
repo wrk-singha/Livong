@@ -165,7 +165,7 @@ export default function Home() {
               </Link>
               <button
                 type="button"
-                onClick={() => document.getElementById("how-it-works")?.scrollIntoView()}
+                onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}
                 className="inline-flex items-center gap-1.5 px-6 py-3.5 rounded-xl text-sm font-medium text-secondary hover:text-foreground transition-colors cursor-pointer"
               >
                 See how it works

@@ -143,7 +143,7 @@ body {
   color: var(--background);
   border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .btn-primary:hover {
   background: var(--primary-hover);
@@ -167,7 +167,7 @@ body {
   color: #ffffff;
   border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .btn-accent:hover {
   transform: translateY(-1px);
@@ -205,7 +205,7 @@ body {
   border-radius: 8px;
   font-size: 14px;
   outline: none;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   background: var(--surface);
   color: var(--foreground);
 }

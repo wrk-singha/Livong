@@ -142,7 +142,7 @@ export default function Home() {
           <div className="animate-fade-in-up">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-accent-surface border border-accent/20 rounded-full mb-6">
               <span className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse-dot" />
-              <span className="text-xs font-medium text-accent">For working professionals in India</span>
+              <span className="text-xs font-medium text-accent">Free roommate matching platform</span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-bold leading-[1.1] tracking-tight mb-5">
@@ -420,8 +420,8 @@ export default function Home() {
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 stagger">
             {[
-              { emoji: "💼", title: "Working professionals", desc: "Ages 22–35, moving to or within cities for work" },
-              { emoji: "🚀", title: "City newcomers", desc: "Relocating to Bangalore or other metros and need a trusted start" },
+              { emoji: "🎓", title: "Students & fresh grads", desc: "Moving to a new city for college or your first job" },
+              { emoji: "🚀", title: "City newcomers", desc: "Relocating to a new metro and need a place fast" },
               { emoji: "🏠", title: "Room/flat owners", desc: "Have a spare room or flat? List it and find a compatible tenant" },
             ].map((t) => (
               <div key={t.title} className="card p-6 text-center hover:border-accent/20">

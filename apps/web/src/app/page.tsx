@@ -166,15 +166,15 @@ export default function Home() {
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </Link>
-              <a
-                href="#how-it-works"
-                className="inline-flex items-center gap-1.5 px-6 py-3.5 rounded-xl text-sm font-medium text-secondary hover:text-foreground transition-colors"
+              <button
+                onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}
+                className="inline-flex items-center gap-1.5 px-6 py-3.5 rounded-xl text-sm font-medium text-secondary hover:text-foreground transition-colors cursor-pointer"
               >
                 See how it works
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M6 9l6 6 6-6" />
                 </svg>
-              </a>
+              </button>
             </div>
 
             {/* Stats */}

@@ -100,7 +100,7 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
+      <header className="sticky top-0 z-50 bg-background border-b border-border">
         <div className="px-6 lg:px-12 py-4 flex items-center justify-between max-w-6xl mx-auto w-full">
           <h2 className="text-lg font-semibold text-foreground tracking-tight">Livong</h2>
           <div className="flex items-center gap-2">
@@ -132,10 +132,6 @@ export default function Home() {
 
       {/* Hero — Split layout */}
       <section className="relative px-6 lg:px-12 pt-16 pb-20 lg:pt-24 lg:pb-32 max-w-6xl mx-auto w-full">
-        <div className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute -top-24 left-1/4 w-[700px] h-[700px] rounded-full bg-accent/6 blur-[140px]" />
-          <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] rounded-full bg-accent-secondary/6 blur-[120px]" />
-        </div>
 
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left: Copy */}
@@ -159,6 +155,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row items-start gap-3">
               <Link
                 href="/login"
+                prefetch={true}
                 className="btn-accent inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-medium"
               >
                 Get Started — it&apos;s free
@@ -167,7 +164,8 @@ export default function Home() {
                 </svg>
               </Link>
               <button
-                onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}
+                type="button"
+                onClick={() => document.getElementById("how-it-works")?.scrollIntoView()}
                 className="inline-flex items-center gap-1.5 px-6 py-3.5 rounded-xl text-sm font-medium text-secondary hover:text-foreground transition-colors cursor-pointer"
               >
                 See how it works
@@ -195,14 +193,10 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Right: Floating app preview cards */}
-          <div className="relative hidden lg:flex items-center justify-center min-h-[480px]">
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-72 h-72 rounded-full bg-accent/10 blur-[80px]" />
-            </div>
-
+          {/* Right: Floating app preview cards — contained so animations don't trigger page-wide repaints */}
+          <div className="relative hidden lg:flex items-center justify-center min-h-[480px]" style={{ contain: 'layout paint style' }}>
             {/* Listing card */}
-            <div className="absolute top-4 left-4 w-64 bg-surface/80 backdrop-blur-xl rounded-2xl p-5 float-slow shadow-xl border border-border/50 z-10">
+            <div className="absolute top-4 left-4 w-64 bg-surface rounded-2xl p-5 float-slow shadow-lg border border-border z-10">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-sm font-bold">R</div>
                 <div>
@@ -224,7 +218,7 @@ export default function Home() {
             </div>
 
             {/* Match notification */}
-            <div className="absolute top-0 right-4 w-52 bg-surface/80 backdrop-blur-xl rounded-2xl p-4 float-slow-reverse shadow-xl border border-border/50 z-20">
+            <div className="absolute top-0 right-4 w-52 bg-surface rounded-2xl p-4 float-slow-reverse shadow-lg border border-border z-20">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-semibold text-accent">New Match!</span>
                 <span className="w-2 h-2 bg-accent rounded-full animate-pulse-dot" />
@@ -239,7 +233,7 @@ export default function Home() {
             </div>
 
             {/* Chat preview */}
-            <div className="absolute bottom-12 right-0 w-56 bg-surface/80 backdrop-blur-xl rounded-2xl p-4 float-slow shadow-xl border border-border/50 z-10">
+            <div className="absolute bottom-12 right-0 w-56 bg-surface rounded-2xl p-4 float-slow shadow-lg border border-border z-10">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white text-[10px] font-bold">A</div>
                 <span className="text-xs font-semibold text-foreground">Ankit</span>
@@ -255,7 +249,7 @@ export default function Home() {
             </div>
 
             {/* Lifestyle pill */}
-            <div className="absolute bottom-0 left-8 bg-surface/80 backdrop-blur-xl rounded-xl px-4 py-3 float-slow-reverse shadow-lg border border-border/50 z-10">
+            <div className="absolute bottom-0 left-8 bg-surface rounded-xl px-4 py-3 float-slow-reverse shadow-md border border-border z-10">
               <div className="flex items-center gap-2.5">
                 <span className="text-lg">🌙</span>
                 <div>
@@ -269,17 +263,17 @@ export default function Home() {
 
         {/* Mobile preview strip */}
         <div className="lg:hidden mt-12 grid grid-cols-3 gap-3 stagger">
-          <div className="bg-surface/80 backdrop-blur-xl rounded-xl p-3 border border-border/50 text-center">
+          <div className="bg-surface rounded-xl p-3 border border-border text-center">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-xs font-bold mx-auto mb-2">R</div>
             <p className="text-xs font-medium text-foreground">Browse listings</p>
             <p className="text-[10px] text-dim">With filters</p>
           </div>
-          <div className="bg-surface/80 backdrop-blur-xl rounded-xl p-3 border border-border/50 text-center">
+          <div className="bg-surface rounded-xl p-3 border border-border text-center">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold mx-auto mb-2">P</div>
             <p className="text-xs font-medium text-foreground">Get matched</p>
             <p className="text-[10px] text-dim">92% compatible</p>
           </div>
-          <div className="bg-surface/80 backdrop-blur-xl rounded-xl p-3 border border-border/50 text-center">
+          <div className="bg-surface rounded-xl p-3 border border-border text-center">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white text-xs font-bold mx-auto mb-2">A</div>
             <p className="text-xs font-medium text-foreground">Chat in-app</p>
             <p className="text-[10px] text-dim">Secure & private</p>
@@ -288,10 +282,7 @@ export default function Home() {
       </section>
 
       {/* Problem — Before / After comparison */}
-      <section className="px-6 lg:px-12 py-16 lg:py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-bl from-accent/6 via-transparent to-accent-secondary/6" />
-        <div className="absolute inset-0 dot-grid" />
-        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full bg-accent-secondary/8 blur-[120px] pointer-events-none" />
+      <section className="px-6 lg:px-12 py-16 lg:py-20 relative bg-surface-alt/50">
         <div className="max-w-5xl mx-auto relative">
           <div className="text-center mb-12">
             <h2 className="text-2xl lg:text-3xl font-bold text-foreground mb-3">
@@ -341,9 +332,7 @@ export default function Home() {
       </section>
 
       {/* Features */}
-      <section className="px-6 lg:px-12 py-16 lg:py-20 section-glow relative overflow-hidden">
-        <div className="absolute -top-20 -right-32 w-72 h-72 rounded-full bg-accent/6 blur-[80px] pointer-events-none" />
-        <div className="absolute -bottom-20 -left-32 w-60 h-60 rounded-full bg-accent-secondary/6 blur-[80px] pointer-events-none" />
+      <section className="px-6 lg:px-12 py-16 lg:py-20 relative">
         <div className="max-w-5xl mx-auto relative">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-accent-surface border border-accent/20 rounded-full mb-4">
@@ -372,10 +361,7 @@ export default function Home() {
       </section>
 
       {/* How it works */}
-      <section id="how-it-works" className="px-6 lg:px-12 py-16 lg:py-20 scroll-mt-16 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-accent/8 via-transparent to-accent-secondary/6" />
-        <div className="absolute inset-0 dot-grid" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-accent/10 blur-[140px] pointer-events-none" />
+      <section id="how-it-works" className="px-6 lg:px-12 py-16 lg:py-20 scroll-mt-16 relative bg-surface-alt/50">
         <div className="max-w-4xl mx-auto relative">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-accent-surface border border-accent/20 rounded-full mb-4">
@@ -409,8 +395,7 @@ export default function Home() {
       </section>
 
       {/* Who it's for */}
-      <section className="px-6 lg:px-12 py-16 lg:py-20 section-glow-bottom relative overflow-hidden">
-        <div className="absolute top-10 right-0 w-48 h-48 rounded-full bg-accent-secondary/6 blur-[60px] pointer-events-none" />
+      <section className="px-6 lg:px-12 py-16 lg:py-20 relative">
         <div className="max-w-4xl mx-auto text-center relative">
           <h2 className="text-2xl lg:text-3xl font-bold text-foreground mb-4">
             Built for people like you
@@ -437,10 +422,7 @@ export default function Home() {
       </section>
 
       {/* Final CTA */}
-      <section className="px-6 lg:px-12 py-20 lg:py-28 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-accent/8 via-transparent to-accent-secondary/8" />
-        <div className="absolute inset-0 dot-grid" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[400px] rounded-full bg-accent/10 blur-[100px] pointer-events-none" />
+      <section className="px-6 lg:px-12 py-20 lg:py-28 relative bg-surface-alt/50">
         <div className="max-w-2xl mx-auto text-center relative">
           <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
             Ready to find your<br />
@@ -451,6 +433,7 @@ export default function Home() {
           </p>
           <Link
             href="/login"
+            prefetch={true}
             className="btn-accent inline-flex items-center gap-2 px-10 py-4 rounded-xl text-base font-medium shadow-lg shadow-accent/20"
           >
             Get Started — it&apos;s free

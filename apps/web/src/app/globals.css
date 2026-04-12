@@ -129,11 +129,6 @@ body {
   border-radius: 99px;
 }
 
-/* Solid surface */
-.glass {
-  background: var(--surface);
-}
-
 /* Accent gradient text */
 .gradient-text {
   background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
@@ -312,54 +307,6 @@ body {
   animation: shimmer 1.5s ease-in-out infinite;
 }
 
-/* Gradient orb for decorative backgrounds */
-.gradient-orb {
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(80px);
-  opacity: 0.15;
-  pointer-events: none;
-}
-
-/* Dot grid pattern overlay */
-.dot-grid {
-  background-image: radial-gradient(circle, var(--faint) 1px, transparent 1px);
-  background-size: 24px 24px;
-  opacity: 0.3;
-}
-
-/* Section with radial glow */
-.section-glow {
-  position: relative;
-}
-.section-glow::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse 60% 50% at 50% 0%, var(--glow), transparent);
-  pointer-events: none;
-}
-
-/* Section with bottom glow */
-.section-glow-bottom {
-  position: relative;
-}
-.section-glow-bottom::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse 50% 40% at 50% 100%, var(--glow), transparent);
-  pointer-events: none;
-}
-
-/* Interactive hover lift for non-card elements */
-.hover-lift {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.hover-lift:hover {
-  transform: translateY(-2px);
-}
-
 /* Active nav accent indicator */
 .nav-active {
   position: relative;
@@ -387,7 +334,9 @@ body {
 }
 .float-slow {
   animation: floatSlow 6s ease-in-out infinite;
+  will-change: transform;
 }
 .float-slow-reverse {
   animation: floatSlowReverse 7s ease-in-out infinite;
+  will-change: transform;
 }

@@ -341,11 +341,9 @@ export default function Home() {
       </section>
 
       {/* Features */}
-      <section className="px-6 lg:px-12 py-16 lg:py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-tr from-accent-secondary/6 via-transparent to-accent/6" />
-        <div className="absolute inset-0 dot-grid" />
-        <div className="absolute -top-20 -right-32 w-96 h-96 rounded-full bg-accent/10 blur-[120px] pointer-events-none" />
-        <div className="absolute -bottom-20 -left-32 w-80 h-80 rounded-full bg-accent-secondary/10 blur-[120px] pointer-events-none" />
+      <section className="px-6 lg:px-12 py-16 lg:py-20 section-glow relative overflow-hidden">
+        <div className="absolute -top-20 -right-32 w-72 h-72 rounded-full bg-accent/6 blur-[80px] pointer-events-none" />
+        <div className="absolute -bottom-20 -left-32 w-60 h-60 rounded-full bg-accent-secondary/6 blur-[80px] pointer-events-none" />
         <div className="max-w-5xl mx-auto relative">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-accent-surface border border-accent/20 rounded-full mb-4">
@@ -411,11 +409,8 @@ export default function Home() {
       </section>
 
       {/* Who it's for */}
-      <section className="px-6 lg:px-12 py-16 lg:py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-tl from-accent/6 via-transparent to-accent-secondary/8" />
-        <div className="absolute inset-0 dot-grid" />
-        <div className="absolute top-10 right-0 w-72 h-72 rounded-full bg-accent-secondary/10 blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-0 left-1/4 w-[400px] h-[300px] rounded-full bg-accent/8 blur-[100px] pointer-events-none" />
+      <section className="px-6 lg:px-12 py-16 lg:py-20 section-glow-bottom relative overflow-hidden">
+        <div className="absolute top-10 right-0 w-48 h-48 rounded-full bg-accent-secondary/6 blur-[60px] pointer-events-none" />
         <div className="max-w-4xl mx-auto text-center relative">
           <h2 className="text-2xl lg:text-3xl font-bold text-foreground mb-4">
             Built for people like you

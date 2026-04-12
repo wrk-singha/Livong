@@ -30,11 +30,22 @@ func (h *Handler) GetMessages(c *gin.Context) {
 		return
 	}
 
-	rows, err := h.db.Query(`
-		SELECT id, sender_id, message, message_type, created_at
-		FROM messages WHERE match_id = $1
-		ORDER BY created_at ASC
-	`, matchID)
+	since := c.Query("since")
+	var rows *sql.Rows
+	var err error
+	if since != "" {
+		rows, err = h.db.Query(`
+			SELECT id, sender_id, message, message_type, created_at
+			FROM messages WHERE match_id = $1 AND created_at > $2
+			ORDER BY created_at ASC
+		`, matchID, since)
+	} else {
+		rows, err = h.db.Query(`
+			SELECT id, sender_id, message, message_type, created_at
+			FROM messages WHERE match_id = $1
+			ORDER BY created_at ASC
+		`, matchID)
+	}
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch messages"})
 		return

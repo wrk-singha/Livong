@@ -34,11 +34,23 @@ export default function ChatPage() {
   const [sharing, setSharing] = useState(false);
   const [copied, setCopied] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
+  const lastTimestampRef = useRef<string>("");
 
-  const fetchMessages = async () => {
+  const fetchMessages = async (since?: string) => {
     try {
-      const data = await api.getMessages(matchId);
-      setMessages(data || []);
+      const data = await api.getMessages(matchId, since);
+      if (since && data.length > 0) {
+        setMessages((prev) => {
+          const existingIds = new Set(prev.map((m) => m.id));
+          const newMsgs = data.filter((m: Message) => !existingIds.has(m.id));
+          return newMsgs.length > 0 ? [...prev, ...newMsgs] : prev;
+        });
+      } else if (!since) {
+        setMessages(data || []);
+      }
+      if (data.length > 0) {
+        lastTimestampRef.current = data[data.length - 1].createdAt;
+      }
     } catch {
       // ignore
     } finally {
@@ -48,7 +60,9 @@ export default function ChatPage() {
 
   useEffect(() => {
     fetchMessages();
-    const interval = setInterval(fetchMessages, 5000);
+    const interval = setInterval(() => {
+      fetchMessages(lastTimestampRef.current || undefined);
+    }, 5000);
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchId]);
@@ -61,13 +75,22 @@ export default function ChatPage() {
     e.preventDefault();
     if (!newMessage.trim() || sending) return;
 
+    const text = newMessage.trim();
+    const optimistic: Message = {
+      id: `temp-${Date.now()}`,
+      senderId: userId!,
+      message: text,
+      messageType: "text",
+      createdAt: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, optimistic]);
+    setNewMessage("");
     setSending(true);
     try {
-      await api.sendMessage(matchId, newMessage.trim());
-      setNewMessage("");
-      await fetchMessages();
+      await api.sendMessage(matchId, text);
+      lastTimestampRef.current = optimistic.createdAt;
     } catch {
-      // ignore
+      setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
     } finally {
       setSending(false);
     }
@@ -78,9 +101,17 @@ export default function ChatPage() {
     setSharing(true);
     try {
       await api.shareContact(matchId, shareType, shareValue.trim());
+      const optimistic: Message = {
+        id: `temp-${Date.now()}`,
+        senderId: userId!,
+        message: JSON.stringify({ contactType: shareType, contactValue: shareValue.trim() }),
+        messageType: "contact_share",
+        createdAt: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, optimistic]);
+      lastTimestampRef.current = optimistic.createdAt;
       setShowShareModal(false);
       setShareValue("");
-      await fetchMessages();
     } catch {
       // ignore
     } finally {

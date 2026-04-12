@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
 type Match = {
@@ -19,16 +19,10 @@ const AVATAR_COLORS = [
 ];
 
 export default function MatchesPage() {
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    api
-      .getMatches()
-      .then((data) => setMatches(data || []))
-      .catch(() => setMatches([]))
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: matches = [], isLoading: loading } = useQuery<Match[]>({
+    queryKey: ["matches"],
+    queryFn: async () => (await api.getMatches()) || [],
+  });
 
   return (
     <div className="min-h-screen px-4 py-6 md:px-8 lg:px-10">

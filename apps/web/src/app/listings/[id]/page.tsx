@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/auth";
+import { useProfile } from "@/contexts/profile";
 
 type Listing = {
   id: string;
@@ -25,39 +27,30 @@ export default function ListingDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { userId } = useAuth();
-  const [listing, setListing] = useState<Listing | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState(false);
+  const { hasProfile } = useProfile();
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
-  const [hasProfile, setHasProfile] = useState(false);
 
-  useEffect(() => {
-    if (!params.id) return;
-    api
-      .getListing(params.id as string)
-      .then(setListing)
-      .catch(() => setError("Listing not found"))
-      .finally(() => setLoading(false));
-    api.getProfile().then(() => setHasProfile(true)).catch(() => {});
-  }, [params.id]);
+  const { data: listing, isLoading: loading } = useQuery<Listing>({
+    queryKey: ["listing", params.id],
+    queryFn: () => api.getListing(params.id as string),
+    enabled: !!params.id,
+  });
 
-  const handleSendInterest = async () => {
+  const interestMutation = useMutation({
+    mutationFn: () => api.sendInterest(listing!.userId, listing!.id),
+    onSuccess: () => setSent(true),
+    onError: (err) => setError(err instanceof Error ? err.message : "Failed to send interest"),
+  });
+
+  const handleSendInterest = () => {
     if (!listing) return;
     if (!hasProfile) {
       router.push("/profile/setup");
       return;
     }
-    setSending(true);
     setError("");
-    try {
-      await api.sendInterest(listing.userId, listing.id);
-      setSent(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send interest");
-    } finally {
-      setSending(false);
-    }
+    interestMutation.mutate();
   };
 
   if (loading) {
@@ -151,7 +144,7 @@ export default function ListingDetailPage() {
           {!isOwner && (
             <button
               onClick={handleSendInterest}
-              disabled={sending || sent}
+              disabled={interestMutation.isPending || sent}
               className={`w-full py-3 rounded-lg font-medium text-sm transition-colors ${
                 sent
                   ? "bg-success-surface text-success border border-success-border"
@@ -165,7 +158,7 @@ export default function ListingDetailPage() {
                   </svg>
                   Interest Sent
                 </span>
-              ) : sending ? (
+              ) : interestMutation.isPending ? (
                 <span className="inline-flex items-center gap-2">
                   <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   Sending...

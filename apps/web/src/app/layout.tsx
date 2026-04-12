@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/auth";
 import { ThemeProvider } from "@/contexts/theme";
+import { QueryProvider } from "@/lib/query";
 import AppShell from "@/components/AppShell";
 import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
 
@@ -55,8 +56,10 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <ThemeProvider>
           <AuthProvider>
-            <ServiceWorkerRegistrar />
-            <AppShell>{children}</AppShell>
+            <QueryProvider>
+              <ServiceWorkerRegistrar />
+              <AppShell>{children}</AppShell>
+            </QueryProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

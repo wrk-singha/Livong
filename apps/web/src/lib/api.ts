@@ -8,27 +8,96 @@ export class ApiError extends Error {
   }
 }
 
+// --- Interceptors ---
+
+type RequestInterceptor = (endpoint: string, options: RequestInit) => RequestInit;
+type ResponseInterceptor = (response: Response, endpoint: string) => Response | Promise<Response>;
+type ErrorInterceptor = (error: ApiError, endpoint: string) => void;
+
+const requestInterceptors: RequestInterceptor[] = [];
+const responseInterceptors: ResponseInterceptor[] = [];
+const errorInterceptors: ErrorInterceptor[] = [];
+
+export const interceptors = {
+  request: {
+    use: (fn: RequestInterceptor) => {
+      requestInterceptors.push(fn);
+      return () => {
+        const i = requestInterceptors.indexOf(fn);
+        if (i !== -1) requestInterceptors.splice(i, 1);
+      };
+    },
+  },
+  response: {
+    use: (fn: ResponseInterceptor) => {
+      responseInterceptors.push(fn);
+      return () => {
+        const i = responseInterceptors.indexOf(fn);
+        if (i !== -1) responseInterceptors.splice(i, 1);
+      };
+    },
+  },
+  error: {
+    use: (fn: ErrorInterceptor) => {
+      errorInterceptors.push(fn);
+      return () => {
+        const i = errorInterceptors.indexOf(fn);
+        if (i !== -1) errorInterceptors.splice(i, 1);
+      };
+    },
+  },
+};
+
+// --- Built-in: attach auth token ---
+requestInterceptors.push((_endpoint, options) => {
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  if (token) {
+    const headers = new Headers(options.headers);
+    headers.set("Authorization", `Bearer ${token}`);
+    return { ...options, headers };
+  }
+  return options;
+});
+
+// --- Built-in: 401 auto-logout ---
+errorInterceptors.push((error) => {
+  if (error.status === 401 && typeof window !== "undefined") {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    window.location.href = "/login";
+  }
+});
+
 async function request<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
-
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...options.headers,
+  let opts: RequestInit = {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
   };
 
-  const res = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  for (const interceptor of requestInterceptors) {
+    opts = interceptor(endpoint, opts);
+  }
+
+  let res = await fetch(`${API_BASE_URL}${endpoint}`, opts);
+
+  for (const interceptor of responseInterceptors) {
+    res = await interceptor(res, endpoint);
+  }
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new ApiError(body.error || `Request failed`, res.status);
+    const error = new ApiError(body.error || "Request failed", res.status);
+    for (const interceptor of errorInterceptors) {
+      interceptor(error, endpoint);
+    }
+    throw error;
   }
 
   return res.json();
@@ -157,10 +226,12 @@ export const api = {
     >("/matches"),
 
   // Messages
-  getMessages: (matchId: string) =>
-    request<
+  getMessages: (matchId: string, since?: string) => {
+    const qs = since ? `?since=${encodeURIComponent(since)}` : "";
+    return request<
       { id: string; senderId: string; message: string; messageType: string; createdAt: string }[]
-    >(`/messages/${matchId}`),
+    >(`/messages/${matchId}${qs}`);
+  },
 
   sendMessage: (matchId: string, message: string) =>
     request<{ id: string }>("/messages", {

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
 type Listing = {
@@ -21,39 +22,28 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 export default function ExplorePage() {
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     location: "",
     minBudget: "",
     maxBudget: "",
   });
+  const [appliedFilters, setAppliedFilters] = useState(filters);
   const [showFilters, setShowFilters] = useState(false);
 
-  const fetchListings = async () => {
-    setLoading(true);
-    try {
+  const { data: listings = [], isLoading: loading } = useQuery<Listing[]>({
+    queryKey: ["listings", appliedFilters],
+    queryFn: async () => {
       const params: Record<string, string> = {};
-      if (filters.location) params.location = filters.location;
-      if (filters.minBudget) params.minBudget = filters.minBudget;
-      if (filters.maxBudget) params.maxBudget = filters.maxBudget;
-      const data = await api.getListings(params);
-      setListings(data || []);
-    } catch {
-      setListings([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchListings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      if (appliedFilters.location) params.location = appliedFilters.location;
+      if (appliedFilters.minBudget) params.minBudget = appliedFilters.minBudget;
+      if (appliedFilters.maxBudget) params.maxBudget = appliedFilters.maxBudget;
+      return (await api.getListings(params)) || [];
+    },
+  });
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchListings();
+    setAppliedFilters(filters);
   };
 
   return (

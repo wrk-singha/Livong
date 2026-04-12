@@ -2,14 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { useProfile } from "@/contexts/profile";
 
 const PROPERTY_TYPES = ["room", "flat", "shared"];
 
 export default function CreateListingPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [checkingProfile, setCheckingProfile] = useState(true);
+  const { hasProfile, loading: checkingProfile } = useProfile();
   const [error, setError] = useState("");
   const [form, setForm] = useState({
     title: "",
@@ -20,15 +21,20 @@ export default function CreateListingPage() {
   });
 
   useEffect(() => {
-    api.getProfile()
-      .catch(() => { router.replace("/profile/setup"); })
-      .finally(() => setCheckingProfile(false));
-  }, [router]);
+    if (!checkingProfile && !hasProfile) router.replace("/profile/setup");
+  }, [checkingProfile, hasProfile, router]);
+
+  const createMutation = useMutation({
+    mutationFn: (data: { title: string; description?: string; rent: number; location: string; propertyType: string }) =>
+      api.createListing(data),
+    onSuccess: (res) => router.push(`/listings/${res.id}`),
+    onError: (err) => setError(err instanceof Error ? err.message : "Failed to create listing"),
+  });
 
   const update = (key: string, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -37,21 +43,13 @@ export default function CreateListingPage() {
       return;
     }
 
-    setLoading(true);
-    try {
-      const res = await api.createListing({
-        title: form.title,
-        description: form.description || undefined,
-        rent: parseInt(form.rent),
-        location: form.location,
-        propertyType: form.propertyType,
-      });
-      router.push(`/listings/${res.id}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create listing");
-    } finally {
-      setLoading(false);
-    }
+    createMutation.mutate({
+      title: form.title,
+      description: form.description || undefined,
+      rent: parseInt(form.rent),
+      location: form.location,
+      propertyType: form.propertyType,
+    });
   };
 
   if (checkingProfile) {
@@ -156,10 +154,10 @@ export default function CreateListingPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={createMutation.isPending}
             className="btn-primary w-full py-3 rounded-lg text-sm font-medium"
           >
-            {loading ? (
+            {createMutation.isPending ? (
               <span className="inline-flex items-center gap-2">
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 Posting...

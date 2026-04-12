@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useRef } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/auth";
+import { useProfile, type Profile } from "@/contexts/profile";
 
 const PREF_OPTIONS: Record<string, string[]> = {
   smoking: ["yes", "no", "occasionally"],
@@ -34,52 +36,35 @@ const ICONS: Record<string, string> = {
   foodPreference: "🍽️",
 };
 
-type Profile = {
-  id: string;
-  name: string;
-  age: number;
-  gender: string;
-  budgetMin: number;
-  budgetMax: number;
-  location: string;
-  smoking?: string;
-  drinking?: string;
-  cleanliness?: string;
-  sleepSchedule?: string;
-  workSchedule?: string;
-  pets?: string;
-  foodPreference?: string;
-};
-
 export default function ProfilePage() {
   const { logout } = useAuth();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const { profile, loading, setProfile, clearProfile } = useProfile();
   const [message, setMessage] = useState("");
+  const pendingRef = useRef<Record<string, string>>({});
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    api
-      .getProfile()
-      .then(setProfile)
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
-
-  const updatePref = async (key: string, value: string) => {
-    if (!profile) return;
-    setSaving(true);
-    setMessage("");
-    try {
-      await api.updateProfile({ [key]: value });
-      setProfile({ ...profile, [key]: value });
+  const saveMutation = useMutation({
+    mutationFn: (batch: Record<string, string>) => api.updateProfile(batch),
+    onSuccess: () => {
       setMessage("Saved");
       setTimeout(() => setMessage(""), 2000);
-    } catch {
-      setMessage("Failed to save");
-    } finally {
-      setSaving(false);
-    }
+    },
+    onError: () => setMessage("Failed to save"),
+  });
+
+  const updatePref = (key: string, value: string) => {
+    if (!profile) return;
+    const updated = { ...profile, [key]: value };
+    setProfile(updated);
+
+    pendingRef.current = { ...pendingRef.current, [key]: value };
+
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      const batch = { ...pendingRef.current };
+      pendingRef.current = {};
+      saveMutation.mutate(batch);
+    }, 800);
   };
 
   if (loading) {
@@ -157,7 +142,7 @@ export default function ProfilePage() {
           <h3 className="text-xs font-semibold text-dim uppercase tracking-wider">
             Lifestyle Preferences
           </h3>
-          {saving && (
+          {saveMutation.isPending && (
             <div className="w-3 h-3 border-2 border-border border-t-neutral-600 rounded-full animate-spin" />
           )}
         </div>
@@ -178,7 +163,7 @@ export default function ProfilePage() {
                     <button
                       key={opt}
                       onClick={() => updatePref(key, opt)}
-                      disabled={saving}
+                      disabled={saveMutation.isPending}
                       className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                         selected
                           ? "bg-accent text-white shadow-sm"
@@ -195,7 +180,7 @@ export default function ProfilePage() {
         </div>
 
         <button
-          onClick={logout}
+          onClick={() => { clearProfile(); logout(); }}
           className="w-full mt-6 py-3 text-dim border border-border rounded-lg text-sm font-medium hover:bg-error-surface hover:text-red-500 hover:border-error-border transition-colors"
         >
           Logout

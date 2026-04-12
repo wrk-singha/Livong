@@ -64,6 +64,7 @@ func CORS() gin.HandlerFunc {
 		c.Writer.Header().Set("X-DNS-Prefetch-Control", "off")
 		c.Writer.Header().Set("X-Download-Options", "noopen")
 		c.Writer.Header().Set("X-XSS-Protection", "0")
+		c.Writer.Header().Set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'")
 
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(http.StatusNoContent)

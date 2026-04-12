@@ -1,0 +1,75 @@
+# Livong — AI Coding Rules
+
+Livong is a roommate/shared-living platform. Monorepo: Go backend + Next.js frontend + PostgreSQL.
+
+## Project Structure
+
+```
+apps/backend/   → Go 1.26, Gin, raw SQL, JWT auth
+apps/web/       → Next.js 16, React 19, TypeScript, Tailwind CSS v4, App Router
+docs/           → PRD, Architecture, API, DB Schema
+```
+
+## Hard Constraints
+
+- **No new dependencies** without explicit approval. The stack is intentionally minimal.
+- **No ORMs** (no GORM, Prisma, Drizzle). Raw SQL with parameterized queries.
+- **No UI libraries** (no shadcn, Chakra, Radix, MUI). Raw Tailwind + custom utility classes.
+- **No state libraries** (no Redux, Zustand, Jotai). React Context only.
+- **No icon libraries** (no Lucide, Heroicons). Inline SVGs with `stroke="currentColor"`.
+- **pnpm only** (not npm or yarn).
+- **No new top-level directories**. Everything lives under `apps/`, `docs/`, or `.github/`.
+
+## Theme System (MOST IMPORTANT)
+
+Colors are centralized in `apps/web/src/app/globals.css` as CSS variables. Components use semantic Tailwind classes that auto-switch between light and dark mode.
+
+**NEVER do:**
+- `dark:bg-neutral-900` — no `dark:` prefixes anywhere
+- `className="text-[#525252]"` — no hardcoded hex colors
+- `text-neutral-500` for theming — use `text-muted` instead
+
+**DO use these token classes:**
+- Backgrounds: `bg-background`, `bg-surface`, `bg-surface-alt`, `bg-primary`
+- Text: `text-foreground`, `text-secondary`, `text-muted`, `text-dim`, `text-faint`
+- Borders: `border-border`, `border-border-light`
+- Status: `bg-error-surface text-error`, `bg-success-surface text-success-text`, `bg-warning-surface text-warning`, `bg-info-surface text-info`
+
+**Exception:** `bg-neutral-900 text-white` is okay for avatar circles and intentionally fixed dark elements.
+
+**To add a new color:** update `:root`, `.dark`, AND `@theme inline` in globals.css — all three.
+
+## Frontend (apps/web/)
+
+- All pages: `"use client"` + `export default function PageName()`
+- Imports: `@/` alias (maps to `src/`)
+- API calls: always through `lib/api.ts`, never raw `fetch()`
+- Types: `lib/types.ts`. Constants: `lib/constants.ts` with `as const`
+- Auth: `useAuth()` → `{ token, userId, isAuthenticated, hydrated }`
+- Theme: `useTheme()` → `{ theme, toggle }`
+- Icons: inline SVGs, `stroke="currentColor"`, color via parent text class
+- Utility classes: `.btn-primary`, `.card`, `.input`, `.page-container`
+- Animations: `.animate-fade-in-up`, `.animate-slide-in`, `.stagger`
+- Responsive: mobile-first, `md:` and `lg:` breakpoints
+- Navigation: `AppShell.tsx` — sidebar on desktop, bottom nav on mobile
+
+## Backend (apps/backend/)
+
+- One `handler.go` per feature in `internal/{feature}/`
+- Handler struct: `type Handler struct { db *sql.DB }` + `NewHandler(db)`
+- Request: `c.ShouldBindJSON(&req)` with inline struct
+- Response: `c.JSON(statusCode, gin.H{...})`
+- Errors: `gin.H{"error": "Human message"}` — never expose internals
+- Auth: `c.GetString("userId")` from middleware
+- SQL: `$1, $2` parameterized — never concatenate
+- DB columns: `snake_case`. JSON: `camelCase`
+- Tables: plural, UUID PKs, `CURRENT_TIMESTAMP`
+- Migrations: append to `internal/database/migrations.go`, `CREATE TABLE IF NOT EXISTS`
+- Routes: register in `cmd/server/main.go`, public vs protected groups
+
+## Code Style
+
+- No comments/docstrings unless logic is non-obvious
+- No unnecessary abstractions — direct and simple
+- Keep files focused — one concern per file
+- Update `docs/` when changing API, DB schema, or architecture

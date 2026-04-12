@@ -6,7 +6,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { api, imageUrl } from "@/lib/api";
 import { useAuth } from "@/contexts/auth";
 import { useProfile } from "@/contexts/profile";
-import { BackButton, PageSpinner, EmptyState, Avatar, StarRatingDisplay, Alert } from "@/components/ui";
+import { BackButton, PageSpinner, EmptyState, Avatar, StarRatingDisplay, Alert, VerifiedBadge } from "@/components/ui";
 import Link from "next/link";
 
 type ListingImage = {
@@ -28,6 +28,16 @@ type Listing = {
   createdAt?: string;
   ownerName?: string;
   ownerGender?: string;
+  ownerVerified?: boolean;
+  ownerAge?: number;
+  ownerLocation?: string;
+  ownerSmoking?: string;
+  ownerDrinking?: string;
+  ownerCleanliness?: string;
+  ownerSleepSchedule?: string;
+  ownerFoodPref?: string;
+  ownerRating?: number;
+  ownerReviewCount?: number;
 };
 
 const TYPE_LABELS: Record<string, string> = {
@@ -270,20 +280,67 @@ export default function ListingDetailPage() {
         )}
 
         {/* Owner Info */}
-        {listing.ownerName && (
-          <div className="card p-4 mb-4">
-            <h3 className="text-xs font-semibold text-dim uppercase tracking-wider mb-3">Listed by</h3>
-            <div className="flex items-center gap-3">
-              <Avatar name={listing.ownerName} size="md" shape="circle" gradient={false} />
-              <div>
+        <div className="card p-4 mb-4">
+          <h3 className="text-xs font-semibold text-dim uppercase tracking-wider mb-3">Listed by</h3>
+          <div className="flex items-center gap-3">
+            <Avatar name={listing.ownerName || "U"} size="lg" shape="circle" gradient />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5">
                 <p className="text-sm font-semibold text-foreground">{listing.ownerName}</p>
+                {listing.ownerVerified && <VerifiedBadge size={15} />}
+              </div>
+              <div className="flex items-center gap-2 mt-0.5">
+                {listing.ownerAge && (
+                  <span className="text-xs text-dim">{listing.ownerAge} yrs</span>
+                )}
+                {listing.ownerAge && listing.ownerGender && <span className="text-faint">·</span>}
                 {listing.ownerGender && (
-                  <p className="text-xs text-dim capitalize">{listing.ownerGender}</p>
+                  <span className="text-xs text-dim capitalize">{listing.ownerGender}</span>
+                )}
+                {(listing.ownerAge || listing.ownerGender) && listing.ownerLocation && <span className="text-faint">·</span>}
+                {listing.ownerLocation && (
+                  <span className="text-xs text-dim">{listing.ownerLocation}</span>
                 )}
               </div>
+              {listing.ownerRating !== undefined && listing.ownerReviewCount !== undefined && listing.ownerReviewCount > 0 && (
+                <div className="mt-1">
+                  <StarRatingDisplay rating={listing.ownerRating} count={listing.ownerReviewCount} size={12} />
+                </div>
+              )}
             </div>
           </div>
-        )}
+
+          {/* Lifestyle tags */}
+          {(listing.ownerSmoking || listing.ownerDrinking || listing.ownerCleanliness || listing.ownerSleepSchedule || listing.ownerFoodPref) && (
+            <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-border-light">
+              {listing.ownerSmoking && (
+                <span className="px-2.5 py-1 rounded-md bg-surface-alt text-[11px] text-muted">
+                  🚬 {listing.ownerSmoking}
+                </span>
+              )}
+              {listing.ownerDrinking && (
+                <span className="px-2.5 py-1 rounded-md bg-surface-alt text-[11px] text-muted">
+                  🍻 {listing.ownerDrinking}
+                </span>
+              )}
+              {listing.ownerCleanliness && (
+                <span className="px-2.5 py-1 rounded-md bg-surface-alt text-[11px] text-muted">
+                  ✨ {listing.ownerCleanliness}
+                </span>
+              )}
+              {listing.ownerSleepSchedule && (
+                <span className="px-2.5 py-1 rounded-md bg-surface-alt text-[11px] text-muted">
+                  🌙 {listing.ownerSleepSchedule}
+                </span>
+              )}
+              {listing.ownerFoodPref && (
+                <span className="px-2.5 py-1 rounded-md bg-surface-alt text-[11px] text-muted">
+                  🍽️ {listing.ownerFoodPref}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Reviews Section */}
         {reviewData && reviewData.reviewCount > 0 && (

@@ -27,8 +27,11 @@ func (h *Handler) GetListings(c *gin.Context) {
 	maxBudget := c.Query("maxBudget")
 
 	query := `SELECT l.id, l.user_id, l.title, l.description, l.rent, l.location, l.property_type, l.available_from, l.created_at,
-		(SELECT li.filename FROM listing_images li WHERE li.listing_id = l.id ORDER BY li.position, li.created_at LIMIT 1)
-		FROM listings l WHERE 1=1`
+		(SELECT li.filename FROM listing_images li WHERE li.listing_id = l.id ORDER BY li.position, li.created_at LIMIT 1),
+		COALESCE(u.is_verified, false)
+		FROM listings l
+		LEFT JOIN users u ON u.id = l.user_id
+		WHERE 1=1`
 	args := []interface{}{}
 	argIdx := 1
 
@@ -65,8 +68,9 @@ func (h *Handler) GetListings(c *gin.Context) {
 		var availableFrom sql.NullTime
 		var createdAt sql.NullTime
 		var thumbnail sql.NullString
+		var verified bool
 
-		if err := rows.Scan(&id, &userID, &title, &description, &rent, &location, &propertyType, &availableFrom, &createdAt, &thumbnail); err != nil {
+		if err := rows.Scan(&id, &userID, &title, &description, &rent, &location, &propertyType, &availableFrom, &createdAt, &thumbnail, &verified); err != nil {
 			continue
 		}
 
@@ -78,6 +82,7 @@ func (h *Handler) GetListings(c *gin.Context) {
 			"rent":         rent,
 			"location":     location,
 			"propertyType": propertyType,
+			"ownerVerified": verified,
 		}
 		if availableFrom.Valid {
 			l["availableFrom"] = availableFrom.Time
@@ -101,16 +106,29 @@ func (h *Handler) GetListing(c *gin.Context) {
 	var createdAt sql.NullTime
 	var ownerName sql.NullString
 	var ownerGender sql.NullString
+	var ownerVerified bool
+	var ownerAge sql.NullInt64
+	var ownerLocation sql.NullString
+	var ownerSmoking sql.NullString
+	var ownerDrinking sql.NullString
+	var ownerCleanliness sql.NullString
+	var ownerSleepSchedule sql.NullString
+	var ownerFoodPref sql.NullString
 
 	err := h.db.QueryRow(`
 		SELECT l.id, l.user_id, l.title, l.description, l.rent, l.location,
 			l.property_type, l.available_from, l.created_at,
-			p.name, p.gender
+			p.name, p.gender, COALESCE(u.is_verified, false),
+			p.age, p.location, p.smoking, p.drinking, p.cleanliness,
+			p.sleep_schedule, p.food_preference
 		FROM listings l
 		LEFT JOIN profiles p ON p.user_id = l.user_id
+		LEFT JOIN users u ON u.id = l.user_id
 		WHERE l.id = $1
 	`, id).Scan(&listingID, &userID, &title, &description, &rent, &location,
-		&propertyType, &availableFrom, &createdAt, &ownerName, &ownerGender)
+		&propertyType, &availableFrom, &createdAt, &ownerName, &ownerGender, &ownerVerified,
+		&ownerAge, &ownerLocation, &ownerSmoking, &ownerDrinking, &ownerCleanliness,
+		&ownerSleepSchedule, &ownerFoodPref)
 
 	if err == sql.ErrNoRows {
 		c.JSON(http.StatusNotFound, gin.H{"error": "listing not found"})
@@ -163,6 +181,42 @@ func (h *Handler) GetListing(c *gin.Context) {
 	}
 	if ownerGender.Valid {
 		result["ownerGender"] = ownerGender.String
+	}
+	result["ownerVerified"] = ownerVerified
+	if ownerAge.Valid {
+		result["ownerAge"] = ownerAge.Int64
+	}
+	if ownerLocation.Valid {
+		result["ownerLocation"] = ownerLocation.String
+	}
+	if ownerSmoking.Valid {
+		result["ownerSmoking"] = ownerSmoking.String
+	}
+	if ownerDrinking.Valid {
+		result["ownerDrinking"] = ownerDrinking.String
+	}
+	if ownerCleanliness.Valid {
+		result["ownerCleanliness"] = ownerCleanliness.String
+	}
+	if ownerSleepSchedule.Valid {
+		result["ownerSleepSchedule"] = ownerSleepSchedule.String
+	}
+	if ownerFoodPref.Valid {
+		result["ownerFoodPref"] = ownerFoodPref.String
+	}
+
+	// Owner's average rating across all their listings
+	var ownerAvgRating sql.NullFloat64
+	var ownerReviewCount int
+	h.db.QueryRow(`
+		SELECT AVG(r.rating), COUNT(r.id)
+		FROM reviews r
+		JOIN listings ol ON ol.id = r.listing_id
+		WHERE ol.user_id = $1
+	`, userID).Scan(&ownerAvgRating, &ownerReviewCount)
+	if ownerAvgRating.Valid {
+		result["ownerRating"] = ownerAvgRating.Float64
+		result["ownerReviewCount"] = ownerReviewCount
 	}
 
 	c.JSON(http.StatusOK, result)

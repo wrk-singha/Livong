@@ -89,6 +89,10 @@ func RunMigrations(db *sql.DB) error {
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			UNIQUE(reviewer_id, listing_id)
 		)`,
+		`DO $$ BEGIN
+			ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT false;
+		EXCEPTION WHEN others THEN NULL;
+		END $$`,
 	}
 
 	for i, m := range migrations {

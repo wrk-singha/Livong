@@ -20,7 +20,6 @@ const PLANS = [
     ],
     missing: [
       "See full review details",
-      "Priority visibility",
     ],
   },
   {
@@ -34,9 +33,7 @@ const PLANS = [
       "See full review details",
       "Read all review comments",
     ],
-    missing: [
-      "Priority visibility",
-    ],
+    missing: [],
     popular: true,
   },
   {
@@ -44,11 +41,11 @@ const PLANS = [
     name: "Pro",
     price: 249,
     period: "/mo",
-    description: "Maximum visibility and all features",
+    description: "All features + premium perks",
     features: [
       "Everything in Basic",
-      "Priority listing visibility",
       "Highlighted profile badge",
+      "Boost listings to the top",
     ],
     missing: [],
   },

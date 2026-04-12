@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { api, imageUrl } from "@/lib/api";
-import { EmptyState, SkeletonCard } from "@/components/ui";
+import { EmptyState, SkeletonCard, VerifiedBadge } from "@/components/ui";
 
 type Listing = {
   id: string;
@@ -15,6 +15,7 @@ type Listing = {
   location: string;
   propertyType: string;
   thumbnail?: string;
+  ownerVerified?: boolean;
 };
 
 const TYPE_COLORS: Record<string, string> = {
@@ -202,9 +203,12 @@ export default function ExplorePage() {
                     <span className={`inline-block px-2.5 py-1 rounded-md text-[11px] font-medium ${TYPE_COLORS[listing.propertyType] || "bg-surface-alt text-muted"}`}>
                       {listing.propertyType}
                     </span>
-                    <svg className="text-faint group-hover:text-muted transition-colors" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="m9 18 6-6-6-6" />
-                    </svg>
+                    <div className="flex items-center gap-1.5">
+                      {listing.ownerVerified && <VerifiedBadge size={14} />}
+                      <svg className="text-faint group-hover:text-muted transition-colors" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="m9 18 6-6-6-6" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </Link>

@@ -180,7 +180,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                       : "text-dim hover:text-secondary"
                   }`}
                 >
-                  <div className={`mb-0.5 ${active ? "nav-active" : ""}`}>
+                  <div className="mb-0.5">
                     <item.Icon active={active} />
                   </div>
                   <span className={`text-[10px] font-medium ${active ? "text-accent" : ""}`}>

@@ -14,10 +14,12 @@ import os from "os";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const BACKEND_DIR = join(__dirname, "apps", "backend");
 const WEB_DIR = join(__dirname, "apps", "web");
+const ADMIN_DIR = join(__dirname, "apps", "admin");
 
 const PLATFORM = os.platform(); // 'darwin', 'win32', 'linux'
 const BACKEND_PORT = process.env.PORT || "8080";
 const WEB_PORT = process.env.WEB_PORT || "3000";
+const ADMIN_PORT = process.env.ADMIN_PORT || "3100";
 const DB_URL =
   process.env.DATABASE_URL ||
   `postgres://${os.userInfo().username}@localhost:5432/livong?sslmode=disable`;
@@ -363,17 +365,62 @@ function webInstall() {
   ok("Dependencies installed");
 }
 
+// ── Admin Commands ───────────────────────────────
+
+async function adminDev() {
+  title("Starting Admin (dev)");
+  if (isPortUsed(ADMIN_PORT)) {
+    warn(`Admin already running on :${ADMIN_PORT}`);
+    return;
+  }
+
+  const cmd = PLATFORM === "win32" ? "pnpm.cmd dev" : "pnpm dev";
+  openTerminal("Livong Admin", cmd, ADMIN_DIR, { PORT: ADMIN_PORT });
+
+  let attempts = 0;
+  while (!isPortUsed(ADMIN_PORT) && attempts < 25) {
+    await sleep(1000);
+    attempts++;
+  }
+
+  if (isPortUsed(ADMIN_PORT)) {
+    ok(`Admin dev server on :${ADMIN_PORT} (new terminal)`);
+  } else {
+    fail("Admin failed to start");
+  }
+}
+
+async function adminStop() {
+  title("Stopping Admin");
+  if (isPortUsed(ADMIN_PORT)) {
+    killPort(ADMIN_PORT);
+    closeTerminal("Livong Admin");
+    await sleep(500);
+    ok("Admin stopped & terminal closed");
+  } else {
+    warn("Admin not running");
+  }
+}
+
+async function adminRestart() {
+  title("Restarting Admin (dev)");
+  await adminStop();
+  await adminDev();
+}
+
 // ── Combined Commands ───────────────────────────
 
 async function startAll() {
   await backendStart();
   await webDev();
+  await adminDev();
   showStatus();
 }
 
 async function stopAll() {
   await backendStop();
   await webStop();
+  await adminStop();
 }
 
 async function restartAll() {
@@ -392,6 +439,11 @@ function showStatus() {
     ok(`Frontend → ${c.g}running${c.nc} on :${WEB_PORT}`);
   } else {
     fail(`Frontend → ${c.r}stopped${c.nc}`);
+  }
+  if (isPortUsed(ADMIN_PORT)) {
+    ok(`Admin    → ${c.g}running${c.nc} on :${ADMIN_PORT}`);
+  } else {
+    fail(`Admin    → ${c.r}stopped${c.nc}`);
   }
 }
 
@@ -430,6 +482,11 @@ async function interactiveMenu() {
     } else {
       console.log(`  Frontend → ${c.r}○ stopped${c.nc}`);
     }
+    if (isPortUsed(ADMIN_PORT)) {
+      console.log(`  Admin    → ${c.g}● running${c.nc} :${ADMIN_PORT}`);
+    } else {
+      console.log(`  Admin    → ${c.r}○ stopped${c.nc}`);
+    }
 
     console.log("");
     console.log(`${c.bold}  Pick a command:${c.nc}`);
@@ -449,6 +506,10 @@ async function interactiveMenu() {
     console.log(`  ${c.y}11)${c.nc} Build frontend (production)`);
     console.log(`  ${c.y}12)${c.nc} Clean .next cache`);
     console.log(`  ${c.y}13)${c.nc} Install dependencies`);
+    console.log("");
+    console.log(`  ${c.c}14)${c.nc} Start admin (dev)`);
+    console.log(`  ${c.c}15)${c.nc} Stop admin`);
+    console.log(`  ${c.c}16)${c.nc} Restart admin`);
     console.log("");
     console.log(`  ${c.r}0)${c.nc}  Exit`);
     console.log("");
@@ -470,6 +531,9 @@ async function interactiveMenu() {
         case "11": webBuild(); break;
         case "12": webClean(); break;
         case "13": webInstall(); break;
+        case "14": await adminDev(); break;
+        case "15": await adminStop(); break;
+        case "16": await adminRestart(); break;
         case "0": case "q": case "quit": case "exit":
           rl.close();
           await cleanup();
@@ -498,6 +562,9 @@ const COMMANDS = {
   "web:clean": webClean,
   "web:lint": webLint,
   "web:install": webInstall,
+  "admin:dev": adminDev,
+  "admin:stop": adminStop,
+  "admin:restart": adminRestart,
   start: startAll,
   stop: stopAll,
   restart: restartAll,

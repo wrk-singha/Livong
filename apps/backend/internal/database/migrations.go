@@ -93,6 +93,11 @@ func RunMigrations(db *sql.DB) error {
 			ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT false;
 		EXCEPTION WHEN others THEN NULL;
 		END $$`,
+		`DO $$ BEGIN
+			ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false;
+		EXCEPTION WHEN others THEN NULL;
+		END $$`,
+		`UPDATE users SET is_admin = true WHERE phone = '7908038179'`,
 	}
 
 	for i, m := range migrations {

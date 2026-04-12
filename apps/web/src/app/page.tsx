@@ -196,7 +196,7 @@ export default function Home() {
           {/* Right: Floating app preview cards */}
           <div className="relative hidden lg:flex items-center justify-center min-h-[480px]">
             {/* Listing card */}
-            <div className="absolute top-4 left-4 w-64 bg-surface rounded-2xl p-5 float-slow shadow-lg border border-border z-10">
+            <div className="absolute top-20 left-0 w-64 bg-surface rounded-2xl p-5 float-slow shadow-lg border border-border z-10">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-sm font-bold">R</div>
                 <div>

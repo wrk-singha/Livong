@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/auth";
 import { useProfile, type Profile } from "@/contexts/profile";
+import { Input, Select, Alert, Button } from "@/components/ui";
 
 const PREF_OPTIONS: Record<string, string[]> = {
   smoking: ["yes", "no", "occasionally"],
@@ -36,12 +37,21 @@ const ICONS: Record<string, string> = {
   foodPreference: "🍽️",
 };
 
+const GENDER_OPTIONS = [
+  { value: "male", label: "Male" },
+  { value: "female", label: "Female" },
+  { value: "other", label: "Other" },
+];
+
 export default function ProfilePage() {
   const { logout } = useAuth();
   const { profile, loading, setProfile, clearProfile } = useProfile();
   const [message, setMessage] = useState("");
   const pendingRef = useRef<Record<string, string>>({});
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [setupForm, setSetupForm] = useState({ name: "", age: "", gender: "", budgetMin: "", budgetMax: "", location: "" });
+  const [setupError, setSetupError] = useState("");
+  const [setupLoading, setSetupLoading] = useState(false);
 
   const saveMutation = useMutation({
     mutationFn: (batch: Record<string, string>) => api.updateProfile(batch),
@@ -76,22 +86,100 @@ export default function ProfilePage() {
   }
 
   if (!profile) {
+    const updateField = (key: string, value: string) =>
+      setSetupForm((prev) => ({ ...prev, [key]: value }));
+
+    const handleCreate = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setSetupError("");
+      if (!setupForm.name || !setupForm.age || !setupForm.gender || !setupForm.budgetMin || !setupForm.budgetMax || !setupForm.location) {
+        setSetupError("All fields are required");
+        return;
+      }
+      setSetupLoading(true);
+      try {
+        await api.createProfile({
+          name: setupForm.name,
+          age: parseInt(setupForm.age),
+          gender: setupForm.gender,
+          budgetMin: parseInt(setupForm.budgetMin),
+          budgetMax: parseInt(setupForm.budgetMax),
+          location: setupForm.location,
+        });
+        const full = await api.getProfile();
+        setProfile(full);
+      } catch (err) {
+        setSetupError(err instanceof Error ? err.message : "Failed to create profile");
+      } finally {
+        setSetupLoading(false);
+      }
+    };
+
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center animate-fade-in-up">
-          <div className="w-16 h-16 bg-surface-alt rounded-full flex items-center justify-center mx-auto mb-4 text-dim">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
+      <div className="min-h-screen px-4 py-8">
+        <div className="max-w-sm md:max-w-lg lg:max-w-xl mx-auto animate-fade-in-up">
+          <div className="mb-6">
+            <h1 className="text-xl font-semibold text-foreground">Set up your profile</h1>
+            <p className="text-dim text-sm mt-1">Help us find the best matches for you</p>
           </div>
-          <p className="text-dim mb-3">No profile found</p>
-          <a
-            href="/profile/setup"
-            className="btn-primary inline-block px-6 py-2.5 rounded-lg text-sm font-medium"
-          >
-            Create profile
-          </a>
+
+          <form onSubmit={handleCreate} className="space-y-4">
+            <Input
+              label="Name"
+              type="text"
+              value={setupForm.name}
+              onChange={(e) => updateField("name", e.target.value)}
+              placeholder="Your name"
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                label="Age"
+                type="number"
+                value={setupForm.age}
+                onChange={(e) => updateField("age", e.target.value)}
+                placeholder="25"
+                min={18}
+                max={60}
+              />
+              <Select
+                label="Gender"
+                options={GENDER_OPTIONS}
+                value={setupForm.gender}
+                onChange={(v) => updateField("gender", v)}
+                placeholder="Select"
+              />
+            </div>
+            <Input
+              label="Preferred Location"
+              type="text"
+              value={setupForm.location}
+              onChange={(e) => updateField("location", e.target.value)}
+              placeholder="e.g. HSR Layout, Bangalore"
+            />
+            <div>
+              <label className="block text-xs font-medium text-muted mb-1.5">Budget Range (₹/month)</label>
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  type="number"
+                  value={setupForm.budgetMin}
+                  onChange={(e) => updateField("budgetMin", e.target.value)}
+                  placeholder="Min ₹8,000"
+                />
+                <Input
+                  type="number"
+                  value={setupForm.budgetMax}
+                  onChange={(e) => updateField("budgetMax", e.target.value)}
+                  placeholder="Max ₹15,000"
+                />
+              </div>
+            </div>
+
+            {setupError && <Alert>{setupError}</Alert>}
+
+            <Button type="submit" loading={setupLoading} fullWidth size="lg">
+              {setupLoading ? "Creating..." : "Save Profile"}
+            </Button>
+          </form>
         </div>
       </div>
     );

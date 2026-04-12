@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { BackButton, Alert, PageSpinner } from "@/components/ui";
+import { Alert, PageSpinner } from "@/components/ui";
 
 const PLANS = [
   {
@@ -56,13 +55,13 @@ const PLANS = [
 ] as const;
 
 export default function PlansPage() {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const [error, setError] = useState("");
 
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ["plan"],
     queryFn: api.getPlan,
+    staleTime: Infinity,
   });
 
   const currentPlan = data?.plan || "free";
@@ -76,15 +75,9 @@ export default function PlansPage() {
     onError: (err) => setError(err instanceof Error ? err.message : "Failed to update plan"),
   });
 
-  if (isLoading) {
-    return <PageSpinner />;
-  }
-
   return (
     <div className="min-h-screen px-4 py-6 md:px-8">
       <div className="max-w-lg md:max-w-3xl mx-auto">
-        <BackButton className="mb-6" />
-
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-foreground">Choose your plan</h1>
           <p className="text-sm text-muted mt-2">Unlock premium features to find your perfect roommate faster</p>

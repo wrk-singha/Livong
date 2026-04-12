@@ -375,3 +375,19 @@ body {
   border-radius: 9999px;
   background: var(--accent);
 }
+
+/* Floating animations for decorative preview cards */
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-14px); }
+}
+@keyframes floatSlowReverse {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(14px); }
+}
+.float-slow {
+  animation: floatSlow 6s ease-in-out infinite;
+}
+.float-slow-reverse {
+  animation: floatSlowReverse 7s ease-in-out infinite;
+}

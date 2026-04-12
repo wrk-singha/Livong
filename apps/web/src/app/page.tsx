@@ -77,6 +77,15 @@ const STEPS = [
   { num: "04", title: "Match & chat", desc: "When interest is mutual, you're matched! Chat in-app and share contact info when ready." },
 ];
 
+const FEATURE_GRADIENTS = [
+  "from-indigo-500 to-violet-600",
+  "from-emerald-500 to-teal-600",
+  "from-blue-500 to-cyan-600",
+  "from-amber-500 to-orange-600",
+  "from-rose-500 to-pink-600",
+  "from-purple-500 to-fuchsia-600",
+];
+
 export default function Home() {
   const { isAuthenticated, hydrated } = useAuth();
   const { theme, toggle } = useTheme();
@@ -90,10 +99,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
-      {/* Decorative gradient orbs */}
-      <div className="gradient-orb w-96 h-96 -top-48 -right-48 bg-accent" />
-      <div className="gradient-orb w-72 h-72 top-1/2 -left-36 bg-accent-secondary" />
-
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="px-6 lg:px-12 py-4 flex items-center justify-between max-w-6xl mx-auto w-full">
@@ -125,91 +130,210 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="relative px-6 lg:px-12 pt-20 pb-24 lg:pt-28 lg:pb-32 text-center max-w-6xl mx-auto w-full">
-        {/* Hero background glow */}
+      {/* Hero — Split layout */}
+      <section className="relative px-6 lg:px-12 pt-16 pb-20 lg:pt-24 lg:pb-32 max-w-6xl mx-auto w-full">
         <div className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full bg-accent/8 blur-[100px]" />
-        </div>
-        <div className="animate-fade-in-up">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-accent-surface border border-accent/20 rounded-full mb-6">
-            <span className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse-dot" />
-            <span className="text-xs font-medium text-accent">
-              For working professionals in India
-            </span>
-          </div>
-
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-tight mb-5">
-            <span className="text-foreground">Find the right place</span>
-            <br />
-            <span className="text-foreground">and the right </span>
-            <span className="gradient-text">people to live with</span>
-          </h1>
-
-          <p className="text-base lg:text-lg text-muted max-w-xl mx-auto mb-10 leading-relaxed">
-            Stop juggling WhatsApp groups & random listings. Livong matches you with
-            compatible roommates based on lifestyle, budget & location — all in one place.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              href="/login"
-              className="btn-accent inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-medium"
-            >
-              Get Started — it&apos;s free
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </Link>
-            <a
-              href="#how-it-works"
-              className="inline-flex items-center gap-1.5 px-6 py-3.5 rounded-xl text-sm font-medium text-secondary hover:text-foreground transition-colors"
-            >
-              See how it works
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </a>
-          </div>
+          <div className="absolute -top-24 left-1/4 w-[700px] h-[700px] rounded-full bg-accent/6 blur-[140px]" />
+          <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] rounded-full bg-accent-secondary/6 blur-[120px]" />
         </div>
 
-        {/* Stats */}
-        <div className="mt-16 grid grid-cols-3 gap-4 max-w-md mx-auto">
-          {[
-            { value: "100%", label: "Free to use" },
-            { value: "7+", label: "Lifestyle filters" },
-            { value: "Instant", label: "Match & chat" },
-          ].map((s) => (
-            <div key={s.label} className="text-center">
-              <p className="text-xl font-bold text-foreground">{s.value}</p>
-              <p className="text-[11px] text-dim mt-0.5">{s.label}</p>
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          {/* Left: Copy */}
+          <div className="animate-fade-in-up">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-accent-surface border border-accent/20 rounded-full mb-6">
+              <span className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse-dot" />
+              <span className="text-xs font-medium text-accent">For working professionals in India</span>
             </div>
-          ))}
+
+            <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-bold leading-[1.1] tracking-tight mb-5">
+              <span className="text-foreground">Find the right</span>
+              <br />
+              <span className="gradient-text">people to live with</span>
+            </h1>
+
+            <p className="text-base lg:text-lg text-muted max-w-lg mb-8 leading-relaxed">
+              Stop juggling WhatsApp groups & random listings. Livong matches you with
+              compatible roommates based on lifestyle, budget & location.
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-start gap-3">
+              <Link
+                href="/login"
+                className="btn-accent inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-medium"
+              >
+                Get Started — it&apos;s free
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </Link>
+              <a
+                href="#how-it-works"
+                className="inline-flex items-center gap-1.5 px-6 py-3.5 rounded-xl text-sm font-medium text-secondary hover:text-foreground transition-colors"
+              >
+                See how it works
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </a>
+            </div>
+
+            {/* Stats */}
+            <div className="mt-12 flex items-center gap-6 pt-6 border-t border-border/50">
+              {[
+                { value: "100%", label: "Free to use" },
+                { value: "7+", label: "Lifestyle filters" },
+                { value: "Instant", label: "Match & chat" },
+              ].map((s, i) => (
+                <div key={s.label} className="flex items-center gap-6">
+                  {i > 0 && <div className="w-px h-8 bg-border" />}
+                  <div>
+                    <p className="text-xl font-bold text-foreground">{s.value}</p>
+                    <p className="text-xs text-dim mt-0.5">{s.label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right: Floating app preview cards */}
+          <div className="relative hidden lg:flex items-center justify-center min-h-[480px]">
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-72 h-72 rounded-full bg-accent/10 blur-[80px]" />
+            </div>
+
+            {/* Listing card */}
+            <div className="absolute top-4 left-4 w-64 bg-surface/80 backdrop-blur-xl rounded-2xl p-5 float-slow shadow-xl border border-border/50 z-10">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-sm font-bold">R</div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Rahul&apos;s 2BHK</p>
+                  <p className="text-xs text-dim">Koramangala, Bangalore</p>
+                </div>
+              </div>
+              <div className="flex gap-2 mb-3">
+                <span className="text-xs px-2 py-0.5 bg-accent-surface text-accent rounded-full font-medium">₹12,000/mo</span>
+                <span className="text-xs px-2 py-0.5 bg-surface-alt text-muted rounded-full">2 BHK</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-dim">
+                <div className="flex -space-x-1.5">
+                  <div className="w-5 h-5 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 border-2 border-surface" />
+                  <div className="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 border-2 border-surface" />
+                </div>
+                2 interested
+              </div>
+            </div>
+
+            {/* Match notification */}
+            <div className="absolute top-0 right-4 w-52 bg-surface/80 backdrop-blur-xl rounded-2xl p-4 float-slow-reverse shadow-xl border border-border/50 z-20">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-semibold text-accent">New Match!</span>
+                <span className="w-2 h-2 bg-accent rounded-full animate-pulse-dot" />
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">P</div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Priya M.</p>
+                  <p className="text-xs text-success-text font-medium">92% compatible</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Chat preview */}
+            <div className="absolute bottom-12 right-0 w-56 bg-surface/80 backdrop-blur-xl rounded-2xl p-4 float-slow shadow-xl border border-border/50 z-10">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white text-[10px] font-bold">A</div>
+                <span className="text-xs font-semibold text-foreground">Ankit</span>
+                <div className="ml-auto flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 bg-success rounded-full" />
+                  <span className="text-[10px] text-dim">online</span>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <div className="bg-surface-alt rounded-lg py-1.5 px-2.5 text-xs text-secondary w-fit max-w-[85%]">Hey! Is the room still available?</div>
+                <div className="bg-accent/10 rounded-lg py-1.5 px-2.5 text-xs text-accent ml-auto w-fit">Yes! When can you visit? 🏠</div>
+              </div>
+            </div>
+
+            {/* Lifestyle pill */}
+            <div className="absolute bottom-0 left-8 bg-surface/80 backdrop-blur-xl rounded-xl px-4 py-3 float-slow-reverse shadow-lg border border-border/50 z-10">
+              <div className="flex items-center gap-2.5">
+                <span className="text-lg">🌙</span>
+                <div>
+                  <p className="text-xs font-semibold text-foreground">Night Owl</p>
+                  <p className="text-[10px] text-dim">Sleeps after midnight</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile preview strip */}
+        <div className="lg:hidden mt-12 grid grid-cols-3 gap-3 stagger">
+          <div className="bg-surface/80 backdrop-blur-xl rounded-xl p-3 border border-border/50 text-center">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-xs font-bold mx-auto mb-2">R</div>
+            <p className="text-xs font-medium text-foreground">Browse listings</p>
+            <p className="text-[10px] text-dim">With filters</p>
+          </div>
+          <div className="bg-surface/80 backdrop-blur-xl rounded-xl p-3 border border-border/50 text-center">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold mx-auto mb-2">P</div>
+            <p className="text-xs font-medium text-foreground">Get matched</p>
+            <p className="text-[10px] text-dim">92% compatible</p>
+          </div>
+          <div className="bg-surface/80 backdrop-blur-xl rounded-xl p-3 border border-border/50 text-center">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white text-xs font-bold mx-auto mb-2">A</div>
+            <p className="text-xs font-medium text-foreground">Chat in-app</p>
+            <p className="text-[10px] text-dim">Secure & private</p>
+          </div>
         </div>
       </section>
 
-      {/* Problem section */}
+      {/* Problem — Before / After comparison */}
       <section className="px-6 lg:px-12 py-16 lg:py-20 bg-surface-alt relative overflow-hidden">
         <div className="absolute inset-0 dot-grid" />
-        <div className="max-w-4xl mx-auto text-center relative">
-          <h2 className="text-2xl lg:text-3xl font-bold text-foreground mb-4">
-            Finding a roommate shouldn&apos;t be this hard
-          </h2>
-          <p className="text-muted max-w-2xl mx-auto mb-10 leading-relaxed">
-            You&apos;re scrolling through dozens of groups, texting strangers, visiting sketchy listings,
-            and still ending up with someone whose lifestyle is completely different from yours.
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto stagger">
-            {[
-              { emoji: "😩", text: "Scattered across WhatsApp, Facebook & Housing" },
-              { emoji: "🤷", text: "No way to know if you're actually compatible" },
-              { emoji: "⏰", text: "Weeks of searching with no real results" },
-            ].map((p) => (
-              <div key={p.text} className="card p-5 text-center hover:border-accent/20">
-                <span className="text-2xl mb-3 block">{p.emoji}</span>
-                <p className="text-sm text-secondary leading-relaxed">{p.text}</p>
-              </div>
-            ))}
+        <div className="max-w-5xl mx-auto relative">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl lg:text-3xl font-bold text-foreground mb-3">
+              Finding a roommate shouldn&apos;t be this hard
+            </h2>
+            <p className="text-muted max-w-2xl mx-auto leading-relaxed">
+              The old way is scattered, slow, and risky. Livong brings it all into one place.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 stagger">
+            <div className="card p-6 border-l-4 border-l-error/60">
+              <p className="text-xs font-semibold text-error uppercase tracking-wider mb-4">Without Livong</p>
+              <ul className="space-y-3">
+                {[
+                  "Scrolling WhatsApp groups & Facebook pages",
+                  "No idea if your lifestyles actually match",
+                  "Weeks of searching with no real results",
+                  "Sharing your phone number with strangers",
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-2.5 text-sm text-secondary">
+                    <svg className="w-4 h-4 text-error shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="card p-6 border-l-4 border-l-accent">
+              <p className="text-xs font-semibold text-accent uppercase tracking-wider mb-4">With Livong</p>
+              <ul className="space-y-3">
+                {[
+                  "One platform for rooms and roommates",
+                  "Lifestyle-based compatibility matching",
+                  "Find matches in minutes, not weeks",
+                  "Share contact info only when you choose",
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-2.5 text-sm text-secondary">
+                    <svg className="w-4 h-4 text-accent shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 5 5L20 7"/></svg>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </section>
@@ -231,13 +355,13 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 stagger">
-            {FEATURES.map((f) => (
-              <div key={f.title} className="card p-5 group hover:border-accent/20">
-                <div className="w-10 h-10 rounded-lg bg-accent-surface flex items-center justify-center text-accent mb-4 group-hover:scale-110 transition-transform">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 stagger">
+            {FEATURES.map((f, i) => (
+              <div key={f.title} className="card p-6 group hover:border-accent/20">
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${FEATURE_GRADIENTS[i]} flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform shadow-lg`}>
                   {f.icon}
                 </div>
-                <h3 className="font-semibold text-foreground mb-1.5">{f.title}</h3>
+                <h3 className="font-semibold text-foreground mb-2">{f.title}</h3>
                 <p className="text-sm text-muted leading-relaxed">{f.desc}</p>
               </div>
             ))}
@@ -262,16 +386,21 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 stagger">
-            {STEPS.map((s) => (
-              <div key={s.num} className="card p-6 flex gap-4 hover:border-accent/20">
-                <span className="text-2xl font-bold gradient-text shrink-0 leading-none mt-0.5">{s.num}</span>
-                <div>
-                  <h3 className="font-semibold text-foreground mb-1">{s.title}</h3>
+          <div className="relative">
+            {/* Connecting line (desktop) */}
+            <div className="hidden sm:block absolute top-6 left-[10%] right-[10%] h-px bg-gradient-to-r from-accent/20 via-accent/50 to-accent-secondary/20" />
+
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-8 sm:gap-6">
+              {STEPS.map((s) => (
+                <div key={s.num} className="relative text-center">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent to-accent-secondary text-white text-sm font-bold flex items-center justify-center mx-auto mb-4 relative z-10 shadow-lg shadow-accent/20">
+                    {s.num}
+                  </div>
+                  <h3 className="font-semibold text-foreground mb-1.5">{s.title}</h3>
                   <p className="text-sm text-muted leading-relaxed">{s.desc}</p>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -286,15 +415,17 @@ export default function Home() {
           <p className="text-muted max-w-lg mx-auto mb-10">
             Whether you&apos;re relocating for work or just need a new place — Livong is for you.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 stagger">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 stagger">
             {[
               { emoji: "💼", title: "Working professionals", desc: "Ages 22–35, moving to or within cities for work" },
               { emoji: "🚀", title: "City newcomers", desc: "Relocating to Bangalore or other metros and need a trusted start" },
               { emoji: "🏠", title: "Room/flat owners", desc: "Have a spare room or flat? List it and find a compatible tenant" },
             ].map((t) => (
-              <div key={t.title} className="card p-5 text-center hover:border-accent/20">
-                <span className="text-2xl mb-3 block">{t.emoji}</span>
-                <h3 className="font-semibold text-foreground mb-1">{t.title}</h3>
+              <div key={t.title} className="card p-6 text-center hover:border-accent/20">
+                <div className="w-14 h-14 rounded-2xl bg-accent-surface flex items-center justify-center text-2xl mx-auto mb-4">
+                  {t.emoji}
+                </div>
+                <h3 className="font-semibold text-foreground mb-1.5">{t.title}</h3>
                 <p className="text-sm text-muted leading-relaxed">{t.desc}</p>
               </div>
             ))}
@@ -303,22 +434,24 @@ export default function Home() {
       </section>
 
       {/* Final CTA */}
-      <section className="px-6 lg:px-12 py-16 lg:py-20 bg-surface-alt relative overflow-hidden">
+      <section className="px-6 lg:px-12 py-20 lg:py-28 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-accent/8 via-transparent to-accent-secondary/8" />
         <div className="absolute inset-0 dot-grid" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[300px] rounded-full bg-accent/8 blur-[80px] pointer-events-none" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[400px] rounded-full bg-accent/10 blur-[100px] pointer-events-none" />
         <div className="max-w-2xl mx-auto text-center relative">
-          <h2 className="text-2xl lg:text-3xl font-bold text-foreground mb-3">
-            Ready to find your perfect roommate?
+          <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
+            Ready to find your<br />
+            <span className="gradient-text">perfect roommate?</span>
           </h2>
-          <p className="text-muted mb-8 max-w-md mx-auto">
+          <p className="text-muted mb-8 max-w-md mx-auto leading-relaxed">
             Join Livong today. Create a profile in under a minute and start exploring listings near you.
           </p>
           <Link
             href="/login"
-            className="btn-accent inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-medium"
+            className="btn-accent inline-flex items-center gap-2 px-10 py-4 rounded-xl text-base font-medium shadow-lg shadow-accent/20"
           >
             Get Started — it&apos;s free
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
           </Link>

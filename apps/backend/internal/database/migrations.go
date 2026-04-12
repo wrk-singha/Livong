@@ -76,6 +76,19 @@ func RunMigrations(db *sql.DB) error {
 			position INT DEFAULT 0,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		)`,
+		`DO $$ BEGIN
+			ALTER TABLE users ADD COLUMN IF NOT EXISTS plan VARCHAR(20) DEFAULT 'free';
+		EXCEPTION WHEN others THEN NULL;
+		END $$`,
+		`CREATE TABLE IF NOT EXISTS reviews (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			reviewer_id UUID REFERENCES users(id),
+			listing_id UUID REFERENCES listings(id),
+			rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+			comment TEXT,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			UNIQUE(reviewer_id, listing_id)
+		)`,
 	}
 
 	for i, m := range migrations {

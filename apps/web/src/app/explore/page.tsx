@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { api, imageUrl } from "@/lib/api";
+import { EmptyState, SkeletonCard } from "@/components/ui";
 
 type Listing = {
   id: string;
@@ -130,40 +131,27 @@ export default function ExplorePage() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="card p-4 space-y-3">
-                <div className="flex justify-between">
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 w-3/4 rounded-md animate-shimmer" />
-                    <div className="h-3 w-1/2 rounded-md animate-shimmer" />
-                  </div>
-                  <div className="space-y-1 ml-4">
-                    <div className="h-5 w-16 rounded-md animate-shimmer" />
-                    <div className="h-2 w-10 rounded-md animate-shimmer ml-auto" />
-                  </div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="h-5 w-14 rounded-md animate-shimmer" />
-                  <div className="h-4 w-4 rounded animate-shimmer" />
-                </div>
-              </div>
+              <SkeletonCard key={i} />
             ))}
           </div>
         ) : listings.length === 0 ? (
-          <div className="text-center py-16 animate-fade-in-up">
-            <div className="w-16 h-16 bg-surface-alt rounded-full flex items-center justify-center mx-auto mb-4 text-dim">
+          <EmptyState
+            icon={
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                 <polyline points="9 22 9 12 15 12 15 22" />
               </svg>
-            </div>
-            <p className="text-dim mb-1">No listings found</p>
-            <Link
-              href="/create-listing"
-              className="text-foreground font-medium text-sm hover:underline transition-colors"
-            >
-              Post the first listing →
-            </Link>
-          </div>
+            }
+            title="No listings found"
+            action={
+              <Link
+                href="/create-listing"
+                className="text-foreground font-medium text-sm hover:underline transition-colors"
+              >
+                Post the first listing →
+              </Link>
+            }
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {listings.map((listing) => (

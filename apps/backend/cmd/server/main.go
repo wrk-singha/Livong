@@ -12,6 +12,8 @@ import (
 	"github.com/rohit/livong-backend/internal/interest"
 	"github.com/rohit/livong-backend/internal/match"
 	"github.com/rohit/livong-backend/internal/chat"
+	"github.com/rohit/livong-backend/internal/review"
+	"github.com/rohit/livong-backend/internal/plan"
 
 	"github.com/gin-gonic/gin"
 )
@@ -73,6 +75,16 @@ func main() {
 		protected.GET("/messages/:matchId", chatHandler.GetMessages)
 		protected.POST("/messages", chatHandler.SendMessage)
 		protected.POST("/messages/share-contact", chatHandler.ShareContact)
+
+		// Reviews
+		reviewHandler := review.NewHandler(db)
+		protected.POST("/reviews", reviewHandler.CreateReview)
+		protected.GET("/reviews/listing/:listingId", reviewHandler.GetListingReviews)
+
+		// Plans
+		planHandler := plan.NewHandler(db)
+		protected.GET("/plan", planHandler.GetPlan)
+		protected.PATCH("/plan", planHandler.UpdatePlan)
 	}
 
 	port := os.Getenv("PORT")

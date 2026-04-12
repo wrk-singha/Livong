@@ -130,6 +130,19 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
           {/* Bottom actions */}
           <div className="px-3 pb-4 space-y-1">
+            <Link
+              href="/plans"
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg w-full transition-colors ${
+                pathname === "/plans"
+                  ? "bg-accent/10 text-accent"
+                  : "text-muted hover:bg-surface-alt hover:text-secondary"
+              }`}
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={pathname === "/plans" ? "opacity-100" : "opacity-50"}>
+                <path d="M12 2 L15.09 8.26 L22 9.27 L17 14.14 L18.18 21.02 L12 17.77 L5.82 21.02 L7 14.14 L2 9.27 L8.91 8.26 Z" />
+              </svg>
+              <span className="text-sm font-medium">Plans</span>
+            </Link>
             <button
               onClick={logout}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg w-full text-dim hover:bg-error-surface hover:text-red-500 transition-colors"

@@ -268,4 +268,29 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ matchId, contactType, contactValue }),
     }),
+
+  // Reviews
+  createReview: (listingId: string, rating: number, comment?: string) =>
+    request<{ id: string }>("/reviews", {
+      method: "POST",
+      body: JSON.stringify({ listingId, rating, comment }),
+    }),
+
+  getListingReviews: (listingId: string) =>
+    request<{
+      averageRating: number;
+      reviewCount: number;
+      reviews: { id: string; rating: number; comment: string | null; createdAt: string; reviewerName: string }[];
+      isPaid: boolean;
+    }>(`/reviews/listing/${listingId}`),
+
+  // Plans
+  getPlan: () =>
+    request<{ plan: string }>("/plan"),
+
+  updatePlan: (plan: string) =>
+    request<{ plan: string }>("/plan", {
+      method: "PATCH",
+      body: JSON.stringify({ plan }),
+    }),
 };

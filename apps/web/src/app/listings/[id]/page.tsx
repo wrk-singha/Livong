@@ -6,6 +6,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { api, imageUrl } from "@/lib/api";
 import { useAuth } from "@/contexts/auth";
 import { useProfile } from "@/contexts/profile";
+import { BackButton, PageSpinner, EmptyState, Avatar, StarRatingDisplay, Alert } from "@/components/ui";
+import Link from "next/link";
 
 type ListingImage = {
   id: string;
@@ -72,6 +74,12 @@ export default function ListingDetailPage() {
     onError: (err) => setError(err instanceof Error ? err.message : "Failed to send interest"),
   });
 
+  const { data: reviewData } = useQuery({
+    queryKey: ["reviews", params.id],
+    queryFn: () => api.getListingReviews(params.id as string),
+    enabled: !!params.id,
+  });
+
   const handleSendInterest = () => {
     if (!listing) return;
     if (!hasProfile) {
@@ -83,48 +91,33 @@ export default function ListingDetailPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-3 border-border border-t-secondary rounded-full animate-spin" />
-      </div>
-    );
+    return <PageSpinner />;
   }
 
   if (!listing) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-surface-alt rounded-full flex items-center justify-center mx-auto mb-4 text-dim">
+        <EmptyState
+          icon={
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10" />
               <path d="m15 9-6 6M9 9l6 6" />
             </svg>
-          </div>
-          <p className="text-dim">{error || "Listing not found"}</p>
-        </div>
+          }
+          title={error || "Listing not found"}
+        />
       </div>
     );
   }
 
   const isOwner = listing.userId === userId;
   const hasImages = listing.images && listing.images.length > 0;
-  const initials = listing.ownerName
-    ? listing.ownerName.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2)
-    : "?";
 
   return (
     <div className="min-h-screen px-4 py-6 md:px-8">
       <div className="max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto">
         {/* Back button */}
-        <button
-          onClick={() => router.back()}
-          className="inline-flex items-center gap-1 text-sm text-dim hover:text-secondary transition-colors mb-4"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-          Back
-        </button>
+        <BackButton />
 
         {/* Image Gallery */}
         <div className="rounded-xl overflow-hidden mb-4">
@@ -281,9 +274,7 @@ export default function ListingDetailPage() {
           <div className="card p-4 mb-4">
             <h3 className="text-xs font-semibold text-dim uppercase tracking-wider mb-3">Listed by</h3>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-semibold">
-                {initials}
-              </div>
+              <Avatar name={listing.ownerName} size="md" shape="circle" gradient={false} />
               <div>
                 <p className="text-sm font-semibold text-foreground">{listing.ownerName}</p>
                 {listing.ownerGender && (
@@ -294,16 +285,59 @@ export default function ListingDetailPage() {
           </div>
         )}
 
-        {/* Error */}
-        {error && (
-          <div className="flex items-center gap-2 text-error text-sm bg-error-surface px-3 py-2 rounded-lg mb-4">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10" />
-              <path d="m15 9-6 6M9 9l6 6" />
-            </svg>
-            {error}
+        {/* Reviews Section */}
+        {reviewData && reviewData.reviewCount > 0 && (
+          <div className="card p-4 mb-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-semibold text-dim uppercase tracking-wider">Reviews</h3>
+              <StarRatingDisplay rating={reviewData.averageRating} count={reviewData.reviewCount} />
+            </div>
+
+            <div className="relative">
+              <div className="space-y-3">
+                {reviewData.reviews.map((review) => (
+                  <div key={review.id} className="border-t border-border-light pt-3 first:border-0 first:pt-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-full bg-surface-alt flex items-center justify-center text-[11px] font-semibold text-muted">
+                          {review.reviewerName.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="text-sm font-medium text-foreground">{review.reviewerName}</span>
+                      </div>
+                      <StarRatingDisplay rating={review.rating} size={11} />
+                    </div>
+                    {review.comment ? (
+                      <p className="text-sm text-secondary leading-relaxed ml-9">{review.comment}</p>
+                    ) : !reviewData.isPaid ? (
+                      <p className="text-sm text-faint ml-9 blur-[6px] select-none pointer-events-none">
+                        This review contains detailed feedback about the living experience and roommate compatibility...
+                      </p>
+                    ) : null}
+                    <p className="text-[10px] text-faint mt-1 ml-9">
+                      {new Date(review.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Blur overlay for free users */}
+              {!reviewData.isPaid && reviewData.reviews.some((r) => !r.comment) && (
+                <div className="absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-surface via-surface/90 to-transparent flex items-end justify-center pb-3">
+                  <Link href="/plans" className="flex items-center gap-2 px-5 py-2.5 bg-accent text-white rounded-xl text-sm font-medium hover:opacity-90 transition-opacity">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                    Subscribe to see full reviews
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         )}
+
+        {/* Error */}
+        {error && <Alert className="mb-4">{error}</Alert>}
 
         {/* CTA */}
         {!isOwner && (

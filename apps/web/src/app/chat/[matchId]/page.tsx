@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/auth";
+import { Modal, StarRatingPicker, Avatar, BackButton, Alert } from "@/components/ui";
 
 type Message = {
   id: string;
@@ -16,6 +17,12 @@ type Message = {
 type ContactData = {
   contactType: string;
   contactValue: string;
+};
+
+type MatchInfo = {
+  matchId: string;
+  listingId: string;
+  user: { id: string; name: string };
 };
 
 export default function ChatPage() {
@@ -33,6 +40,12 @@ export default function ChatPage() {
   const [shareValue, setShareValue] = useState("");
   const [sharing, setSharing] = useState(false);
   const [copied, setCopied] = useState("");
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewDone, setReviewDone] = useState(false);
+  const [matchInfo, setMatchInfo] = useState<MatchInfo | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const lastTimestampRef = useRef<string>("");
 
@@ -65,6 +78,13 @@ export default function ChatPage() {
     }, 5000);
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [matchId]);
+
+  useEffect(() => {
+    api.getMatches().then((matches) => {
+      const found = matches.find((m: MatchInfo) => m.matchId === matchId);
+      if (found) setMatchInfo(found);
+    }).catch(() => {});
   }, [matchId]);
 
   useEffect(() => {
@@ -134,6 +154,24 @@ export default function ChatPage() {
     }
   };
 
+  const handleSubmitReview = async () => {
+    if (!matchInfo || reviewRating === 0 || reviewSubmitting) return;
+    setReviewSubmitting(true);
+    try {
+      await api.createReview(matchInfo.listingId, reviewRating, reviewComment.trim() || undefined);
+      setReviewDone(true);
+      setTimeout(() => {
+        setShowReviewModal(false);
+        setReviewRating(0);
+        setReviewComment("");
+      }, 1500);
+    } catch {
+      // ignore
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen bg-background lg:max-w-3xl lg:mx-auto lg:border-x lg:border-border">
       {/* Header */}
@@ -158,6 +196,14 @@ export default function ChatPage() {
             <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse-dot" />
             <span className="text-[10px] text-dim">Online</span>
           </div>
+        </div>
+        <div className="ml-auto">
+          <button
+            onClick={() => setShowReviewModal(true)}
+            className="px-3 py-1.5 text-xs font-medium text-accent bg-accent-surface rounded-lg hover:opacity-80 transition-opacity"
+          >
+            Leave Review
+          </button>
         </div>
       </div>
 
@@ -300,21 +346,11 @@ export default function ChatPage() {
       </div>
 
       {/* Share Contact Modal */}
-      {showShareModal && (
-        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-surface rounded-xl shadow-xl w-full max-w-sm p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-semibold text-foreground">Share Contact Info</h3>
-              <button
-                onClick={() => { setShowShareModal(false); setShareValue(""); }}
-                className="text-dim hover:text-secondary transition-colors"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 6 6 18" /><path d="m6 6 12 12" />
-                </svg>
-              </button>
-            </div>
-
+      <Modal
+        open={showShareModal}
+        onClose={() => { setShowShareModal(false); setShareValue(""); }}
+        title="Share Contact Info"
+      >
             <div className="flex gap-2">
               <button
                 onClick={() => setShareType("phone")}
@@ -343,7 +379,7 @@ export default function ChatPage() {
               value={shareValue}
               onChange={(e) => setShareValue(e.target.value)}
               placeholder={shareType === "phone" ? "+1 (555) 123-4567" : "you@example.com"}
-              className="w-full px-4 py-2.5 bg-surface-alt border border-border rounded-lg text-sm outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--ring)] transition-all placeholder:text-faint text-foreground"
+              className="input"
               autoFocus
             />
 
@@ -366,9 +402,56 @@ export default function ChatPage() {
                 {sharing ? "Sharing..." : "Share"}
               </button>
             </div>
+      </Modal>
+
+      {/* Leave Review Modal */}
+      <Modal
+        open={showReviewModal}
+        onClose={() => { setShowReviewModal(false); setReviewRating(0); setReviewComment(""); setReviewDone(false); }}
+        title="Leave a Review"
+      >
+        {reviewDone ? (
+          <div className="text-center py-6">
+            <div className="w-14 h-14 bg-success-surface rounded-full flex items-center justify-center mx-auto mb-3">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-success-text">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+            </div>
+            <p className="text-sm font-medium text-foreground">Review submitted!</p>
+            <p className="text-xs text-dim mt-1">Thanks for your feedback</p>
           </div>
-        </div>
-      )}
+        ) : (
+          <>
+            <p className="text-sm text-secondary">How was your experience with this roommate?</p>
+
+            <StarRatingPicker rating={reviewRating} onChange={setReviewRating} />
+
+            <textarea
+              value={reviewComment}
+              onChange={(e) => setReviewComment(e.target.value)}
+              placeholder="Share your experience (optional)..."
+              rows={3}
+              className="w-full px-4 py-2.5 bg-surface-alt border border-border rounded-lg text-sm outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--ring)] transition-all placeholder:text-faint text-foreground resize-none"
+            />
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setShowReviewModal(false); setReviewRating(0); setReviewComment(""); }}
+                className="flex-1 py-2.5 bg-surface-alt text-secondary rounded-lg text-sm font-medium hover:bg-border transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmitReview}
+                disabled={reviewRating === 0 || reviewSubmitting}
+                className="flex-1 py-2.5 btn-primary rounded-lg text-sm font-medium disabled:opacity-40"
+              >
+                {reviewSubmitting ? "Submitting..." : "Submit Review"}
+              </button>
+            </div>
+          </>
+        )}
+      </Modal>
     </div>
   );
 }

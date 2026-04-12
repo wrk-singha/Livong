@@ -3,8 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import { Input, Select, Alert, Button } from "@/components/ui";
 
-const GENDER_OPTIONS = ["male", "female", "other"];
+const GENDER_OPTIONS = [
+  { value: "male", label: "Male" },
+  { value: "female", label: "Female" },
+  { value: "other", label: "Other" },
+];
 
 export default function ProfileSetupPage() {
   const router = useRouter();
@@ -67,112 +72,66 @@ export default function ProfileSetupPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-muted mb-1.5">
-              Name
-            </label>
-            <input
-              type="text"
-              value={form.name}
-              onChange={(e) => update("name", e.target.value)}
-              className="input"
-              placeholder="Your name"
-            />
-          </div>
+          <Input
+            label="Name"
+            type="text"
+            value={form.name}
+            onChange={(e) => update("name", e.target.value)}
+            placeholder="Your name"
+          />
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-muted mb-1.5">
-                Age
-              </label>
-              <input
-                type="number"
-                value={form.age}
-                onChange={(e) => update("age", e.target.value)}
-                className="input"
-                placeholder="25"
-                min={18}
-                max={60}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-muted mb-1.5">
-                Gender
-              </label>
-              <select
-                value={form.gender}
-                onChange={(e) => update("gender", e.target.value)}
-                className="input bg-surface"
-              >
-                <option value="">Select</option>
-                {GENDER_OPTIONS.map((g) => (
-                  <option key={g} value={g}>
-                    {g.charAt(0).toUpperCase() + g.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-muted mb-1.5">
-              Preferred Location
-            </label>
-            <input
-              type="text"
-              value={form.location}
-              onChange={(e) => update("location", e.target.value)}
-              className="input"
-              placeholder="e.g. HSR Layout, Bangalore"
+            <Input
+              label="Age"
+              type="number"
+              value={form.age}
+              onChange={(e) => update("age", e.target.value)}
+              placeholder="25"
+              min={18}
+              max={60}
+            />
+            <Select
+              label="Gender"
+              options={GENDER_OPTIONS}
+              value={form.gender}
+              onChange={(v) => update("gender", v)}
+              placeholder="Select"
             />
           </div>
+
+          <Input
+            label="Preferred Location"
+            type="text"
+            value={form.location}
+            onChange={(e) => update("location", e.target.value)}
+            placeholder="e.g. HSR Layout, Bangalore"
+          />
 
           <div>
             <label className="block text-xs font-medium text-muted mb-1.5">
               Budget Range (₹/month)
             </label>
             <div className="grid grid-cols-2 gap-3">
-              <input
+              <Input
                 type="number"
                 value={form.budgetMin}
                 onChange={(e) => update("budgetMin", e.target.value)}
-                className="input"
                 placeholder="Min ₹8,000"
               />
-              <input
+              <Input
                 type="number"
                 value={form.budgetMax}
                 onChange={(e) => update("budgetMax", e.target.value)}
-                className="input"
                 placeholder="Max ₹15,000"
               />
             </div>
           </div>
 
-          {error && (
-            <div className="flex items-center gap-2 text-error text-sm bg-error-surface px-3 py-2 rounded-lg">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <path d="m15 9-6 6M9 9l6 6" />
-              </svg>
-              {error}
-            </div>
-          )}
+          {error && <Alert>{error}</Alert>}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-primary w-full py-3 rounded-lg text-sm font-medium"
-          >
-            {loading ? (
-              <span className="inline-flex items-center gap-2">
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Creating...
-              </span>
-            ) : (
-              "Continue"
-            )}
-          </button>
+          <Button type="submit" loading={loading} fullWidth size="lg">
+            {loading ? "Creating..." : "Continue"}
+          </Button>
         </form>
       </div>
     </div>

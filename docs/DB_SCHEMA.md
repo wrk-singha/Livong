@@ -134,6 +134,8 @@ Images stored on disk under `uploads/{listing_id}/{random_hex}.{ext}`. Max 10 pe
 users 1:1 profiles
 users 1:N listings
 listings 1:N listing_images
+listings 1:N reviews
+users 1:N reviews (as reviewer)
 users N:N interests (sender/receiver)
 interests -> matches (on accept)
 matches 1:N messages
@@ -141,8 +143,27 @@ matches 1:N messages
 
 ---
 
+## Reviews
+
+```sql
+CREATE TABLE reviews (
+    id UUID PRIMARY KEY,
+    reviewer_id UUID REFERENCES users(id),
+    listing_id UUID REFERENCES listings(id),
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    comment TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(reviewer_id, listing_id)
+);
+```
+
+> Users can only review listings they were matched on. One review per user per listing. Comment text is only visible to paid-plan users.
+
+---
+
 ## Notes
 
+- `users.plan` column: `VARCHAR(20) DEFAULT 'free'` — controls access to review details
 - No separate migration files — all DDL runs inline from `database.RunMigrations()` at startup
 - All IDs are UUIDs generated in Go
 - No indexes beyond primary keys currently (add based on query patterns as needed)

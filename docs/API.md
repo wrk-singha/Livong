@@ -312,6 +312,79 @@ Response:
 
 ---
 
+## Reviews
+
+### POST /reviews
+Create a review for a listing. Requires match on the listing.
+
+Request:
+```json
+{
+  "listingId": "uuid",
+  "rating": 4,
+  "comment": "Great roommate, very clean and respectful"
+}
+```
+
+Response:
+```json
+{ "id": "uuid" }
+```
+
+> Rating 1-5 required. Comment optional. Cannot review own listing. One review per user per listing.
+
+### GET /reviews/listing/:listingId
+Get reviews for a listing.
+
+Response:
+```json
+{
+  "averageRating": 4.2,
+  "reviewCount": 5,
+  "reviews": [
+    {
+      "id": "uuid",
+      "rating": 4,
+      "comment": "Great experience",
+      "createdAt": "2024-01-15T10:30:00Z",
+      "reviewerName": "John"
+    }
+  ],
+  "isPaid": false
+}
+```
+
+> `comment` is `null` for free-plan users (review text hidden behind paywall). `isPaid` indicates if the requesting user has a paid plan.
+
+---
+
+## Plans
+
+### GET /plan
+Get current user's plan.
+
+Response:
+```json
+{ "plan": "free" }
+```
+
+### PATCH /plan
+Update user's plan.
+
+Request:
+```json
+{ "plan": "basic" }
+```
+
+Response:
+```json
+{ "plan": "basic" }
+```
+
+> Valid plans: `free`, `basic`, `pro`. Basic and Pro unlock full review details.
+
+---
+
 ## Notes
 
 - All protected routes require JWT token in Authorization header

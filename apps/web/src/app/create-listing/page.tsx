@@ -6,8 +6,13 @@ import Link from "next/link";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useProfile } from "@/contexts/profile";
+import { Input, Select, TextArea, Alert, Button, PageSpinner, EmptyState } from "@/components/ui";
 
-const PROPERTY_TYPES = ["room", "flat", "shared"];
+const PROPERTY_TYPE_OPTIONS = [
+  { value: "room", label: "Room" },
+  { value: "flat", label: "Flat" },
+  { value: "shared", label: "Shared" },
+];
 const MAX_IMAGES = 5;
 
 export default function CreateListingPage() {
@@ -81,35 +86,33 @@ export default function CreateListingPage() {
   };
 
   if (checkingProfile) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-3 border-border border-t-secondary rounded-full animate-spin" />
-      </div>
-    );
+    return <PageSpinner />;
   }
 
   if (!hasProfile) {
     return (
       <div className="flex items-center justify-center min-h-screen px-4">
-        <div className="text-center animate-fade-in-up">
-          <div className="w-16 h-16 bg-surface-alt rounded-full flex items-center justify-center mx-auto mb-4 text-dim">
+        <EmptyState
+          icon={
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
               <circle cx="12" cy="7" r="4" />
             </svg>
-          </div>
-          <p className="text-foreground font-medium mb-1">Create your profile first</p>
-          <p className="text-dim text-sm mb-4">You need a profile before posting a listing</p>
-          <Link
-            href="/profile/setup"
-            className="btn-primary inline-flex items-center gap-1.5 px-6 py-2.5 rounded-lg text-sm font-medium"
-          >
-            Create Profile
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m9 18 6-6-6-6" />
-            </svg>
-          </Link>
-        </div>
+          }
+          title="Create your profile first"
+          subtitle="You need a profile before posting a listing"
+          action={
+            <Link
+              href="/profile/setup"
+              className="btn-primary inline-flex items-center gap-1.5 px-6 py-2.5 rounded-lg text-sm font-medium"
+            >
+              Create Profile
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m9 18 6-6-6-6" />
+              </svg>
+            </Link>
+          }
+        />
       </div>
     );
   }
@@ -125,76 +128,46 @@ export default function CreateListingPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-muted mb-1.5">
-              Title *
-            </label>
-            <input
-              type="text"
-              value={form.title}
-              onChange={(e) => update("title", e.target.value)}
-              className="input"
-              placeholder="e.g. 1 Room Available in 2BHK"
-            />
-          </div>
+          <Input
+            label="Title *"
+            type="text"
+            value={form.title}
+            onChange={(e) => update("title", e.target.value)}
+            placeholder="e.g. 1 Room Available in 2BHK"
+          />
 
-          <div>
-            <label className="block text-xs font-medium text-muted mb-1.5">
-              Description
-            </label>
-            <textarea
-              value={form.description}
-              onChange={(e) => update("description", e.target.value)}
-              rows={3}
-              className="input resize-none"
-              placeholder="Describe the place..."
-            />
-          </div>
+          <TextArea
+            label="Description"
+            value={form.description}
+            onChange={(e) => update("description", e.target.value)}
+            rows={3}
+            placeholder="Describe the place..."
+          />
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-muted mb-1.5">
-                Rent (₹/month) *
-              </label>
-              <input
-                type="number"
-                value={form.rent}
-                onChange={(e) => update("rent", e.target.value)}
-                className="input"
-                placeholder="15000"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-muted mb-1.5">
-                Property Type *
-              </label>
-              <select
-                value={form.propertyType}
-                onChange={(e) => update("propertyType", e.target.value)}
-                className="input bg-surface"
-              >
-                <option value="">Select</option>
-                {PROPERTY_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t.charAt(0).toUpperCase() + t.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-muted mb-1.5">
-              Location *
-            </label>
-            <input
-              type="text"
-              value={form.location}
-              onChange={(e) => update("location", e.target.value)}
-              className="input"
-              placeholder="e.g. HSR Layout, Bangalore"
+            <Input
+              label="Rent (₹/month) *"
+              type="number"
+              value={form.rent}
+              onChange={(e) => update("rent", e.target.value)}
+              placeholder="15000"
+            />
+            <Select
+              label="Property Type *"
+              options={PROPERTY_TYPE_OPTIONS}
+              value={form.propertyType}
+              onChange={(v) => update("propertyType", v)}
+              placeholder="Select"
             />
           </div>
+
+          <Input
+            label="Location *"
+            type="text"
+            value={form.location}
+            onChange={(e) => update("location", e.target.value)}
+            placeholder="e.g. HSR Layout, Bangalore"
+          />
 
           {/* Image Upload */}
           <div>
@@ -239,30 +212,11 @@ export default function CreateListingPage() {
             />
           </div>
 
-          {error && (
-            <div className="flex items-center gap-2 text-error text-sm bg-error-surface px-3 py-2 rounded-lg">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <path d="m15 9-6 6M9 9l6 6" />
-              </svg>
-              {error}
-            </div>
-          )}
+          {error && <Alert>{error}</Alert>}
 
-          <button
-            type="submit"
-            disabled={createMutation.isPending}
-            className="btn-primary w-full py-3 rounded-lg text-sm font-medium"
-          >
-            {createMutation.isPending ? (
-              <span className="inline-flex items-center gap-2">
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Posting...
-              </span>
-            ) : (
-              "Post Listing"
-            )}
-          </button>
+          <Button type="submit" loading={createMutation.isPending} fullWidth size="lg">
+            {createMutation.isPending ? "Posting..." : "Post Listing"}
+          </Button>
         </form>
       </div>
     </div>

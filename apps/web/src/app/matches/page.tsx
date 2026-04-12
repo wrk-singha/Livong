@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { EmptyState } from "@/components/ui";
 
 type Match = {
   matchId: string;
@@ -47,29 +48,29 @@ export default function MatchesPage() {
             ))}
           </div>
         ) : matches.length === 0 ? (
-          <div className="text-center py-16 animate-fade-in-up">
-            <div className="w-20 h-20 bg-surface-alt rounded-full flex items-center justify-center mx-auto mb-4 text-dim">
+          <EmptyState
+            icon={
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                 <circle cx="9" cy="7" r="4" />
                 <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
                 <path d="M16 3.13a4 4 0 0 1 0 7.75" />
               </svg>
-            </div>
-            <p className="text-secondary font-medium mb-1">No matches yet</p>
-            <p className="text-xs text-dim mb-4">
-              Send interest on listings to get matched
-            </p>
-            <Link
-              href="/explore"
-              className="btn-primary inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg text-sm font-medium"
-            >
-              Explore listings
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m9 18 6-6-6-6" />
-              </svg>
-            </Link>
-          </div>
+            }
+            title="No matches yet"
+            subtitle="Send interest on listings to get matched"
+            action={
+              <Link
+                href="/explore"
+                className="btn-primary inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg text-sm font-medium"
+              >
+                Explore listings
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
+              </Link>
+            }
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
             {matches.map((match, i) => (

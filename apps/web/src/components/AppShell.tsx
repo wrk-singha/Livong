@@ -113,14 +113,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
                     active
-                      ? "bg-surface-alt text-foreground"
+                      ? "bg-accent/10 text-accent"
                       : "text-muted hover:bg-surface-alt hover:text-secondary"
                   }`}
                 >
                   <item.Icon active={active} />
-                  <span className={`text-sm font-medium ${active ? "text-foreground" : ""}`}>
+                  <span className={`text-sm font-medium ${active ? "text-accent" : ""}`}>
                     {item.label}
                   </span>
                 </Link>
@@ -174,16 +174,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex flex-col items-center py-2 px-4 transition-colors ${
+                  className={`flex flex-col items-center py-2 px-4 transition-all ${
                     active
-                      ? "text-foreground"
+                      ? "text-accent"
                       : "text-dim hover:text-secondary"
                   }`}
                 >
-                  <div className="mb-0.5">
+                  <div className={`mb-0.5 ${active ? "nav-active" : ""}`}>
                     <item.Icon active={active} />
                   </div>
-                  <span className={`text-[10px] font-medium ${active ? "text-foreground" : ""}`}>
+                  <span className={`text-[10px] font-medium ${active ? "text-accent" : ""}`}>
                     {item.label}
                   </span>
                 </Link>

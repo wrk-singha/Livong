@@ -99,7 +99,7 @@ export default function LoginPage() {
         <div className="w-full max-w-sm animate-fade-in-up">
           {/* Logo & Heading */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-14 h-14 bg-neutral-900 rounded-xl mb-4">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl mb-4" style={{background: 'linear-gradient(135deg, var(--accent), var(--accent-secondary))'}}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                 <polyline points="9 22 9 12 15 12 15 22" />
@@ -122,7 +122,7 @@ export default function LoginPage() {
                 <label className="block text-xs font-medium text-muted mb-1.5">
                   Phone Number
                 </label>
-                <div className="flex items-center border border-border rounded-lg overflow-hidden focus-within:border-muted focus-within:shadow-[0_0_0_2px_var(--ring)] transition-all bg-surface">
+                <div className="flex items-center border border-border rounded-lg overflow-hidden focus-within:border-accent focus-within:shadow-[0_0_0_3px_var(--ring)] transition-all bg-surface">
                   <span className="px-3.5 py-3 bg-surface-alt text-dim text-sm border-r border-border font-medium">
                     +91
                   </span>

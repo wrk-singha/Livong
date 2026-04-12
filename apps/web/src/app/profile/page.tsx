@@ -128,7 +128,7 @@ export default function ProfilePage() {
         {/* Profile Card */}
         <div className="card p-5 mb-5">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-neutral-900 rounded-xl flex items-center justify-center text-xl font-semibold text-white shrink-0">
+            <div className="w-14 h-14 rounded-xl flex items-center justify-center text-xl font-semibold text-white shrink-0" style={{background: 'linear-gradient(135deg, var(--accent), var(--accent-secondary))'}}>
               {profile.name.charAt(0).toUpperCase()}
             </div>
             <div>
@@ -179,10 +179,10 @@ export default function ProfilePage() {
                       key={opt}
                       onClick={() => updatePref(key, opt)}
                       disabled={saving}
-                      className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                      className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                         selected
-                          ? "bg-neutral-900 text-white"
-                          : "bg-surface-alt text-muted hover:bg-surface-alt border border-border-light"
+                          ? "bg-accent text-white shadow-sm"
+                          : "bg-surface-alt text-muted hover:bg-surface-alt hover:text-secondary border border-border-light"
                       }`}
                     >
                       {opt}

@@ -54,7 +54,7 @@ export default function ProfileSetupPage() {
       <div className="max-w-sm md:max-w-lg lg:max-w-xl mx-auto animate-fade-in-up">
         {/* Progress indicator */}
         <div className="flex items-center gap-2 mb-6">
-          <div className="h-1 flex-1 bg-primary rounded-full" />
+          <div className="h-1 flex-1 bg-accent rounded-full" />
           <div className="h-1 flex-1 bg-border rounded-full" />
           <div className="h-1 flex-1 bg-border rounded-full" />
         </div>

@@ -69,10 +69,10 @@ export default function ExplorePage() {
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
               showFilters
-                ? "bg-neutral-900 text-white"
-                : "bg-surface text-muted border border-border hover:border-muted"
+                ? "bg-accent text-white shadow-sm"
+                : "bg-surface text-muted border border-border hover:border-accent/30 hover:text-accent"
             }`}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -137,9 +137,25 @@ export default function ExplorePage() {
 
         {/* Content */}
         {loading ? (
-          <div className="flex flex-col items-center py-16">
-            <div className="w-8 h-8 border-3 border-border border-t-secondary rounded-full animate-spin" />
-            <p className="text-sm text-dim mt-3">Loading listings...</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="card p-4 space-y-3">
+                <div className="flex justify-between">
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-3/4 rounded-md animate-shimmer" />
+                    <div className="h-3 w-1/2 rounded-md animate-shimmer" />
+                  </div>
+                  <div className="space-y-1 ml-4">
+                    <div className="h-5 w-16 rounded-md animate-shimmer" />
+                    <div className="h-2 w-10 rounded-md animate-shimmer ml-auto" />
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <div className="h-5 w-14 rounded-md animate-shimmer" />
+                  <div className="h-4 w-4 rounded animate-shimmer" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : listings.length === 0 ? (
           <div className="text-center py-16 animate-fade-in-up">

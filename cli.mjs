@@ -160,22 +160,33 @@ end tell`;
 function closeTerminal(tabTitle) {
   try {
     if (PLATFORM === "darwin") {
+      // Terminal.app window names change to show the running command,
+      // so match on both the title we set AND common process names
+      const keywords = [tabTitle];
+      if (tabTitle.includes("Backend")) keywords.push("go run", "main.go");
+      if (tabTitle.includes("Frontend")) keywords.push("next-server", "next dev", "pnpm dev");
+
+      const conditions = keywords
+        .map((k) => `name of w contains "${k}"`)
+        .join(" or ");
+
       execSync(
         `osascript -e 'tell application "Terminal"
   repeat with w in (every window)
-    try
-      if name of w contains "${tabTitle}" then
-        close w
-      end if
-    end try
+    repeat with t in (every tab of w)
+      try
+        if ${conditions} then
+          do script "exit" in t
+          delay 0.3
+          close w
+        end if
+      end try
+    end repeat
   end repeat
 end tell'`,
         { stdio: "pipe" }
       );
     } else if (PLATFORM === "win32") {
-      // On Windows, killing the port process also closes the cmd window
-      // (since cmd /k keeps the window open until process exits, and we force-kill)
-      // But we can also try to close by title
       try {
         execSync(`taskkill /FI "WINDOWTITLE eq ${tabTitle}" /F`, { stdio: "pipe" });
       } catch {}
@@ -460,12 +471,9 @@ async function interactiveMenu() {
         case "12": webClean(); break;
         case "13": webInstall(); break;
         case "0": case "q": case "quit": case "exit":
-          console.log("");
-          await stopAll();
-          ok("Bye! 👋");
-          console.log("");
           rl.close();
-          process.exit(0);
+          await cleanup();
+          break;
         default:
           warn("Invalid choice — try again");
       }
@@ -501,6 +509,22 @@ const COMMANDS = {
   "--help": interactiveMenu,
   "-h": interactiveMenu,
 };
+
+// ── Cleanup on exit (Ctrl+C, terminal close) ───
+
+let cleaning = false;
+async function cleanup() {
+  if (cleaning) return;
+  cleaning = true;
+  console.log("");
+  await stopAll();
+  ok("Bye! 👋");
+  console.log("");
+  process.exit(0);
+}
+
+process.on("SIGINT", cleanup);
+process.on("SIGTERM", cleanup);
 
 const arg = process.argv[2];
 

@@ -11,11 +11,11 @@ type Match = {
 };
 
 const AVATAR_COLORS = [
-  "bg-neutral-900",
-  "bg-neutral-700",
-  "bg-neutral-800",
-  "bg-neutral-600",
-  "bg-neutral-500",
+  "bg-accent",
+  "bg-accent-secondary",
+  "bg-indigo-600",
+  "bg-violet-600",
+  "bg-purple-600",
 ];
 
 export default function MatchesPage() {
@@ -41,9 +41,16 @@ export default function MatchesPage() {
         </div>
 
         {loading ? (
-          <div className="flex flex-col items-center py-16">
-            <div className="w-8 h-8 border-3 border-border border-t-secondary rounded-full animate-spin" />
-            <p className="text-sm text-dim mt-3">Loading matches...</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="card flex items-center gap-3 p-4">
+                <div className="w-10 h-10 rounded-lg animate-shimmer shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-24 rounded-md animate-shimmer" />
+                  <div className="h-3 w-32 rounded-md animate-shimmer" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : matches.length === 0 ? (
           <div className="text-center py-16 animate-fade-in-up">

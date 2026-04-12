@@ -115,7 +115,7 @@ export default function ChatPage() {
             <path d="m15 18-6-6 6-6" />
           </svg>
         </button>
-        <div className="w-9 h-9 bg-neutral-900 rounded-lg flex items-center justify-center">
+        <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{background: 'linear-gradient(135deg, var(--accent), var(--accent-secondary))'}}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
@@ -124,7 +124,7 @@ export default function ChatPage() {
         <div>
           <h1 className="font-medium text-sm text-foreground">Chat</h1>
           <div className="flex items-center gap-1">
-            <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse-dot" />
             <span className="text-[10px] text-dim">Online</span>
           </div>
         </div>
@@ -207,7 +207,7 @@ export default function ChatPage() {
                 <div
                   className={`max-w-[75%] px-4 py-2.5 text-sm ${
                     isMine
-                      ? "bg-neutral-900 text-white rounded-2xl rounded-br-md"
+                      ? "bg-accent text-white rounded-2xl rounded-br-md"
                       : "bg-surface text-secondary rounded-2xl rounded-bl-md border border-border"
                   }`}
                 >
@@ -252,7 +252,7 @@ export default function ChatPage() {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type a message..."
-            className="flex-1 px-4 py-2.5 bg-surface border border-border rounded-lg text-sm outline-none focus:border-muted focus:shadow-[0_0_0_2px_var(--ring)] transition-all placeholder:text-faint text-foreground"
+            className="flex-1 px-4 py-2.5 bg-surface border border-border rounded-lg text-sm outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--ring)] transition-all placeholder:text-faint text-foreground"
             autoFocus
           />
           <button
@@ -287,9 +287,9 @@ export default function ChatPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => setShareType("phone")}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
                   shareType === "phone"
-                    ? "bg-neutral-900 text-white"
+                    ? "bg-accent text-white"
                     : "bg-surface-alt text-muted hover:bg-border"
                 }`}
               >
@@ -297,9 +297,9 @@ export default function ChatPage() {
               </button>
               <button
                 onClick={() => setShareType("email")}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
                   shareType === "email"
-                    ? "bg-neutral-900 text-white"
+                    ? "bg-accent text-white"
                     : "bg-surface-alt text-muted hover:bg-border"
                 }`}
               >
@@ -312,7 +312,7 @@ export default function ChatPage() {
               value={shareValue}
               onChange={(e) => setShareValue(e.target.value)}
               placeholder={shareType === "phone" ? "+1 (555) 123-4567" : "you@example.com"}
-              className="w-full px-4 py-2.5 bg-surface-alt border border-border rounded-lg text-sm outline-none focus:border-muted focus:shadow-[0_0_0_2px_var(--ring)] transition-all placeholder:text-faint text-foreground"
+              className="w-full px-4 py-2.5 bg-surface-alt border border-border rounded-lg text-sm outline-none focus:border-accent focus:shadow-[0_0_0_3px_var(--ring)] transition-all placeholder:text-faint text-foreground"
               autoFocus
             />
 

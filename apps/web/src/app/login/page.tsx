@@ -122,7 +122,7 @@ export default function LoginPage() {
                 <label className="block text-xs font-medium text-muted mb-1.5">
                   Phone Number
                 </label>
-                <div className="flex items-center border border-border rounded-lg overflow-hidden focus-within:border-accent focus-within:shadow-[0_0_0_3px_var(--ring)] transition-all bg-surface">
+                <div className="flex items-center border border-border rounded-lg overflow-hidden focus-within:border-accent focus-within:shadow-[0_0_0_3px_var(--ring)] transition-[border-color,box-shadow] bg-surface">
                   <span className="px-3.5 py-3 bg-surface-alt text-dim text-sm border-r border-border font-medium">
                     +91
                   </span>

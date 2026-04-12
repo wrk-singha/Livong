@@ -30,6 +30,7 @@ export default function ListingDetailPage() {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
+  const [hasProfile, setHasProfile] = useState(false);
 
   useEffect(() => {
     if (!params.id) return;
@@ -38,10 +39,15 @@ export default function ListingDetailPage() {
       .then(setListing)
       .catch(() => setError("Listing not found"))
       .finally(() => setLoading(false));
+    api.getProfile().then(() => setHasProfile(true)).catch(() => {});
   }, [params.id]);
 
   const handleSendInterest = async () => {
     if (!listing) return;
+    if (!hasProfile) {
+      router.push("/profile/setup");
+      return;
+    }
     setSending(true);
     setError("");
     try {

@@ -49,13 +49,7 @@ export default function LoginPage() {
     try {
       const res = await api.verifyOtp(phone, otp);
       login(res.token, res.userId);
-      // Check if profile exists; if so go to explore, else setup
-      try {
-        await api.getProfile();
-        router.push("/explore");
-      } catch (e) {
-        router.push("/profile/setup");
-      }
+      router.push("/explore");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Invalid OTP");
     } finally {

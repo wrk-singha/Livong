@@ -18,6 +18,14 @@ func NewHandler(db *sql.DB) *Handler {
 func (h *Handler) SendInterest(c *gin.Context) {
 	senderID := c.GetString("userId")
 
+	// Require profile to send interest
+	var profileExists bool
+	h.db.QueryRow(`SELECT EXISTS(SELECT 1 FROM profiles WHERE user_id = $1)`, senderID).Scan(&profileExists)
+	if !profileExists {
+		c.JSON(http.StatusForbidden, gin.H{"error": "complete your profile before sending interest"})
+		return
+	}
+
 	var req struct {
 		ReceiverID string `json:"receiverId" binding:"required"`
 		ListingID  string `json:"listingId" binding:"required"`

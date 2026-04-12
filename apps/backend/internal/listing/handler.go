@@ -121,6 +121,14 @@ func (h *Handler) GetListing(c *gin.Context) {
 func (h *Handler) CreateListing(c *gin.Context) {
 	userID := c.GetString("userId")
 
+	// Require profile to create a listing
+	var profileExists bool
+	h.db.QueryRow(`SELECT EXISTS(SELECT 1 FROM profiles WHERE user_id = $1)`, userID).Scan(&profileExists)
+	if !profileExists {
+		c.JSON(http.StatusForbidden, gin.H{"error": "complete your profile before creating a listing"})
+		return
+	}
+
 	var req struct {
 		Title        string `json:"title" binding:"required"`
 		Description  string `json:"description"`

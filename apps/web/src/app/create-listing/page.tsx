@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 
@@ -9,6 +9,7 @@ const PROPERTY_TYPES = ["room", "flat", "shared"];
 export default function CreateListingPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [checkingProfile, setCheckingProfile] = useState(true);
   const [error, setError] = useState("");
   const [form, setForm] = useState({
     title: "",
@@ -17,6 +18,12 @@ export default function CreateListingPage() {
     location: "",
     propertyType: "",
   });
+
+  useEffect(() => {
+    api.getProfile()
+      .catch(() => { router.replace("/profile/setup"); })
+      .finally(() => setCheckingProfile(false));
+  }, [router]);
 
   const update = (key: string, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -46,6 +53,14 @@ export default function CreateListingPage() {
       setLoading(false);
     }
   };
+
+  if (checkingProfile) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-8 h-8 border-3 border-border border-t-secondary rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen px-4 py-6">

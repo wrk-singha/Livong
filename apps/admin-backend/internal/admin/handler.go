@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/rohit/livong-backend/internal/auth"
+	"github.com/rohit/livong-admin-backend/internal/auth"
 
 	"github.com/gin-gonic/gin"
 )
@@ -287,7 +287,6 @@ func (h *Handler) UpdateUser(c *gin.Context) {
 func (h *Handler) DeleteUser(c *gin.Context) {
 	id := c.Param("id")
 
-	// Delete in order due to foreign keys
 	h.db.Exec(`DELETE FROM messages WHERE sender_id = $1 OR match_id IN (SELECT id FROM matches WHERE user1_id = $1 OR user2_id = $1)`, id)
 	h.db.Exec(`DELETE FROM matches WHERE user1_id = $1 OR user2_id = $1`, id)
 	h.db.Exec(`DELETE FROM reviews WHERE reviewer_id = $1`, id)
@@ -586,20 +585,16 @@ func (h *Handler) GetRevenue(c *gin.Context) {
 		trunc = "day"
 	}
 
-	// Summary stats
 	summary := gin.H{}
 
-	// Total revenue all time
 	var totalRevenue sql.NullInt64
 	h.db.QueryRow(`SELECT COALESCE(SUM(amount), 0) FROM payments`).Scan(&totalRevenue)
 	summary["totalRevenue"] = totalRevenue.Int64
 
-	// Total payments count
 	var totalPayments int
 	h.db.QueryRow(`SELECT COUNT(*) FROM payments`).Scan(&totalPayments)
 	summary["totalPayments"] = totalPayments
 
-	// Revenue in selected range
 	var rangeRevenue sql.NullInt64
 	var rangePayments int
 	if from != "" && to != "" {
@@ -612,7 +607,6 @@ func (h *Handler) GetRevenue(c *gin.Context) {
 	summary["rangeRevenue"] = rangeRevenue.Int64
 	summary["rangePayments"] = rangePayments
 
-	// Revenue by plan
 	planRows, _ := h.db.Query(`
 		SELECT plan, COUNT(*), COALESCE(SUM(amount), 0)
 		FROM payments
@@ -638,7 +632,6 @@ func (h *Handler) GetRevenue(c *gin.Context) {
 	}
 	summary["byPlan"] = byPlan
 
-	// Time series
 	query := `
 		SELECT DATE_TRUNC($1, created_at) AS period,
 			COUNT(*), COALESCE(SUM(amount), 0)
@@ -669,7 +662,6 @@ func (h *Handler) GetRevenue(c *gin.Context) {
 	}
 	summary["timeSeries"] = timeSeries
 
-	// Recent payments
 	recent, _ := h.db.Query(`
 		SELECT p.id, p.plan, p.amount, p.created_at, pr.name, u.phone
 		FROM payments p
@@ -719,7 +711,6 @@ func (h *Handler) GetAnalytics(c *gin.Context) {
 	to := c.Query("to")
 	days := c.DefaultQuery("days", "30")
 
-	// Build date filter: prefer from/to, fall back to days
 	dateFilter := "created_at > NOW() - ($1 || ' days')::INTERVAL"
 	dateArgs := []interface{}{days}
 	if from != "" {
@@ -733,7 +724,6 @@ func (h *Handler) GetAnalytics(c *gin.Context) {
 
 	result := gin.H{}
 
-	// helper to run time-series queries
 	queryTimeSeries := func(table string, extraCols string, scanFn func(*sql.Rows) map[string]interface{}) []map[string]interface{} {
 		q := "SELECT DATE_TRUNC('day', created_at)::date AS d" + extraCols + " FROM " + table + " WHERE " + dateFilter + " GROUP BY d ORDER BY d"
 		rows, _ := h.db.Query(q, dateArgs...)
@@ -773,7 +763,6 @@ func (h *Handler) GetAnalytics(c *gin.Context) {
 		return nil
 	})
 
-	// Conversion funnel
 	funnel := gin.H{}
 	var totalUsers, totalProfiles, totalListings, totalInterests, totalMatches int
 	h.db.QueryRow(`SELECT COUNT(*) FROM users`).Scan(&totalUsers)
@@ -788,7 +777,6 @@ func (h *Handler) GetAnalytics(c *gin.Context) {
 	funnel["matches"] = totalMatches
 	result["funnel"] = funnel
 
-	// Plan distribution
 	planRows, _ := h.db.Query(`SELECT COALESCE(plan, 'free'), COUNT(*) FROM users GROUP BY plan ORDER BY plan`)
 	var planDist []map[string]interface{}
 	if planRows != nil {
@@ -803,7 +791,6 @@ func (h *Handler) GetAnalytics(c *gin.Context) {
 	}
 	result["planDistribution"] = planDist
 
-	// Interest status breakdown
 	intRows, _ := h.db.Query(`SELECT status, COUNT(*) FROM interests GROUP BY status ORDER BY status`)
 	var intDist []map[string]interface{}
 	if intRows != nil {
@@ -818,7 +805,6 @@ func (h *Handler) GetAnalytics(c *gin.Context) {
 	}
 	result["interestsByStatus"] = intDist
 
-	// Top locations
 	locRows, _ := h.db.Query(`
 		SELECT COALESCE(location, 'Unknown'), COUNT(*)
 		FROM listings
@@ -837,7 +823,6 @@ func (h *Handler) GetAnalytics(c *gin.Context) {
 	}
 	result["topLocations"] = topLocations
 
-	// Avg rating
 	var avgRating sql.NullFloat64
 	h.db.QueryRow(`SELECT AVG(rating) FROM reviews`).Scan(&avgRating)
 	if avgRating.Valid {
@@ -846,7 +831,6 @@ func (h *Handler) GetAnalytics(c *gin.Context) {
 		result["avgRating"] = 0
 	}
 
-	// Engagement: avg messages per match
 	var avgMessages sql.NullFloat64
 	h.db.QueryRow(`SELECT AVG(cnt) FROM (SELECT COUNT(*) AS cnt FROM messages GROUP BY match_id) sub`).Scan(&avgMessages)
 	if avgMessages.Valid {

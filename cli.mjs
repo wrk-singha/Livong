@@ -13,11 +13,13 @@ import os from "os";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const BACKEND_DIR = join(__dirname, "apps", "backend");
+const ADMIN_BACKEND_DIR = join(__dirname, "apps", "admin-backend");
 const WEB_DIR = join(__dirname, "apps", "web");
 const ADMIN_DIR = join(__dirname, "apps", "admin");
 
 const PLATFORM = os.platform(); // 'darwin', 'win32', 'linux'
 const BACKEND_PORT = process.env.PORT || "8080";
+const ADMIN_BACKEND_PORT = process.env.ADMIN_BACKEND_PORT || "8081";
 const WEB_PORT = process.env.WEB_PORT || "3000";
 const ADMIN_PORT = process.env.ADMIN_PORT || "3100";
 const DB_URL =
@@ -257,6 +259,57 @@ function backendLogs() {
   }
 }
 
+// ── Admin Backend Commands ──────────────────────
+
+async function adminBackendStart() {
+  title("Starting Admin Backend");
+  if (isPortUsed(ADMIN_BACKEND_PORT)) {
+    warn(`Admin backend already running on :${ADMIN_BACKEND_PORT}`);
+    return;
+  }
+
+  const cmd =
+    PLATFORM === "win32"
+      ? `go run cmd\\server\\main.go`
+      : `go run cmd/server/main.go`;
+
+  openTerminal("Livong Admin Backend", cmd, ADMIN_BACKEND_DIR, {
+    PORT: ADMIN_BACKEND_PORT,
+    DATABASE_URL: DB_URL,
+    JWT_SECRET: JWT_SECRET,
+  });
+
+  let attempts = 0;
+  while (!isPortUsed(ADMIN_BACKEND_PORT) && attempts < 25) {
+    await sleep(1000);
+    attempts++;
+  }
+
+  if (isPortUsed(ADMIN_BACKEND_PORT)) {
+    ok(`Admin backend running on :${ADMIN_BACKEND_PORT} (new terminal)`);
+  } else {
+    fail(`Admin backend failed to start (waited ${attempts}s)`);
+  }
+}
+
+async function adminBackendStop() {
+  title("Stopping Admin Backend");
+  if (isPortUsed(ADMIN_BACKEND_PORT)) {
+    killPort(ADMIN_BACKEND_PORT);
+    closeTerminal("Livong Admin Backend");
+    await sleep(500);
+    ok("Admin backend stopped & terminal closed");
+  } else {
+    warn("Admin backend not running");
+  }
+}
+
+async function adminBackendRestart() {
+  title("Restarting Admin Backend");
+  await adminBackendStop();
+  await adminBackendStart();
+}
+
 // ── Web Commands ────────────────────────────────
 
 async function webDev() {
@@ -375,7 +428,7 @@ async function adminDev() {
   }
 
   const cmd = PLATFORM === "win32" ? "pnpm.cmd dev" : "pnpm dev";
-  openTerminal("Livong Admin", cmd, ADMIN_DIR, { PORT: ADMIN_PORT });
+  openTerminal("Livong Admin", cmd, ADMIN_DIR, { PORT: ADMIN_PORT, NEXT_PUBLIC_API_URL: `http://localhost:${ADMIN_BACKEND_PORT}` });
 
   let attempts = 0;
   while (!isPortUsed(ADMIN_PORT) && attempts < 25) {
@@ -412,6 +465,7 @@ async function adminRestart() {
 
 async function startAll() {
   await backendStart();
+  await adminBackendStart();
   await webDev();
   await adminDev();
   showStatus();
@@ -419,6 +473,7 @@ async function startAll() {
 
 async function stopAll() {
   await backendStop();
+  await adminBackendStop();
   await webStop();
   await adminStop();
 }
@@ -431,19 +486,24 @@ async function restartAll() {
 function showStatus() {
   title("Status");
   if (isPortUsed(BACKEND_PORT)) {
-    ok(`Backend  → ${c.g}running${c.nc} on :${BACKEND_PORT}`);
+    ok(`Backend       → ${c.g}running${c.nc} on :${BACKEND_PORT}`);
   } else {
-    fail(`Backend  → ${c.r}stopped${c.nc}`);
+    fail(`Backend       → ${c.r}stopped${c.nc}`);
+  }
+  if (isPortUsed(ADMIN_BACKEND_PORT)) {
+    ok(`Admin Backend → ${c.g}running${c.nc} on :${ADMIN_BACKEND_PORT}`);
+  } else {
+    fail(`Admin Backend → ${c.r}stopped${c.nc}`);
   }
   if (isPortUsed(WEB_PORT)) {
-    ok(`Frontend → ${c.g}running${c.nc} on :${WEB_PORT}`);
+    ok(`Frontend      → ${c.g}running${c.nc} on :${WEB_PORT}`);
   } else {
-    fail(`Frontend → ${c.r}stopped${c.nc}`);
+    fail(`Frontend      → ${c.r}stopped${c.nc}`);
   }
   if (isPortUsed(ADMIN_PORT)) {
-    ok(`Admin    → ${c.g}running${c.nc} on :${ADMIN_PORT}`);
+    ok(`Admin         → ${c.g}running${c.nc} on :${ADMIN_PORT}`);
   } else {
-    fail(`Admin    → ${c.r}stopped${c.nc}`);
+    fail(`Admin         → ${c.r}stopped${c.nc}`);
   }
 }
 
@@ -473,19 +533,24 @@ async function interactiveMenu() {
 
     // Live status
     if (isPortUsed(BACKEND_PORT)) {
-      console.log(`  Backend  → ${c.g}● running${c.nc} :${BACKEND_PORT}`);
+      console.log(`  Backend       → ${c.g}● running${c.nc} :${BACKEND_PORT}`);
     } else {
-      console.log(`  Backend  → ${c.r}○ stopped${c.nc}`);
+      console.log(`  Backend       → ${c.r}○ stopped${c.nc}`);
+    }
+    if (isPortUsed(ADMIN_BACKEND_PORT)) {
+      console.log(`  Admin Backend → ${c.g}● running${c.nc} :${ADMIN_BACKEND_PORT}`);
+    } else {
+      console.log(`  Admin Backend → ${c.r}○ stopped${c.nc}`);
     }
     if (isPortUsed(WEB_PORT)) {
-      console.log(`  Frontend → ${c.g}● running${c.nc} :${WEB_PORT}`);
+      console.log(`  Frontend      → ${c.g}● running${c.nc} :${WEB_PORT}`);
     } else {
-      console.log(`  Frontend → ${c.r}○ stopped${c.nc}`);
+      console.log(`  Frontend      → ${c.r}○ stopped${c.nc}`);
     }
     if (isPortUsed(ADMIN_PORT)) {
-      console.log(`  Admin    → ${c.g}● running${c.nc} :${ADMIN_PORT}`);
+      console.log(`  Admin         → ${c.g}● running${c.nc} :${ADMIN_PORT}`);
     } else {
-      console.log(`  Admin    → ${c.r}○ stopped${c.nc}`);
+      console.log(`  Admin         → ${c.r}○ stopped${c.nc}`);
     }
 
     console.log("");
@@ -507,9 +572,13 @@ async function interactiveMenu() {
     console.log(`  ${c.y}12)${c.nc} Clean .next cache`);
     console.log(`  ${c.y}13)${c.nc} Install dependencies`);
     console.log("");
-    console.log(`  ${c.c}14)${c.nc} Start admin (dev)`);
-    console.log(`  ${c.c}15)${c.nc} Stop admin`);
-    console.log(`  ${c.c}16)${c.nc} Restart admin`);
+    console.log(`  ${c.c}14)${c.nc} Start admin backend`);
+    console.log(`  ${c.c}15)${c.nc} Stop admin backend`);
+    console.log(`  ${c.c}16)${c.nc} Restart admin backend`);
+    console.log("");
+    console.log(`  ${c.c}17)${c.nc} Start admin frontend (dev)`);
+    console.log(`  ${c.c}18)${c.nc} Stop admin frontend`);
+    console.log(`  ${c.c}19)${c.nc} Restart admin frontend`);
     console.log("");
     console.log(`  ${c.r}0)${c.nc}  Exit`);
     console.log("");
@@ -531,9 +600,12 @@ async function interactiveMenu() {
         case "11": webBuild(); break;
         case "12": webClean(); break;
         case "13": webInstall(); break;
-        case "14": await adminDev(); break;
-        case "15": await adminStop(); break;
-        case "16": await adminRestart(); break;
+        case "14": await adminBackendStart(); break;
+        case "15": await adminBackendStop(); break;
+        case "16": await adminBackendRestart(); break;
+        case "17": await adminDev(); break;
+        case "18": await adminStop(); break;
+        case "19": await adminRestart(); break;
         case "0": case "q": case "quit": case "exit":
           rl.close();
           await cleanup();
@@ -565,6 +637,9 @@ const COMMANDS = {
   "admin:dev": adminDev,
   "admin:stop": adminStop,
   "admin:restart": adminRestart,
+  "admin-server:start": adminBackendStart,
+  "admin-server:stop": adminBackendStop,
+  "admin-server:restart": adminBackendRestart,
   start: startAll,
   stop: stopAll,
   restart: restartAll,

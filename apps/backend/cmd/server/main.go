@@ -14,7 +14,6 @@ import (
 	"github.com/rohit/livong-backend/internal/chat"
 	"github.com/rohit/livong-backend/internal/review"
 	"github.com/rohit/livong-backend/internal/plan"
-	"github.com/rohit/livong-backend/internal/admin"
 
 	"github.com/gin-gonic/gin"
 )
@@ -91,25 +90,6 @@ func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
-	}
-
-	// Admin routes
-	adminHandler := admin.NewHandler(db)
-	adminGroup := router.Group("/admin")
-	adminGroup.Use(admin.AdminAuth(db))
-	{
-		adminGroup.GET("/stats", adminHandler.GetStats)
-		adminGroup.GET("/users", adminHandler.GetUsers)
-		adminGroup.PATCH("/users/:id", adminHandler.UpdateUser)
-		adminGroup.DELETE("/users/:id", adminHandler.DeleteUser)
-		adminGroup.GET("/listings", adminHandler.GetListings)
-		adminGroup.DELETE("/listings/:id", adminHandler.DeleteListing)
-		adminGroup.GET("/reviews", adminHandler.GetReviews)
-		adminGroup.DELETE("/reviews/:id", adminHandler.DeleteReview)
-		adminGroup.GET("/matches", adminHandler.GetMatches)
-		adminGroup.GET("/interests", adminHandler.GetInterests)
-		adminGroup.GET("/revenue", adminHandler.GetRevenue)
-		adminGroup.GET("/analytics", adminHandler.GetAnalytics)
 	}
 
 	log.Printf("Server starting on :%s", port)

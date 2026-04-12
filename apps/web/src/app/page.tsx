@@ -193,8 +193,8 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Right: Floating app preview cards — contained so animations don't trigger page-wide repaints */}
-          <div className="relative hidden lg:flex items-center justify-center min-h-[480px]" style={{ contain: 'layout paint style' }}>
+          {/* Right: Floating app preview cards */}
+          <div className="relative hidden lg:flex items-center justify-center min-h-[480px]">
             {/* Listing card */}
             <div className="absolute top-4 left-4 w-64 bg-surface rounded-2xl p-5 float-slow shadow-lg border border-border z-10">
               <div className="flex items-center gap-3 mb-3">

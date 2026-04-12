@@ -1,12 +1,14 @@
 "use client";
 
 import { useAuth } from "@/contexts/auth";
+import { useTheme } from "@/contexts/theme";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
 
 export default function Home() {
   const { isAuthenticated, hydrated } = useAuth();
+  const { theme, toggle } = useTheme();
   const router = useRouter();
 
   useEffect(() => {
@@ -20,12 +22,30 @@ export default function Home() {
       {/* Header */}
       <header className="px-6 lg:px-12 pt-6 flex items-center justify-between max-w-6xl mx-auto w-full">
         <h2 className="text-lg font-semibold text-foreground tracking-tight">Livong</h2>
-        <Link
-          href="/login"
-          className="text-sm font-medium text-secondary hover:text-foreground transition-colors px-4 py-2 border border-border rounded-lg hover:border-muted"
-        >
-          Sign in
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggle}
+            className="p-2 rounded-lg text-dim hover:text-secondary hover:bg-surface-alt transition-colors"
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+            )}
+          </button>
+          <Link
+            href="/login"
+            className="text-sm font-medium text-secondary hover:text-foreground transition-colors px-4 py-2 border border-border rounded-lg hover:border-muted"
+          >
+            Sign in
+          </Link>
+        </div>
       </header>
 
       {/* Hero */}

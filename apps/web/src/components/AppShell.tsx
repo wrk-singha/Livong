@@ -90,10 +90,19 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* Desktop sidebar */}
       {showNav && (
         <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-60 z-40 flex-col bg-surface border-r border-border">
-          {/* Brand */}
-          <div className="px-5 pt-7 pb-5">
-            <h1 className="text-lg font-semibold text-foreground tracking-tight">Livong</h1>
-            <p className="text-[11px] text-dim mt-0.5">Find your perfect roommate</p>
+          {/* Brand + theme toggle */}
+          <div className="px-5 pt-7 pb-5 flex items-start justify-between">
+            <div>
+              <h1 className="text-lg font-semibold text-foreground tracking-tight">Livong</h1>
+              <p className="text-[11px] text-dim mt-0.5">Find your perfect roommate</p>
+            </div>
+            <button
+              onClick={toggle}
+              className="mt-0.5 p-2 rounded-lg text-dim hover:text-secondary hover:bg-surface-alt transition-colors"
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+            </button>
           </div>
 
           {/* Nav links */}
@@ -122,13 +131,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           {/* Bottom actions */}
           <div className="px-3 pb-4 space-y-1">
             <button
-              onClick={toggle}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg w-full text-dim hover:bg-surface-alt hover:text-secondary transition-colors"
-            >
-              {theme === "dark" ? <SunIcon /> : <MoonIcon />}
-              <span className="text-sm font-medium">{theme === "dark" ? "Light mode" : "Dark mode"}</span>
-            </button>
-            <button
               onClick={logout}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg w-full text-dim hover:bg-error-surface hover:text-red-500 transition-colors"
             >
@@ -139,17 +141,31 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </aside>
       )}
 
+      {/* Mobile top bar */}
+      {showNav && !isChat && (
+        <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-surface border-b border-border px-4 py-3 flex items-center justify-between">
+          <h1 className="text-base font-semibold text-foreground tracking-tight">Livong</h1>
+          <button
+            onClick={toggle}
+            className="p-2 -mr-2 rounded-lg text-dim hover:text-secondary hover:bg-surface-alt transition-colors"
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+          </button>
+        </header>
+      )}
+
       {/* Main content area */}
       <main
         className={`flex-1 ${
-          showNav && !isChat ? "pb-16 lg:pb-0 lg:pl-60" : showNav ? "lg:pl-60" : ""
+          showNav && !isChat ? "pt-14 pb-16 lg:pt-0 lg:pb-0 lg:pl-60" : showNav && isChat ? "lg:pl-60" : ""
         }`}
       >
         {children}
       </main>
 
       {/* Mobile bottom nav */}
-      {showNav && (
+      {showNav && !isChat && (
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface border-t border-border">
           <div className="max-w-md mx-auto flex justify-around py-1">
             {navItems.map((item) => {
@@ -173,16 +189,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 </Link>
               );
             })}
-            {/* Mobile theme toggle */}
-            <button
-              onClick={toggle}
-              className="flex flex-col items-center py-2 px-4 text-dim hover:text-secondary transition-colors"
-            >
-              <div className="mb-0.5">
-                {theme === "dark" ? <SunIcon /> : <MoonIcon />}
-              </div>
-              <span className="text-[10px] font-medium">Theme</span>
-            </button>
+
           </div>
         </nav>
       )}

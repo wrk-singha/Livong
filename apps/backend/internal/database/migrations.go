@@ -69,6 +69,13 @@ func RunMigrations(db *sql.DB) error {
 			ALTER TABLE messages ADD COLUMN IF NOT EXISTS message_type VARCHAR(20) DEFAULT 'text';
 		EXCEPTION WHEN others THEN NULL;
 		END $$`,
+		`CREATE TABLE IF NOT EXISTS listing_images (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			listing_id UUID REFERENCES listings(id) ON DELETE CASCADE,
+			filename VARCHAR(255) NOT NULL,
+			position INT DEFAULT 0,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		)`,
 	}
 
 	for i, m := range migrations {

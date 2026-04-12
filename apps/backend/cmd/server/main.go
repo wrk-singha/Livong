@@ -34,6 +34,9 @@ func main() {
 	// CORS middleware
 	router.Use(middleware.CORS())
 
+	// Serve uploaded images
+	router.Static("/uploads", "./uploads")
+
 	// Public routes
 	authHandler := auth.NewHandler(db)
 	router.POST("/auth/login", authHandler.Login)
@@ -54,6 +57,7 @@ func main() {
 		protected.GET("/listings", listingHandler.GetListings)
 		protected.GET("/listings/:id", listingHandler.GetListing)
 		protected.POST("/listings", listingHandler.CreateListing)
+		protected.POST("/listings/:id/images", listingHandler.UploadImages)
 
 		// Interests
 		interestHandler := interest.NewHandler(db)

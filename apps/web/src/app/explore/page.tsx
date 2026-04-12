@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { api, imageUrl } from "@/lib/api";
 
 type Listing = {
   id: string;
@@ -13,6 +13,7 @@ type Listing = {
   rent: number;
   location: string;
   propertyType: string;
+  thumbnail?: string;
 };
 
 const TYPE_COLORS: Record<string, string> = {
@@ -169,40 +170,54 @@ export default function ExplorePage() {
               <Link
                 key={listing.id}
                 href={`/listings/${listing.id}`}
-                className="card block p-4 group h-full"
+                className="card block group h-full overflow-hidden"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm text-foreground group-hover:text-secondary transition-colors truncate">
-                      {listing.title}
-                    </h3>
-                    <div className="flex items-center gap-1 mt-1 text-dim">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-                        <circle cx="12" cy="10" r="3" />
-                      </svg>
-                      <span className="text-xs">{listing.location}</span>
+                {listing.thumbnail ? (
+                  <div className="w-full h-36 bg-surface-alt">
+                    <img
+                      src={imageUrl(listing.thumbnail)}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-full h-36 bg-surface-alt flex items-center justify-center text-faint">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+                      <circle cx="9" cy="9" r="2" />
+                      <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+                    </svg>
+                  </div>
+                )}
+                <div className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-sm text-foreground group-hover:text-secondary transition-colors truncate">
+                        {listing.title}
+                      </h3>
+                      <div className="flex items-center gap-1 mt-1 text-dim">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                          <circle cx="12" cy="10" r="3" />
+                        </svg>
+                        <span className="text-xs">{listing.location}</span>
+                      </div>
                     </div>
-                    {listing.description && (
-                      <p className="text-xs text-dim mt-1.5 line-clamp-2">
-                        {listing.description}
+                    <div className="text-right ml-4 shrink-0">
+                      <p className="text-lg font-bold text-foreground">
+                        ₹{listing.rent?.toLocaleString()}
                       </p>
-                    )}
+                      <p className="text-[10px] text-dim">/month</p>
+                    </div>
                   </div>
-                  <div className="text-right ml-4 shrink-0">
-                    <p className="text-lg font-bold text-foreground">
-                      ₹{listing.rent?.toLocaleString()}
-                    </p>
-                    <p className="text-[10px] text-dim">/month</p>
+                  <div className="mt-3 flex items-center justify-between">
+                    <span className={`inline-block px-2.5 py-1 rounded-md text-[11px] font-medium ${TYPE_COLORS[listing.propertyType] || "bg-surface-alt text-muted"}`}>
+                      {listing.propertyType}
+                    </span>
+                    <svg className="text-faint group-hover:text-muted transition-colors" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m9 18 6-6-6-6" />
+                    </svg>
                   </div>
-                </div>
-                <div className="mt-3 flex items-center justify-between">
-                  <span className={`inline-block px-2.5 py-1 rounded-md text-[11px] font-medium ${TYPE_COLORS[listing.propertyType] || "bg-surface-alt text-muted"}`}>
-                    {listing.propertyType}
-                  </span>
-                  <svg className="text-faint group-hover:text-muted transition-colors" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m9 18 6-6-6-6" />
-                  </svg>
                 </div>
               </Link>
             ))}

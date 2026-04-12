@@ -1,9 +1,14 @@
 package listing
 
 import (
+	"crypto/rand"
 	"database/sql"
+	"encoding/hex"
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,27 +26,29 @@ func (h *Handler) GetListings(c *gin.Context) {
 	minBudget := c.Query("minBudget")
 	maxBudget := c.Query("maxBudget")
 
-	query := "SELECT id, user_id, title, description, rent, location, property_type, available_from, created_at FROM listings WHERE 1=1"
+	query := `SELECT l.id, l.user_id, l.title, l.description, l.rent, l.location, l.property_type, l.available_from, l.created_at,
+		(SELECT li.filename FROM listing_images li WHERE li.listing_id = l.id ORDER BY li.position, li.created_at LIMIT 1)
+		FROM listings l WHERE 1=1`
 	args := []interface{}{}
 	argIdx := 1
 
 	if location != "" {
-		query += fmt.Sprintf(" AND location ILIKE $%d", argIdx)
+		query += fmt.Sprintf(" AND l.location ILIKE $%d", argIdx)
 		args = append(args, "%"+location+"%")
 		argIdx++
 	}
 	if minBudget != "" {
-		query += fmt.Sprintf(" AND rent >= $%d", argIdx)
+		query += fmt.Sprintf(" AND l.rent >= $%d", argIdx)
 		args = append(args, minBudget)
 		argIdx++
 	}
 	if maxBudget != "" {
-		query += fmt.Sprintf(" AND rent <= $%d", argIdx)
+		query += fmt.Sprintf(" AND l.rent <= $%d", argIdx)
 		args = append(args, maxBudget)
 		argIdx++
 	}
 
-	query += " ORDER BY created_at DESC"
+	query += " ORDER BY l.created_at DESC"
 
 	rows, err := h.db.Query(query, args...)
 	if err != nil {
@@ -57,8 +64,9 @@ func (h *Handler) GetListings(c *gin.Context) {
 		var rent int
 		var availableFrom sql.NullTime
 		var createdAt sql.NullTime
+		var thumbnail sql.NullString
 
-		if err := rows.Scan(&id, &userID, &title, &description, &rent, &location, &propertyType, &availableFrom, &createdAt); err != nil {
+		if err := rows.Scan(&id, &userID, &title, &description, &rent, &location, &propertyType, &availableFrom, &createdAt, &thumbnail); err != nil {
 			continue
 		}
 
@@ -74,6 +82,9 @@ func (h *Handler) GetListings(c *gin.Context) {
 		if availableFrom.Valid {
 			l["availableFrom"] = availableFrom.Time
 		}
+		if thumbnail.Valid {
+			l["thumbnail"] = "/uploads/" + thumbnail.String
+		}
 		listings = append(listings, l)
 	}
 
@@ -83,20 +94,23 @@ func (h *Handler) GetListings(c *gin.Context) {
 func (h *Handler) GetListing(c *gin.Context) {
 	id := c.Param("id")
 
-	var l struct {
-		ID           string         `json:"id"`
-		UserID       string         `json:"userId"`
-		Title        string         `json:"title"`
-		Description  sql.NullString `json:"-"`
-		Rent         int            `json:"rent"`
-		Location     string         `json:"location"`
-		PropertyType string         `json:"propertyType"`
-	}
+	var listingID, userID, title, location, propertyType string
+	var description sql.NullString
+	var rent int
+	var availableFrom sql.NullTime
+	var createdAt sql.NullTime
+	var ownerName sql.NullString
+	var ownerGender sql.NullString
 
 	err := h.db.QueryRow(`
-		SELECT id, user_id, title, description, rent, location, property_type
-		FROM listings WHERE id = $1
-	`, id).Scan(&l.ID, &l.UserID, &l.Title, &l.Description, &l.Rent, &l.Location, &l.PropertyType)
+		SELECT l.id, l.user_id, l.title, l.description, l.rent, l.location,
+			l.property_type, l.available_from, l.created_at,
+			p.name, p.gender
+		FROM listings l
+		LEFT JOIN profiles p ON p.user_id = l.user_id
+		WHERE l.id = $1
+	`, id).Scan(&listingID, &userID, &title, &description, &rent, &location,
+		&propertyType, &availableFrom, &createdAt, &ownerName, &ownerGender)
 
 	if err == sql.ErrNoRows {
 		c.JSON(http.StatusNotFound, gin.H{"error": "listing not found"})
@@ -107,15 +121,51 @@ func (h *Handler) GetListing(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"id":           l.ID,
-		"userId":       l.UserID,
-		"title":        l.Title,
-		"description":  l.Description.String,
-		"rent":         l.Rent,
-		"location":     l.Location,
-		"propertyType": l.PropertyType,
-	})
+	// Fetch images
+	rows, err := h.db.Query(`
+		SELECT id, filename, position FROM listing_images
+		WHERE listing_id = $1 ORDER BY position, created_at
+	`, id)
+	var images []map[string]interface{}
+	if err == nil {
+		defer rows.Close()
+		for rows.Next() {
+			var imgID, filename string
+			var position int
+			if rows.Scan(&imgID, &filename, &position) == nil {
+				images = append(images, map[string]interface{}{
+					"id":       imgID,
+					"url":      "/uploads/" + filename,
+					"position": position,
+				})
+			}
+		}
+	}
+
+	result := gin.H{
+		"id":           listingID,
+		"userId":       userID,
+		"title":        title,
+		"description":  description.String,
+		"rent":         rent,
+		"location":     location,
+		"propertyType": propertyType,
+		"images":       images,
+	}
+	if availableFrom.Valid {
+		result["availableFrom"] = availableFrom.Time
+	}
+	if createdAt.Valid {
+		result["createdAt"] = createdAt.Time
+	}
+	if ownerName.Valid {
+		result["ownerName"] = ownerName.String
+	}
+	if ownerGender.Valid {
+		result["ownerGender"] = ownerGender.String
+	}
+
+	c.JSON(http.StatusOK, result)
 }
 
 func (h *Handler) CreateListing(c *gin.Context) {
@@ -154,4 +204,102 @@ func (h *Handler) CreateListing(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"id": id})
+}
+
+var allowedExts = map[string]bool{
+	".jpg": true, ".jpeg": true, ".png": true, ".webp": true,
+}
+
+func (h *Handler) UploadImages(c *gin.Context) {
+	userID := c.GetString("userId")
+	listingID := c.Param("id")
+
+	// Verify listing belongs to user
+	var ownerID string
+	err := h.db.QueryRow(`SELECT user_id FROM listings WHERE id = $1`, listingID).Scan(&ownerID)
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{"error": "listing not found"})
+		return
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to verify listing"})
+		return
+	}
+	if ownerID != userID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "not your listing"})
+		return
+	}
+
+	form, err := c.MultipartForm()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid form data"})
+		return
+	}
+
+	files := form.File["images"]
+	if len(files) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "no images provided"})
+		return
+	}
+	if len(files) > 10 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "maximum 10 images allowed"})
+		return
+	}
+
+	uploadDir := filepath.Join("uploads", listingID)
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create upload directory"})
+		return
+	}
+
+	// Get current max position
+	var maxPos int
+	h.db.QueryRow(`SELECT COALESCE(MAX(position), -1) FROM listing_images WHERE listing_id = $1`, listingID).Scan(&maxPos)
+
+	var uploaded []map[string]interface{}
+	for i, file := range files {
+		if file.Size > 5*1024*1024 {
+			continue // skip files > 5MB
+		}
+
+		ext := strings.ToLower(filepath.Ext(file.Filename))
+		if !allowedExts[ext] {
+			continue // skip non-image files
+		}
+
+		// Generate unique filename
+		b := make([]byte, 16)
+		rand.Read(b)
+		filename := hex.EncodeToString(b) + ext
+		relPath := filepath.Join(listingID, filename)
+		fullPath := filepath.Join("uploads", relPath)
+
+		if err := c.SaveUploadedFile(file, fullPath); err != nil {
+			continue
+		}
+
+		pos := maxPos + 1 + i
+		var imgID string
+		err := h.db.QueryRow(`
+			INSERT INTO listing_images (listing_id, filename, position)
+			VALUES ($1, $2, $3) RETURNING id
+		`, listingID, relPath, pos).Scan(&imgID)
+		if err != nil {
+			os.Remove(fullPath)
+			continue
+		}
+
+		uploaded = append(uploaded, map[string]interface{}{
+			"id":       imgID,
+			"url":      "/uploads/" + relPath,
+			"position": pos,
+		})
+	}
+
+	if len(uploaded) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "no valid images uploaded"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"images": uploaded})
 }

@@ -128,13 +128,30 @@ Response:
     "description": "Furnished room near metro",
     "rent": 15000,
     "location": "HSR Layout",
-    "propertyType": "room"
+    "propertyType": "room",
+    "thumbnail": "/uploads/listing-uuid/abc123.jpg"
   }
 ]
 ```
 
 ### GET /listings/:id
-Get a single listing by ID.
+Get a single listing by ID. Includes all images.
+
+Response:
+```json
+{
+  "id": "uuid",
+  "userId": "uuid",
+  "title": "1 Room Available",
+  "description": "Furnished room near metro",
+  "rent": 15000,
+  "location": "HSR Layout",
+  "propertyType": "room",
+  "images": [
+    { "id": "uuid", "url": "/uploads/listing-uuid/abc123.jpg", "position": 0 }
+  ]
+}
+```
 
 ### POST /listings
 Create a new listing.
@@ -154,6 +171,24 @@ Response:
 ```json
 { "id": "uuid" }
 ```
+
+### POST /listings/:id/images
+Upload images for a listing. Only the listing owner can upload. Max 10 images, max 5MB each.
+
+Request: `multipart/form-data` with field `images` (multiple files).
+
+Allowed types: jpg, jpeg, png, webp.
+
+Response:
+```json
+{
+  "images": [
+    { "id": "uuid", "url": "/uploads/listing-uuid/abc123.jpg", "position": 0 }
+  ]
+}
+```
+
+> Images are served statically at `GET /uploads/{path}`.
 
 ---
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useMutation } from "@tanstack/react-query";
@@ -8,11 +8,15 @@ import { api } from "@/lib/api";
 import { useProfile } from "@/contexts/profile";
 
 const PROPERTY_TYPES = ["room", "flat", "shared"];
+const MAX_IMAGES = 5;
 
 export default function CreateListingPage() {
   const router = useRouter();
   const { hasProfile, loading: checkingProfile } = useProfile();
   const [error, setError] = useState("");
+  const [images, setImages] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -22,14 +26,41 @@ export default function CreateListingPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: { title: string; description?: string; rent: number; location: string; propertyType: string }) =>
-      api.createListing(data),
+    mutationFn: async (data: { title: string; description?: string; rent: number; location: string; propertyType: string }) => {
+      const res = await api.createListing(data);
+      if (images.length > 0) {
+        await api.uploadListingImages(res.id, images);
+      }
+      return res;
+    },
     onSuccess: (res) => router.push(`/listings/${res.id}`),
     onError: (err) => setError(err instanceof Error ? err.message : "Failed to create listing"),
   });
 
   const update = (key: string, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
+
+  const handleImagePick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const remaining = MAX_IMAGES - images.length;
+    const toAdd = files.slice(0, remaining);
+
+    setImages((prev) => [...prev, ...toAdd]);
+    toAdd.forEach((f) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setPreviews((prev) => [...prev, ev.target?.result as string]);
+      };
+      reader.readAsDataURL(f);
+    });
+
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removeImage = (idx: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== idx));
+    setPreviews((prev) => prev.filter((_, i) => i !== idx));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,6 +193,49 @@ export default function CreateListingPage() {
               onChange={(e) => update("location", e.target.value)}
               className="input"
               placeholder="e.g. HSR Layout, Bangalore"
+            />
+          </div>
+
+          {/* Image Upload */}
+          <div>
+            <label className="block text-xs font-medium text-muted mb-1.5">
+              Photos ({images.length}/{MAX_IMAGES})
+            </label>
+            <div className="flex gap-2 flex-wrap">
+              {previews.map((src, idx) => (
+                <div key={idx} className="relative w-20 h-20 rounded-lg overflow-hidden border border-border">
+                  <img src={src} alt="" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(idx)}
+                    className="absolute top-0.5 right-0.5 w-5 h-5 bg-foreground/70 text-background rounded-full flex items-center justify-center"
+                  >
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                      <path d="m18 6-12 12M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+              {images.length < MAX_IMAGES && (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-20 h-20 rounded-lg border-2 border-dashed border-border hover:border-primary/40 flex flex-col items-center justify-center text-dim hover:text-muted transition-colors"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                  <span className="text-[10px] mt-0.5">Add</span>
+                </button>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              onChange={handleImagePick}
+              className="hidden"
             />
           </div>
 

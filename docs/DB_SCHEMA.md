@@ -112,11 +112,28 @@ For contact shares, `message` contains JSON:
 
 ---
 
+## Listing Images
+
+```sql
+CREATE TABLE listing_images (
+    id UUID PRIMARY KEY,
+    listing_id UUID REFERENCES listings(id) ON DELETE CASCADE,
+    filename VARCHAR(255) NOT NULL,
+    position INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+Images stored on disk under `uploads/{listing_id}/{random_hex}.{ext}`. Max 10 per listing, max 5MB each. Allowed: jpg, jpeg, png, webp.
+
+---
+
 ## Relationships
 
 ```
 users 1:1 profiles
 users 1:N listings
+listings 1:N listing_images
 users N:N interests (sender/receiver)
 interests -> matches (on accept)
 matches 1:N messages

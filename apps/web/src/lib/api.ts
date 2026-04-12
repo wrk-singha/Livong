@@ -1,5 +1,9 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
+export function imageUrl(path: string) {
+  return `${API_BASE_URL}${path}`;
+}
+
 export class ApiError extends Error {
   status: number;
   constructor(message: string, status: number) {
@@ -73,10 +77,11 @@ async function request<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
+  const isFormData = options.body instanceof FormData;
   let opts: RequestInit = {
     ...options,
     headers: {
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...options.headers,
     },
   };
@@ -175,6 +180,7 @@ export const api = {
         rent: number;
         location: string;
         propertyType: string;
+        thumbnail?: string;
       }[]
     >(`/listings${qs ? `?${qs}` : ""}`);
   },
@@ -188,6 +194,11 @@ export const api = {
       rent: number;
       location: string;
       propertyType: string;
+      images: { id: string; url: string; position: number }[] | null;
+      availableFrom?: string;
+      createdAt?: string;
+      ownerName?: string;
+      ownerGender?: string;
     }>(`/listings/${id}`),
 
   createListing: (data: {
@@ -201,6 +212,19 @@ export const api = {
       method: "POST",
       body: JSON.stringify(data),
     }),
+
+  uploadListingImages: (listingId: string, files: File[]) => {
+    const formData = new FormData();
+    files.forEach((f) => formData.append("images", f));
+    return request<{ images: { id: string; url: string; position: number }[] }>(
+      `/listings/${listingId}/images`,
+      {
+        method: "POST",
+        body: formData,
+        headers: {},
+      }
+    );
+  },
 
   // Interests
   sendInterest: (receiverId: string, listingId: string) =>

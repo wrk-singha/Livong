@@ -245,6 +245,23 @@ func (h *Handler) CreateListing(c *gin.Context) {
 		return
 	}
 
+	if len(req.Title) > 200 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "title too long (max 200 characters)"})
+		return
+	}
+	if len(req.Description) > 5000 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "description too long (max 5000 characters)"})
+		return
+	}
+	if len(req.Location) > 200 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "location too long (max 200 characters)"})
+		return
+	}
+	if req.Rent < 0 || req.Rent > 10000000 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid rent amount"})
+		return
+	}
+
 	var id string
 	err := h.db.QueryRow(`
 		INSERT INTO listings (user_id, title, description, rent, location, property_type)
@@ -319,6 +336,19 @@ func (h *Handler) UploadImages(c *gin.Context) {
 		ext := strings.ToLower(filepath.Ext(file.Filename))
 		if !allowedExts[ext] {
 			continue // skip non-image files
+		}
+
+		// Validate actual file content type
+		f, fErr := file.Open()
+		if fErr != nil {
+			continue
+		}
+		buf := make([]byte, 512)
+		n, _ := f.Read(buf)
+		f.Close()
+		ct := http.DetectContentType(buf[:n])
+		if ct != "image/jpeg" && ct != "image/png" && ct != "image/webp" {
+			continue
 		}
 
 		// Generate unique filename

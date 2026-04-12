@@ -111,7 +111,7 @@ async function request<T>(
 // Auth
 export const api = {
   login: (phone: string) =>
-    request<{ message: string; otp: string }>("/auth/login", {
+    request<{ message: string }>("/auth/login", {
       method: "POST",
       body: JSON.stringify({ phone }),
     }),

@@ -76,6 +76,19 @@ func (h *Handler) CreateProfile(c *gin.Context) {
 		return
 	}
 
+	if len(req.Name) > 100 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "name too long (max 100 characters)"})
+		return
+	}
+	if req.Age < 18 || req.Age > 120 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "age must be between 18 and 120"})
+		return
+	}
+	if len(req.Location) > 200 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "location too long (max 200 characters)"})
+		return
+	}
+
 	var id string
 	err := h.db.QueryRow(`
 		INSERT INTO profiles (user_id, name, age, gender, location)
@@ -98,6 +111,24 @@ func (h *Handler) UpdateProfile(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 		return
+	}
+
+	// Validate field lengths
+	for key, val := range req {
+		if s, ok := val.(string); ok {
+			if key == "name" && len(s) > 100 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "name too long (max 100 characters)"})
+				return
+			}
+			if key == "location" && len(s) > 200 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "location too long (max 200 characters)"})
+				return
+			}
+			if len(s) > 500 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": key + " too long"})
+				return
+			}
+		}
 	}
 
 	// Map JSON keys to DB columns
@@ -149,6 +180,21 @@ func (h *Handler) UploadAvatar(c *gin.Context) {
 	ext := strings.ToLower(filepath.Ext(file.Filename))
 	if !avatarExts[ext] {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "only jpg, png, webp allowed"})
+		return
+	}
+
+	// Validate actual file content type
+	f, err := file.Open()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "cannot read file"})
+		return
+	}
+	buf := make([]byte, 512)
+	n, _ := f.Read(buf)
+	f.Close()
+	contentType := http.DetectContentType(buf[:n])
+	if contentType != "image/jpeg" && contentType != "image/png" && contentType != "image/webp" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid image file"})
 		return
 	}
 

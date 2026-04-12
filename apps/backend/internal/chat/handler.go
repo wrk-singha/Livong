@@ -2,6 +2,7 @@ package chat
 
 import (
 	"database/sql"
+	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -87,6 +88,11 @@ func (h *Handler) SendMessage(c *gin.Context) {
 		return
 	}
 
+	if len(req.Message) > 2000 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "message too long (max 2000 characters)"})
+		return
+	}
+
 	// Verify user is part of this match
 	var exists bool
 	h.db.QueryRow(`
@@ -142,12 +148,15 @@ func (h *Handler) ShareContact(c *gin.Context) {
 	}
 
 	// Store as a contact_share message with JSON payload
-	message := `{"contactType":"` + req.ContactType + `","contactValue":"` + req.ContactValue + `"}`
+	payload, _ := json.Marshal(map[string]string{
+		"contactType":  req.ContactType,
+		"contactValue": req.ContactValue,
+	})
 
 	var id string
 	err := h.db.QueryRow(`
 		INSERT INTO messages (match_id, sender_id, message, message_type) VALUES ($1, $2, $3, 'contact_share') RETURNING id
-	`, req.MatchID, userID, message).Scan(&id)
+	`, req.MatchID, userID, string(payload)).Scan(&id)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to share contact"})

@@ -43,6 +43,40 @@ const GENDER_OPTIONS = [
   { value: "other", label: "Other" },
 ];
 
+function CheckIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
+function EditIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+    </svg>
+  );
+}
+
+function CameraIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+      <circle cx="12" cy="13" r="4" />
+    </svg>
+  );
+}
+
+function MapPinIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
+  );
+}
+
 export default function ProfilePage() {
   const { logout } = useAuth();
   const { profile, loading, setProfile, clearProfile } = useProfile();
@@ -54,6 +88,8 @@ export default function ProfilePage() {
   const [setupLoading, setSetupLoading] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ name: "", location: "" });
 
   const saveMutation = useMutation({
     mutationFn: (batch: Record<string, string>) => api.updateProfile(batch),
@@ -93,6 +129,26 @@ export default function ProfilePage() {
       setAvatarUploading(false);
       if (avatarInputRef.current) avatarInputRef.current.value = "";
     }
+  };
+
+  const startEditing = () => {
+    if (!profile) return;
+    setEditForm({ name: profile.name, location: profile.location });
+    setEditing(true);
+  };
+
+  const saveEdit = () => {
+    if (!profile || !editForm.name.trim() || !editForm.location.trim()) return;
+    setProfile({ ...profile, name: editForm.name, location: editForm.location });
+    saveMutation.mutate({ name: editForm.name, location: editForm.location });
+    setEditing(false);
+  };
+
+  // Profile completion
+  const getCompletion = (p: Profile) => {
+    const fields = ["avatar", "smoking", "drinking", "cleanliness", "sleepSchedule", "workSchedule", "pets", "foodPreference"];
+    const filled = fields.filter((f) => p[f as keyof Profile]).length;
+    return Math.round((filled / fields.length) * 100);
   };
 
   if (loading) {
@@ -184,119 +240,199 @@ export default function ProfilePage() {
     );
   }
 
-  return (
-    <div className="min-h-screen px-4 py-6 md:px-8">
-      <div className="max-w-sm md:max-w-2xl lg:max-w-3xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl font-semibold text-foreground">Profile</h1>
-          {message && (
-            <span className="text-xs font-medium text-success bg-success-surface border border-success-border px-3 py-1 rounded-full animate-fade-in-up">
-              {message}
-            </span>
-          )}
-        </div>
+  const completion = getCompletion(profile);
 
-        {/* Profile Card */}
-        <div className="card p-5 mb-5">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => avatarInputRef.current?.click()}
-              className="relative w-14 h-14 rounded-xl shrink-0 overflow-hidden group"
-              disabled={avatarUploading}
-            >
-              {profile.avatar ? (
-                <img
-                  src={imageUrl(profile.avatar)}
-                  alt={profile.name}
-                  className="w-full h-full object-cover"
+  return (
+    <div className="min-h-screen px-4 py-6 md:px-8 lg:px-10 pb-24 md:pb-6">
+      <div className="max-w-lg md:max-w-3xl lg:max-w-5xl mx-auto">
+        {/* Save indicator */}
+        {message && (
+          <div className="fixed top-4 right-4 z-50 text-xs font-medium text-success-text bg-success-surface border border-success-border px-3 py-1.5 rounded-full animate-fade-in-up flex items-center gap-1.5">
+            <CheckIcon />
+            {message}
+          </div>
+        )}
+
+        {/* Profile Header Card */}
+        <div className="card p-0 mb-5 overflow-hidden">
+          {/* Cover gradient */}
+          <div className="h-20 md:h-24" style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-secondary))" }} />
+
+          <div className="px-5 pb-5">
+            {/* Avatar row — only avatar overlaps */}
+            <div className="-mt-10 mb-3">
+              <button
+                onClick={() => avatarInputRef.current?.click()}
+                className="relative w-20 h-20 rounded-2xl shrink-0 overflow-hidden group ring-4 ring-surface shadow-lg"
+                disabled={avatarUploading}
+              >
+                {profile.avatar ? (
+                  <img
+                    src={imageUrl(profile.avatar)}
+                    alt={profile.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-white bg-neutral-800">
+                    {profile.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  {avatarUploading ? (
+                    <div className="w-5 h-5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <CameraIcon />
+                  )}
+                </div>
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={handleAvatarChange}
                 />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-xl font-semibold text-white" style={{background: 'linear-gradient(135deg, var(--accent), var(--accent-secondary))'}}>
-                  {profile.name.charAt(0).toUpperCase()}
+              </button>
+            </div>
+
+            {/* Name & details — clearly on card surface */}
+            <div className="flex items-start justify-between">
+              <div className="min-w-0">
+                {editing ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      value={editForm.name}
+                      onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
+                      className="input py-1 px-2 text-base font-semibold w-full"
+                      autoFocus
+                    />
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <h2 className="font-bold text-lg text-foreground truncate">{profile.name}</h2>
+                    <button onClick={startEditing} className="text-muted hover:text-secondary shrink-0">
+                      <EditIcon />
+                    </button>
+                  </div>
+                )}
+                <div className="flex items-center gap-3 mt-0.5">
+                  <span className="text-sm text-secondary">{profile.age}y · {profile.gender}</span>
+                  <span className="flex items-center gap-1 text-sm text-muted">
+                    <MapPinIcon />
+                    {editing ? (
+                      <input
+                        value={editForm.location}
+                        onChange={(e) => setEditForm((f) => ({ ...f, location: e.target.value }))}
+                        className="input py-0.5 px-1.5 text-sm w-28"
+                      />
+                    ) : (
+                      profile.location
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              {editing && (
+                <div className="flex gap-2 pb-1">
+                  <button
+                    onClick={() => setEditing(false)}
+                    className="px-3 py-1.5 text-xs font-medium text-muted border border-border rounded-lg hover:bg-surface-alt"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={saveEdit}
+                    className="px-3 py-1.5 text-xs font-medium text-white bg-accent rounded-lg hover:opacity-90"
+                  >
+                    Save
+                  </button>
                 </div>
               )}
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                {avatarUploading ? (
-                  <div className="w-5 h-5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                    <circle cx="12" cy="13" r="4" />
-                  </svg>
-                )}
+            </div>
+
+            {/* Completion bar */}
+            {completion < 100 && (
+              <div className="mt-4 p-3 bg-surface-alt rounded-xl border border-border-light">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-medium text-secondary">Profile completion</span>
+                  <span className="text-xs font-bold text-foreground">{completion}%</span>
+                </div>
+                <div className="h-1.5 bg-border rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${completion}%`,
+                      background: "linear-gradient(90deg, var(--accent), var(--accent-secondary))",
+                    }}
+                  />
+                </div>
+                <p className="text-[11px] text-dim mt-1.5">Complete your preferences to help find better matches</p>
               </div>
-              <input
-                ref={avatarInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                className="hidden"
-                onChange={handleAvatarChange}
-              />
-            </button>
-            <div>
-              <h2 className="font-semibold text-lg text-foreground">{profile.name}</h2>
-              <p className="text-sm text-dim">
-                {profile.age}y · {profile.gender} · {profile.location}
-              </p>
-            </div>
-          </div>
-          <div className="mt-4">
-            <div className="bg-surface-alt rounded-lg px-3 py-2.5 text-center border border-border-light">
-              <p className="text-[10px] text-dim uppercase font-medium tracking-wider">Location</p>
-              <p className="text-sm font-semibold text-foreground">{profile.location}</p>
-            </div>
+            )}
           </div>
         </div>
 
         {/* Preferences */}
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center justify-between mb-3">
           <h3 className="text-xs font-semibold text-dim uppercase tracking-wider">
             Lifestyle Preferences
           </h3>
           {saveMutation.isPending && (
-            <div className="w-3 h-3 border-2 border-border border-t-neutral-600 rounded-full animate-spin" />
+            <div className="w-3 h-3 border-2 border-border border-t-secondary rounded-full animate-spin" />
           )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-          {Object.entries(PREF_OPTIONS).map(([key, options]) => (
-            <div key={key} className="card p-4">
-              <div className="flex items-center gap-2 mb-2.5">
-                <span className="text-sm">{ICONS[key]}</span>
-                <label className="text-sm font-medium text-secondary">
-                  {LABELS[key]}
-                </label>
+          {Object.entries(PREF_OPTIONS).map(([key, options]) => {
+            const currentVal = profile[key as keyof Profile] as string | undefined;
+            return (
+              <div key={key} className="card p-4">
+                <div className="flex items-center justify-between mb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">{ICONS[key]}</span>
+                    <label className="text-sm font-medium text-secondary">
+                      {LABELS[key]}
+                    </label>
+                  </div>
+                  {currentVal && (
+                    <span className="text-[10px] font-medium text-accent uppercase tracking-wider">
+                      {currentVal}
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {options.map((opt) => {
+                    const selected = currentVal === opt;
+                    return (
+                      <button
+                        key={opt}
+                        onClick={() => updatePref(key, opt)}
+                        disabled={saveMutation.isPending}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
+                          selected
+                            ? "bg-accent/15 text-accent border border-accent/30"
+                            : "bg-surface-alt text-muted hover:text-secondary border border-border-light"
+                        }`}
+                      >
+                        {selected && <CheckIcon />}
+                        {opt}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              <div className="flex flex-wrap gap-1.5">
-                {options.map((opt) => {
-                  const selected = profile[key as keyof Profile] === opt;
-                  return (
-                    <button
-                      key={opt}
-                      onClick={() => updatePref(key, opt)}
-                      disabled={saveMutation.isPending}
-                      className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                        selected
-                          ? "bg-accent text-white shadow-sm"
-                          : "bg-surface-alt text-muted hover:bg-surface-alt hover:text-secondary border border-border-light"
-                      }`}
-                    >
-                      {opt}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
-        <button
-          onClick={() => { clearProfile(); logout(); }}
-          className="w-full mt-6 py-3 text-dim border border-border rounded-lg text-sm font-medium hover:bg-error-surface hover:text-red-500 hover:border-error-border transition-colors"
-        >
-          Logout
-        </button>
+        {/* Danger zone */}
+        <div className="mt-8 pt-6 border-t border-border-light">
+          <button
+            onClick={() => { clearProfile(); logout(); }}
+            className="w-full py-2.5 text-dim text-sm font-medium hover:text-error transition-colors"
+          >
+            Log out
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -124,8 +124,8 @@ export default function ListingDetailPage() {
   const hasImages = listing.images && listing.images.length > 0;
 
   return (
-    <div className="min-h-screen px-4 py-6 md:px-8">
-      <div className="max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto">
+    <div className="min-h-screen px-4 py-6 md:px-8 lg:px-10">
+      <div className="max-w-lg md:max-w-3xl lg:max-w-5xl mx-auto">
         {/* Back button */}
         <BackButton />
 

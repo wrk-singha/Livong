@@ -73,8 +73,8 @@ export default function PlansPage() {
   });
 
   return (
-    <div className="min-h-screen px-4 py-6 md:px-8">
-      <div className="max-w-lg md:max-w-3xl mx-auto">
+    <div className="min-h-screen px-4 py-6 md:px-8 lg:px-10">
+      <div className="max-w-lg md:max-w-3xl lg:max-w-5xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-foreground">Choose your plan</h1>
           <p className="text-sm text-muted mt-2">Unlock premium features to find your perfect roommate faster</p>

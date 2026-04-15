@@ -19,30 +19,34 @@ applyTo: "apps/web/**"
 
 ## Component Pattern
 
-Every page follows this exact structure:
+Use TanStack Query for all data fetching — not raw `useEffect` + `useState`:
 
 ```tsx
 "use client"
 
-import { useState, useEffect } from "react"
+import { useQuery, useMutation } from "@tanstack/react-query"
 import { useAuth } from "@/contexts/auth"
 import { api } from "@/lib/api"
 import type { SomeType } from "@/lib/types"
+import { PageSpinner, EmptyState } from "@/components/ui"
 
 export default function PageName() {
   const { token, userId } = useAuth()
-  const [items, setItems] = useState<SomeType[]>([])
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    api.getSomething()
-      .then(setItems)
-      .catch(() => setItems([]))
-      .finally(() => setLoading(false))
-  }, [])
+  const { data: items = [], isLoading } = useQuery<SomeType[]>({
+    queryKey: ["items"],
+    queryFn: () => api.getItems(),
+  })
 
-  if (loading) return <div>...</div>
-  return <div className="page-container py-6">...</div>
+  const mutation = useMutation({
+    mutationFn: (data: CreateInput) => api.createItem(data),
+    onSuccess: () => { /* invalidate, redirect, etc. */ },
+    onError: (err) => { /* handle error */ },
+  })
+
+  if (isLoading) return <PageSpinner />
+  if (!items.length) return <EmptyState icon={...} title="..." subtitle="..." />
+  return <div className="min-h-screen px-4 py-6 md:px-8 lg:px-10">...</div>
 }
 ```
 
@@ -56,8 +60,31 @@ export default function PageName() {
 | `export default function Page()` | `export const Page = () =>` for pages |
 | Named exports for utilities/hooks | Default exports for non-page modules |
 | `useAuth()` for auth state | Read localStorage directly |
+| `useProfile()` for profile state | Fetch profile manually |
 | `useTheme()` for theme state | Read DOM classes directly |
+| `useQuery` / `useMutation` for API calls | Raw `useEffect` + `useState` for data fetching |
 | `as const` on constant objects | Plain objects for enums |
+
+## Reusable UI Components
+
+Import from `@/components/ui`:
+
+| Component | Use for |
+|-----------|---------|
+| `Button` | All buttons (supports `loading`, `fullWidth`, `size`, `variant`) |
+| `Input` | Text/number inputs with label |
+| `TextArea` | Multi-line text input with label |
+| `Select` | Dropdown select with label |
+| `Alert` | Error/warning messages |
+| `Modal` | Dialog overlays |
+| `Spinner` / `PageSpinner` | Loading states (inline / full-page) |
+| `EmptyState` | Zero-data states with icon, title, subtitle, action |
+| `Avatar` | User avatars |
+| `Badge` | Status badges |
+| `Skeleton` / `SkeletonCard` | Loading placeholders |
+| `BackButton` | Navigation back button |
+| `VerifiedBadge` | Verified user indicator |
+| `StarRatingDisplay` / `StarRatingPicker` | Review star ratings |
 
 ## Styling — Centralized Theme Tokens
 
@@ -110,11 +137,15 @@ Must update all three in `globals.css`:
 - Mobile-first approach
 - Breakpoints: `md:` (768px), `lg:` (1024px)
 - Navigation: sidebar on `lg:`, bottom nav on mobile (both in AppShell.tsx)
-- Page content: `.page-container` handles responsive widths
+- Main pages: `max-w-lg md:max-w-3xl lg:max-w-5xl mx-auto` with `px-4 py-6 md:px-8 lg:px-10`
+- Form pages: `max-w-sm md:max-w-lg lg:max-w-xl mx-auto`
+- Chat: intentionally narrow (`lg:max-w-3xl`, messenger layout)
 
 ## State
 
 - Auth: `useAuth()` → `{ token, userId, isAuthenticated, hydrated, login, logout }`
+- Profile: `useProfile()` → `{ profile, loading, hasProfile, setProfile, clearProfile }`
 - Theme: `useTheme()` → `{ theme, toggle }`
 - Wait for `hydrated` before rendering auth-dependent UI
 - No external state libraries — use React `useState` + Context
+- Data fetching: TanStack Query v5 (`@tanstack/react-query`)

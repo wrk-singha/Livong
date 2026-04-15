@@ -92,12 +92,16 @@ export default function PageName() {
 - Constants use `as const` for type narrowing
 - Default exports for page components, named exports for everything else
 - No external UI libraries — use Tailwind + the utility classes in globals.css (`.btn-primary`, `.card`, `.input`)
+- Use reusable UI components from `@/components/ui` (Button, Input, TextArea, Select, Alert, Modal, Spinner, PageSpinner, EmptyState, Avatar, Badge, Skeleton, BackButton, VerifiedBadge, StarRatingDisplay, StarRatingPicker)
+- Data fetching: use TanStack Query (`useQuery` for reads, `useMutation` for writes) — not raw `useEffect` + `useState` for API calls
 - Navigation lives in `AppShell.tsx` — sidebar on desktop, bottom nav on mobile
 - Auth state uses `useAuth()` hook with `hydrated` flag to prevent SSR flicker
+- Profile state uses `useProfile()` hook — returns `{ profile, loading, hasProfile, setProfile, clearProfile }`
 - Theme state uses `useTheme()` hook — never read theme from DOM directly
 - Inline SVGs for icons (no icon library) — use `currentColor` for strokes
 - Responsive: mobile-first, use `md:` and `lg:` breakpoints
 - Animations: use the CSS classes from globals.css (`.animate-fade-in-up`, `.animate-slide-in`, `.stagger`)
+- Page widths: main pages use `max-w-lg md:max-w-3xl lg:max-w-5xl mx-auto`, forms use `max-w-sm md:max-w-lg lg:max-w-xl mx-auto`
 
 ## Backend Conventions
 
@@ -162,9 +166,24 @@ func (h *Handler) Create(c *gin.Context) {
 
 - Package manager: `pnpm` (not npm or yarn)
 - Dev CLI: `node cli.mjs start|stop|status|fresh`
-- Backend port: 8080, Frontend port: 3000
+- Backend port: 8080, Admin backend port: 8081, Frontend port: 3000, Admin port: 3100
 - No unnecessary abstractions — keep it simple and direct
 - No docstrings or comments unless logic is non-obvious
 - Do not add dependencies without asking — the stack is intentionally minimal
 - When modifying the theme, update `:root`, `.dark`, AND `@theme inline` together
 - Keep docs/ updated if you change architecture, API endpoints, or DB schema
+
+## Security (already implemented)
+
+- OTPs are SHA-256 hashed before storage — never stored or returned in plaintext
+- OTP in dev: printed to Go server terminal via `fmt.Printf("[DEV] OTP for %s: %s\n", phone, otp)`
+- Login rate limiting: 3 OTP requests per 15 min per phone number
+- Verify rate limiting: 5 attempts per 15 min per phone number
+- Phone validation: `^\+?[1-9]\d{6,14}$` regex
+- Input length limits: name ≤100, description ≤5000, message ≤2000, location ≤200, title ≤200, rent 0–10M, age 18–120
+- JWT: HS256, 7-day expiry, iss/aud claims (main: `livong`/`livong-api`, admin: `livong-admin`/`livong-admin-api`)
+- Security headers on all backends: X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy, CSP, X-DNS-Prefetch-Control, X-Download-Options, X-XSS-Protection:0
+- CSP on frontends via `next.config.ts` headers()
+- CORS restricted to specific origins (`CORS_ORIGINS` env)
+- Image uploads: content-type sniffing via `http.DetectContentType`, max 5MB, extensions `.jpg/.jpeg/.png/.webp`
+- Auth: Bearer token in Authorization header (not cookies) — CSRF not needed

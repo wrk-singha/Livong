@@ -140,7 +140,19 @@ c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to X"})  // 500
 
 ## Auth Flow
 
-1. `POST /auth/login` → generates OTP (in-memory, no SMS yet)
-2. `POST /auth/verify-otp` → validates OTP → creates user if new → returns JWT
-3. JWT: HS256, 7-day expiry, contains `userId` claim
-4. Middleware extracts JWT → sets `c.Set("userId", claims.UserID)` → handlers use `c.GetString("userId")`
+1. `POST /auth/login` → validates phone regex (`^\+?[1-9]\d{6,14}$`), rate-limits (3 OTP/15min/phone), generates OTP, SHA-256 hashes it, stores in memory, prints plaintext to terminal via `fmt.Printf`
+2. `POST /auth/verify-otp` → rate-limits (5 attempts/15min/phone), compares `hashOTP(input)` against stored hash → creates user if new → returns JWT
+3. JWT: HS256, 7-day expiry, `iss: "livong"`, `aud: "livong-api"` (admin uses `livong-admin`/`livong-admin-api`)
+4. Middleware extracts JWT → validates signing method + iss/aud → sets `c.Set("userId", claims.UserID)` → handlers use `c.GetString("userId")`
+
+## Security (already in place)
+
+- OTPs: SHA-256 hashed via `hashOTP()` before storage — never stored or returned in plaintext
+- Rate limiting: in-memory maps with mutex locks (`loginRateStore`, `rateAttempts`)
+- Phone validation: regex `^\+?[1-9]\d{6,14}$`
+- Input length limits: name ≤100, description ≤5000, message ≤2000, location ≤200, title ≤200, rent 0–10M, age 18–120
+- Security headers in middleware: X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy, CSP (`default-src 'none'; frame-ancestors 'none'`), X-DNS-Prefetch-Control, X-Download-Options, X-XSS-Protection:0
+- CORS: restricted to `CORS_ORIGINS` env (default `http://localhost:3000`)
+- Image uploads: content-type sniffing via `http.DetectContentType`, max 5MB, allowed extensions `.jpg/.jpeg/.png/.webp`
+- Auth: Bearer token in Authorization header (not cookies) — CSRF not needed
+- JWT signing method validation: `alg` must be HS256

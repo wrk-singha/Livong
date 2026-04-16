@@ -63,7 +63,8 @@ Response:
   "sleepSchedule": "late",
   "workSchedule": "hybrid",
   "pets": "no",
-  "foodPreference": "veg"
+  "foodPreference": "veg",
+  "isBroker": true
 }
 ```
 
@@ -93,7 +94,8 @@ Request:
 {
   "smoking": "no",
   "drinking": "occasionally",
-  "cleanliness": "moderate"
+  "cleanliness": "moderate",
+  "isBroker": true
 }
 ```
 
@@ -305,6 +307,118 @@ Response:
 ```
 
 > `contactType`: "phone" or "email". Only allowed between matched users.
+
+---
+
+## Rent Tracking & Broker Commissions
+
+### POST /rent-groups
+Create a rent group for a listing or as a standalone group.
+
+Request:
+```json
+{
+  "listingId": "uuid-or-omit-for-standalone",
+  "name": "HSR 2BHK Rent",
+  "totalRent": 33000,
+  "dueDay": 5,
+  "baseRent": 30000,
+  "commissionType": "percentage",
+  "commissionValue": 10
+}
+```
+
+Response:
+```json
+{ "id": "uuid" }
+```
+
+> `listingId` is optional. For broker-created groups, `baseRent`, `commissionType`, and `commissionValue` are supported. Total rent is what tenants pay.
+
+### GET /rent-groups
+Get all rent groups the authenticated user belongs to.
+
+Response:
+```json
+[
+  {
+    "id": "uuid",
+    "listingId": "uuid",
+    "name": "HSR 2BHK Rent",
+    "totalRent": 33000,
+    "dueDay": 5,
+    "createdBy": "uuid",
+    "memberCount": 3,
+    "paidCount": 2,
+    "overdue": false,
+    "month": "2026-04",
+    "commissionAmount": 3000
+  }
+]
+```
+
+### GET /rent-groups/:id
+Get one rent group with its members and current month payment state.
+
+### POST /rent-groups/:id/members
+Add a member to the group.
+
+### PATCH /rent-groups/:id/members/:userId
+Update a member's share amount.
+
+### DELETE /rent-groups/:id/members/:userId
+Remove a member from the group.
+
+### GET /rent-groups/:id/matched-users
+Get matched users eligible to be added to a listing-linked group.
+
+### POST /rent-groups/:id/payments
+Record a rent payment for the selected month.
+
+Request:
+```json
+{
+  "amount": 11000,
+  "month": "2026-04",
+  "paymentMethod": "upi",
+  "note": "Paid via GPay"
+}
+```
+
+### GET /rent-groups/:id/payments
+List payment history for a group.
+
+### PATCH /rent-payments/:paymentId/verify
+Verify a payment. When all required payments for a month are verified, the broker commission record is auto-created.
+
+Response:
+```json
+{ "message": "payment verified" }
+```
+
+### GET /rent-groups/:id/commissions
+Broker-only endpoint to list monthly commission records.
+
+Response:
+```json
+[
+  {
+    "id": "uuid",
+    "month": "2026-04",
+    "amount": 3000,
+    "status": "pending",
+    "createdAt": "2026-04-16T10:30:00Z"
+  }
+]
+```
+
+### PATCH /rent-commissions/:commissionId/collect
+Mark a commission as collected.
+
+Response:
+```json
+{ "message": "commission collected" }
+```
 
 ---
 

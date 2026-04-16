@@ -38,18 +38,30 @@ type Listing = {
   ownerFoodPref?: string;
   ownerRating?: number;
   ownerReviewCount?: number;
+  pgDetails?: {
+    meals: string;
+    sharingType: string;
+    ac: boolean;
+    wifi: boolean;
+    laundry: boolean;
+    attachedBathroom: boolean;
+    curfew?: string;
+    genderPreference: string;
+  };
 };
 
 const TYPE_LABELS: Record<string, string> = {
   room: "Private Room",
   flat: "Entire Flat",
   shared: "Shared Room",
+  pg: "Paying Guest",
 };
 
 const TYPE_COLORS: Record<string, string> = {
   room: "bg-info-surface text-info border-info-border",
   flat: "bg-success-surface text-success border-success-border",
   shared: "bg-warning-surface text-warning border-warning-border",
+  pg: "bg-accent/10 text-accent border-accent/30",
 };
 
 function timeAgo(dateStr: string) {
@@ -276,6 +288,39 @@ export default function ListingDetailPage() {
           <div className="card p-4 mb-4">
             <h3 className="text-xs font-semibold text-dim uppercase tracking-wider mb-2">About this place</h3>
             <p className="text-sm text-secondary leading-relaxed whitespace-pre-line">{listing.description}</p>
+          </div>
+        )}
+
+        {/* PG Amenities */}
+        {listing.propertyType === "pg" && listing.pgDetails && (
+          <div className="card p-4 mb-4">
+            <h3 className="text-xs font-semibold text-dim uppercase tracking-wider mb-3">PG Amenities</h3>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-surface-alt">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted shrink-0"><path d="M3 7h5l2-2h4l2 2h5" /><circle cx="12" cy="15" r="3" /><rect x="2" y="7" width="20" height="14" rx="2" /></svg>
+                <div><p className="text-[10px] text-dim">Sharing</p><p className="text-xs font-medium text-foreground capitalize">{listing.pgDetails.sharingType}</p></div>
+              </div>
+              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-surface-alt">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted shrink-0"><path d="M18 8h1a4 4 0 0 1 0 8h-1" /><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" /><line x1="6" y1="1" x2="6" y2="4" /><line x1="10" y1="1" x2="10" y2="4" /><line x1="14" y1="1" x2="14" y2="4" /></svg>
+                <div><p className="text-[10px] text-dim">Meals</p><p className="text-xs font-medium text-foreground capitalize">{listing.pgDetails.meals === "none" ? "Not Included" : listing.pgDetails.meals === "veg" ? "Veg Only" : "Veg & Non-Veg"}</p></div>
+              </div>
+              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-surface-alt">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted shrink-0"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg>
+                <div><p className="text-[10px] text-dim">Gender</p><p className="text-xs font-medium text-foreground capitalize">{listing.pgDetails.genderPreference === "any" ? "Co-ed" : listing.pgDetails.genderPreference + " Only"}</p></div>
+              </div>
+              {listing.pgDetails.curfew && (
+                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-surface-alt">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted shrink-0"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                  <div><p className="text-[10px] text-dim">Curfew</p><p className="text-xs font-medium text-foreground">{listing.pgDetails.curfew}</p></div>
+                </div>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-1.5 mt-3">
+              {listing.pgDetails.ac && <span className="px-2.5 py-1 rounded-full bg-success-surface text-success text-[11px] font-medium">AC</span>}
+              {listing.pgDetails.wifi && <span className="px-2.5 py-1 rounded-full bg-info-surface text-info text-[11px] font-medium">WiFi</span>}
+              {listing.pgDetails.laundry && <span className="px-2.5 py-1 rounded-full bg-warning-surface text-warning text-[11px] font-medium">Laundry</span>}
+              {listing.pgDetails.attachedBathroom && <span className="px-2.5 py-1 rounded-full bg-accent/10 text-accent text-[11px] font-medium">Attached Bath</span>}
+            </div>
           </div>
         )}
 

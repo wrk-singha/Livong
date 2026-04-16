@@ -6,12 +6,13 @@ import Link from "next/link";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useProfile } from "@/contexts/profile";
-import { Input, TextArea, Alert, Button, PageSpinner, EmptyState } from "@/components/ui";
+import { Input, TextArea, Select, Alert, Button, PageSpinner, EmptyState } from "@/components/ui";
 
 const PROPERTY_TYPE_OPTIONS = [
   { value: "room", label: "Room" },
   { value: "flat", label: "Flat" },
   { value: "shared", label: "Shared" },
+  { value: "pg", label: "PG" },
 ];
 const MAX_IMAGES = 5;
 
@@ -29,12 +30,28 @@ export default function CreateListingPage() {
     location: "",
     propertyType: "",
   });
+  const [pgForm, setPgForm] = useState({
+    meals: "none",
+    sharingType: "single",
+    ac: false,
+    wifi: false,
+    laundry: false,
+    attachedBathroom: false,
+    curfew: "",
+    genderPreference: "any",
+  });
 
   const createMutation = useMutation({
     mutationFn: async (data: { title: string; description?: string; rent: number; location: string; propertyType: string }) => {
       const res = await api.createListing(data);
       if (images.length > 0) {
         await api.uploadListingImages(res.id, images);
+      }
+      if (data.propertyType === "pg") {
+        await api.savePgDetails(res.id, {
+          ...pgForm,
+          curfew: pgForm.curfew || undefined,
+        });
       }
       return res;
     },
@@ -132,7 +149,7 @@ export default function CreateListingPage() {
           {/* Property Type — pill selector */}
           <div>
             <label className="block text-xs font-medium text-muted mb-2">Property Type *</label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               {PROPERTY_TYPE_OPTIONS.map((opt) => {
                 const selected = form.propertyType === opt.value;
                 return (
@@ -159,6 +176,11 @@ export default function CreateListingPage() {
                     {opt.value === "shared" && (
                       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                      </svg>
+                    )}
+                    {opt.value === "pg" && (
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M2 20v-8l10-6 10 6v8" /><path d="M6 20v-4h4v4" /><path d="M14 20v-4h4v4" /><path d="M10 12h4" />
                       </svg>
                     )}
                     <span className="text-xs font-medium">{opt.label}</span>
@@ -211,6 +233,96 @@ export default function CreateListingPage() {
               </div>
             </div>
           </div>
+
+          {/* PG Details card — conditional */}
+          {form.propertyType === "pg" && (
+            <div className="card p-0 overflow-hidden animate-fade-in-up">
+              <div className="px-4 py-3 border-b border-border">
+                <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted">
+                    <path d="M2 20v-8l10-6 10 6v8" /><path d="M6 20v-4h4v4" /><path d="M14 20v-4h4v4" />
+                  </svg>
+                  PG Amenities
+                </h3>
+              </div>
+              <div className="p-4 space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <Select
+                    label="Meals"
+                    value={pgForm.meals}
+                    onChange={(v) => setPgForm((p) => ({ ...p, meals: v }))}
+                    options={[
+                      { value: "none", label: "No Meals" },
+                      { value: "veg", label: "Veg Only" },
+                      { value: "both", label: "Veg & Non-Veg" },
+                    ]}
+                  />
+                  <Select
+                    label="Sharing"
+                    value={pgForm.sharingType}
+                    onChange={(v) => setPgForm((p) => ({ ...p, sharingType: v }))}
+                    options={[
+                      { value: "single", label: "Single" },
+                      { value: "double", label: "Double" },
+                      { value: "triple", label: "Triple" },
+                    ]}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Select
+                    label="Gender Preference"
+                    value={pgForm.genderPreference}
+                    onChange={(v) => setPgForm((p) => ({ ...p, genderPreference: v }))}
+                    options={[
+                      { value: "any", label: "Any" },
+                      { value: "male", label: "Male Only" },
+                      { value: "female", label: "Female Only" },
+                    ]}
+                  />
+                  <Input
+                    label="Curfew"
+                    type="text"
+                    value={pgForm.curfew}
+                    onChange={(e) => setPgForm((p) => ({ ...p, curfew: e.target.value }))}
+                    placeholder="e.g. 10 PM"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-muted mb-2">Facilities</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {([
+                      { key: "ac", label: "AC" },
+                      { key: "wifi", label: "WiFi" },
+                      { key: "laundry", label: "Laundry" },
+                      { key: "attachedBathroom", label: "Attached Bathroom" },
+                    ] as const).map((item) => (
+                      <button
+                        key={item.key}
+                        type="button"
+                        onClick={() => setPgForm((p) => ({ ...p, [item.key]: !p[item.key] }))}
+                        className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border transition-all text-xs font-medium ${
+                          pgForm[item.key]
+                            ? "border-accent bg-accent/10 text-accent"
+                            : "border-border bg-surface text-muted"
+                        }`}
+                      >
+                        <span className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${
+                          pgForm[item.key] ? "border-accent bg-accent" : "border-border"
+                        }`}>
+                          {pgForm[item.key] && (
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4">
+                              <path d="M20 6 9 17l-5-5" />
+                            </svg>
+                          )}
+                        </span>
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Photos card */}
           <div className="card p-0 overflow-hidden">

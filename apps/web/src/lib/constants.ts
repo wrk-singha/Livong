@@ -8,6 +8,7 @@ export const PROPERTY_TYPES = {
   ROOM: "room",
   FLAT: "flat",
   SHARED: "shared",
+  PG: "pg",
 } as const;
 
 export const GENDER = {

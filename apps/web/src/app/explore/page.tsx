@@ -16,12 +16,18 @@ type Listing = {
   propertyType: string;
   thumbnail?: string;
   ownerVerified?: boolean;
+  pgSummary?: {
+    sharingType: string;
+    meals: string;
+    genderPreference: string;
+  };
 };
 
 const TYPE_COLORS: Record<string, string> = {
   room: "bg-info-surface text-info",
   flat: "bg-success-surface text-success",
   shared: "bg-warning-surface text-warning",
+  pg: "bg-accent/10 text-accent",
 };
 
 export default function ExplorePage() {
@@ -200,9 +206,19 @@ export default function ExplorePage() {
                     </div>
                   </div>
                   <div className="mt-3 flex items-center justify-between">
-                    <span className={`inline-block px-2.5 py-1 rounded-md text-[11px] font-medium ${TYPE_COLORS[listing.propertyType] || "bg-surface-alt text-muted"}`}>
-                      {listing.propertyType}
-                    </span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className={`inline-block px-2.5 py-1 rounded-md text-[11px] font-medium ${TYPE_COLORS[listing.propertyType] || "bg-surface-alt text-muted"}`}>
+                        {listing.propertyType === "pg" ? "PG" : listing.propertyType}
+                      </span>
+                      {listing.pgSummary && (
+                        <>
+                          <span className="px-2 py-0.5 rounded-md bg-surface-alt text-[10px] text-muted capitalize">{listing.pgSummary.sharingType}</span>
+                          {listing.pgSummary.meals !== "none" && (
+                            <span className="px-2 py-0.5 rounded-md bg-surface-alt text-[10px] text-muted capitalize">{listing.pgSummary.meals === "veg" ? "Veg" : "Meals"}</span>
+                          )}
+                        </>
+                      )}
+                    </div>
                     <div className="flex items-center gap-1.5">
                       {listing.ownerVerified && <VerifiedBadge size={14} />}
                       <svg className="text-faint group-hover:text-muted transition-colors" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

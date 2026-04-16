@@ -14,6 +14,8 @@ import (
 	"github.com/rohit/livong-backend/internal/chat"
 	"github.com/rohit/livong-backend/internal/review"
 	"github.com/rohit/livong-backend/internal/plan"
+	"github.com/rohit/livong-backend/internal/pg"
+	"github.com/rohit/livong-backend/internal/rent"
 
 	"github.com/gin-gonic/gin"
 )
@@ -86,6 +88,27 @@ func main() {
 		planHandler := plan.NewHandler(db)
 		protected.GET("/plan", planHandler.GetPlan)
 		protected.PATCH("/plan", planHandler.UpdatePlan)
+
+		// PG Details
+		pgHandler := pg.NewHandler(db)
+		protected.PUT("/listings/:id/pg-details", pgHandler.Upsert)
+		protected.GET("/listings/:id/pg-details", pgHandler.Get)
+
+		// Rent
+		rentHandler := rent.NewHandler(db)
+		protected.POST("/rent-groups", rentHandler.CreateGroup)
+		protected.GET("/rent-groups", rentHandler.GetGroups)
+		protected.GET("/rent-groups/:id", rentHandler.GetGroup)
+		protected.DELETE("/rent-groups/:id", rentHandler.DeleteGroup)
+		protected.POST("/rent-groups/:id/members", rentHandler.AddMember)
+		protected.DELETE("/rent-groups/:id/members/:userId", rentHandler.RemoveMember)
+		protected.PATCH("/rent-groups/:id/members/:userId", rentHandler.UpdateMember)
+		protected.GET("/rent-groups/:id/matched-users", rentHandler.GetMatchedUsers)
+		protected.POST("/rent-groups/:id/payments", rentHandler.RecordPayment)
+		protected.GET("/rent-groups/:id/payments", rentHandler.GetPayments)
+		protected.PATCH("/rent-payments/:paymentId/verify", rentHandler.VerifyPayment)
+		protected.GET("/rent-groups/:id/commissions", rentHandler.GetCommissions)
+		protected.PATCH("/rent-commissions/:commissionId/collect", rentHandler.CollectCommission)
 	}
 
 	port := os.Getenv("PORT")

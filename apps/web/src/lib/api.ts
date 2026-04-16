@@ -233,6 +233,21 @@ export const api = {
     );
   },
 
+  savePgDetails: (listingId: string, data: {
+    meals: string;
+    sharingType: string;
+    ac: boolean;
+    wifi: boolean;
+    laundry: boolean;
+    attachedBathroom: boolean;
+    curfew?: string;
+    genderPreference: string;
+  }) =>
+    request<{ message: string }>(`/listings/${listingId}/pg-details`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+
   // Interests
   sendInterest: (receiverId: string, listingId: string) =>
     request<{ id: string }>("/interests", {
@@ -300,4 +315,56 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ plan }),
     }),
+
+  // Rent
+  getRentGroups: () =>
+    request<import("./types").RentGroup[]>("/rent-groups"),
+
+  getRentGroup: (id: string) =>
+    request<import("./types").RentGroupDetail>(`/rent-groups/${id}`),
+
+  createRentGroup: (data: { listingId?: string; name?: string; totalRent: number; dueDay: number; baseRent?: number; commissionType?: string; commissionValue?: number }) =>
+    request<{ id: string }>("/rent-groups", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  deleteRentGroup: (id: string) =>
+    request<{ message: string }>(`/rent-groups/${id}`, { method: "DELETE" }),
+
+  addRentMember: (groupId: string, data: { userId: string; shareAmount: number; role?: string }) =>
+    request<{ message: string }>(`/rent-groups/${groupId}/members`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  removeRentMember: (groupId: string, userId: string) =>
+    request<{ message: string }>(`/rent-groups/${groupId}/members/${userId}`, { method: "DELETE" }),
+
+  updateRentMember: (groupId: string, userId: string, shareAmount: number) =>
+    request<{ message: string }>(`/rent-groups/${groupId}/members/${userId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ shareAmount }),
+    }),
+
+  getMatchedUsers: (groupId: string) =>
+    request<import("./types").MatchedUser[]>(`/rent-groups/${groupId}/matched-users`),
+
+  recordRentPayment: (groupId: string, data: { amount: number; month: string; paymentMethod?: string; note?: string }) =>
+    request<{ id: string }>(`/rent-groups/${groupId}/payments`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  getRentPayments: (groupId: string, month?: string) =>
+    request<import("./types").RentPayment[]>(`/rent-groups/${groupId}/payments${month ? `?month=${month}` : ""}`),
+
+  verifyRentPayment: (paymentId: string) =>
+    request<{ message: string }>(`/rent-payments/${paymentId}/verify`, { method: "PATCH" }),
+
+  getCommissions: (groupId: string) =>
+    request<import("./types").RentCommission[]>(`/rent-groups/${groupId}/commissions`),
+
+  collectCommission: (commissionId: string) =>
+    request<{ message: string }>(`/rent-commissions/${commissionId}/collect`, { method: "PATCH" }),
 };

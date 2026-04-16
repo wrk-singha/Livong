@@ -62,6 +62,17 @@ function PostIcon({ active }: { active: boolean }) {
   );
 }
 
+function RentIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={active ? "opacity-100" : "opacity-50"}>
+      <rect x="2" y="6" width="20" height="12" rx="2" />
+      <path d="M12 12h.01" />
+      <path d="M17 12h.01" />
+      <path d="M7 12h.01" />
+    </svg>
+  );
+}
+
 function ProfileIcon({ active }: { active: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={active ? "opacity-100" : "opacity-50"}>
@@ -75,6 +86,7 @@ const navItems = [
   { href: "/explore", label: "Explore", Icon: ExploreIcon },
   { href: "/matches", label: "Matches", Icon: MatchesIcon },
   { href: "/create-listing", label: "Post", Icon: PostIcon },
+  { href: "/rent", label: "Rent", Icon: RentIcon },
   { href: "/profile", label: "Profile", Icon: ProfileIcon },
 ];
 

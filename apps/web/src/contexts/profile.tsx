@@ -18,6 +18,7 @@ export type Profile = {
   workSchedule?: string;
   pets?: string;
   foodPreference?: string;
+  isBroker?: boolean;
 };
 
 export function useProfile() {

@@ -37,17 +37,20 @@ func (h *Handler) GetProfile(c *gin.Context) {
 		WorkSchedule  *string `json:"workSchedule"`
 		Pets          *string `json:"pets"`
 		FoodPref      *string `json:"foodPreference"`
+		IsBroker      bool    `json:"isBroker"`
 	}
 
 	err := h.db.QueryRow(`
 		SELECT id, name, age, gender, location, avatar,
-			smoking, drinking, cleanliness, sleep_schedule, work_schedule, pets, food_preference
+			smoking, drinking, cleanliness, sleep_schedule, work_schedule, pets, food_preference,
+			COALESCE(is_broker, false)
 		FROM profiles WHERE user_id = $1
 	`, userID).Scan(
 		&profile.ID, &profile.Name, &profile.Age, &profile.Gender,
 		&profile.Location, &profile.Avatar,
 		&profile.Smoking, &profile.Drinking, &profile.Cleanliness,
 		&profile.SleepSchedule, &profile.WorkSchedule, &profile.Pets, &profile.FoodPref,
+		&profile.IsBroker,
 	)
 
 	if err == sql.ErrNoRows {
@@ -142,6 +145,7 @@ func (h *Handler) UpdateProfile(c *gin.Context) {
 		"foodPreference": "food_preference",
 		"name":          "name",
 		"location":      "location",
+		"isBroker":      "is_broker",
 	}
 
 	for jsonKey, val := range req {

@@ -104,6 +104,74 @@ func RunMigrations(db *sql.DB) error {
 			amount INT NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		)`,
+		`CREATE TABLE IF NOT EXISTS pg_details (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			listing_id UUID REFERENCES listings(id) ON DELETE CASCADE UNIQUE,
+			meals VARCHAR(20) DEFAULT 'none',
+			sharing_type VARCHAR(20) DEFAULT 'single',
+			ac BOOLEAN DEFAULT false,
+			wifi BOOLEAN DEFAULT false,
+			laundry BOOLEAN DEFAULT false,
+			attached_bathroom BOOLEAN DEFAULT false,
+			curfew VARCHAR(50),
+			gender_preference VARCHAR(20) DEFAULT 'any',
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		)`,
+		`CREATE TABLE IF NOT EXISTS rent_groups (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			listing_id UUID REFERENCES listings(id) ON DELETE CASCADE,
+			name VARCHAR(100),
+			total_rent INT NOT NULL,
+			due_day INT NOT NULL DEFAULT 1,
+			created_by UUID REFERENCES users(id),
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		)`,
+		`CREATE UNIQUE INDEX IF NOT EXISTS idx_rent_groups_listing ON rent_groups(listing_id) WHERE listing_id IS NOT NULL`,
+		`CREATE TABLE IF NOT EXISTS rent_members (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			rent_group_id UUID REFERENCES rent_groups(id) ON DELETE CASCADE,
+			user_id UUID REFERENCES users(id),
+			share_amount INT NOT NULL,
+			role VARCHAR(20) DEFAULT 'tenant',
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			UNIQUE(rent_group_id, user_id)
+		)`,
+		`DO $$ BEGIN
+			ALTER TABLE profiles ADD COLUMN IF NOT EXISTS is_broker BOOLEAN DEFAULT false;
+		EXCEPTION WHEN others THEN NULL;
+		END $$`,
+		`DO $$ BEGIN
+			ALTER TABLE rent_groups ADD COLUMN IF NOT EXISTS base_rent INT;
+			ALTER TABLE rent_groups ADD COLUMN IF NOT EXISTS commission_type VARCHAR(20);
+			ALTER TABLE rent_groups ADD COLUMN IF NOT EXISTS commission_value INT;
+		EXCEPTION WHEN others THEN NULL;
+		END $$`,
+		`CREATE TABLE IF NOT EXISTS rent_commissions (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			rent_group_id UUID REFERENCES rent_groups(id) ON DELETE CASCADE,
+			broker_id UUID REFERENCES users(id),
+			month VARCHAR(7) NOT NULL,
+			amount INT NOT NULL,
+			status VARCHAR(20) DEFAULT 'pending',
+			collected_at TIMESTAMP,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			UNIQUE(rent_group_id, month)
+		)`,
+		`CREATE TABLE IF NOT EXISTS rent_payments (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			rent_group_id UUID REFERENCES rent_groups(id) ON DELETE CASCADE,
+			payer_id UUID REFERENCES users(id),
+			amount INT NOT NULL,
+			month VARCHAR(7) NOT NULL,
+			payment_method VARCHAR(20) DEFAULT 'offline',
+			note VARCHAR(500),
+			payer_confirmed BOOLEAN DEFAULT true,
+			receiver_confirmed BOOLEAN DEFAULT false,
+			confirmed_by UUID REFERENCES users(id),
+			confirmed_at TIMESTAMP,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			UNIQUE(rent_group_id, payer_id, month)
+		)`,
 	}
 
 	for i, m := range migrations {

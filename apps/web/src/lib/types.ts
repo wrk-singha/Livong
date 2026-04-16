@@ -88,10 +88,94 @@ export interface UpdateProfileRequest {
   foodPreference?: string;
 }
 
+export interface PgDetails {
+  meals: string;
+  sharingType: string;
+  ac: boolean;
+  wifi: boolean;
+  laundry: boolean;
+  attachedBathroom: boolean;
+  curfew?: string;
+  genderPreference: string;
+}
+
 export interface CreateListingRequest {
   title: string;
   description?: string;
   rent: number;
   location: string;
   propertyType: string;
+}
+
+export interface RentGroup {
+  id: string;
+  listingId: string;
+  name?: string;
+  totalRent: number;
+  dueDay: number;
+  createdBy: string;
+  listingTitle?: string;
+  listingLocation?: string;
+  memberCount: number;
+  paidCount: number;
+  overdue: boolean;
+  month: string;
+  baseRent?: number;
+  commissionType?: string;
+  commissionValue?: number;
+  commissionAmount?: number;
+}
+
+export interface RentMember {
+  userId: string;
+  name: string;
+  shareAmount: number;
+  role: string;
+  paymentStatus: "unpaid" | "pending" | "verified";
+  paymentId?: string;
+}
+
+export interface RentGroupDetail {
+  id: string;
+  listingId: string;
+  name?: string;
+  totalRent: number;
+  dueDay: number;
+  createdBy: string;
+  listingTitle?: string;
+  listingLocation?: string;
+  members: RentMember[];
+  month: string;
+  overdue: boolean;
+  baseRent?: number;
+  commissionType?: string;
+  commissionValue?: number;
+  commissionAmount?: number;
+}
+
+export interface RentPayment {
+  id: string;
+  payerId: string;
+  payerName: string;
+  amount: number;
+  month: string;
+  paymentMethod: string;
+  status: "pending" | "verified";
+  note?: string;
+  createdAt: string;
+  confirmedAt?: string;
+}
+
+export interface MatchedUser {
+  id: string;
+  name: string;
+}
+
+export interface RentCommission {
+  id: string;
+  month: string;
+  amount: number;
+  status: "pending" | "collected";
+  collectedAt?: string;
+  createdAt: string;
 }

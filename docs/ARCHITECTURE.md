@@ -2,7 +2,7 @@
 
 ## Overview
 
-Livong is a roommate/shared-living platform. Users sign up, create a profile, post or browse listings, express interest, match, and chat — including sharing contact info after matching.
+Livong is a roommate/shared-living platform. Users sign up, create a profile, post or browse listings, express interest, match, chat, and manage shared rent payments. Brokers can also create standalone rent groups and apply a configurable commission model.
 
 The system is a monorepo with a Go backend and Next.js frontend, both talking to PostgreSQL.
 
@@ -28,6 +28,7 @@ Livong/
 │   │   │   ├── chat/         # Messages + contact sharing
 │   │   │   ├── review/       # Listing reviews
 │   │   │   ├── plan/         # Subscription plans
+│   │   │   ├── rent/         # Rent groups, payments, commissions
 │   │   │   ├── database/     # Connection + inline migrations
 │   │   │   └── middleware/    # JWT auth middleware
 │   │   ├── go.mod
@@ -52,6 +53,7 @@ Livong/
 │           │   ├── listings/[id]/    # Listing detail
 │           │   ├── create-listing/   # Post a listing
 │           │   ├── matches/          # Matched users
+│           │   ├── rent/             # Rent dashboard + group details
 │           │   └── chat/[matchId]/   # 1:1 chat
 │           ├── components/   # AppShell, ServiceWorkerRegistrar
 │           ├── contexts/     # AuthContext, ThemeContext
@@ -90,6 +92,7 @@ Each module in `internal/` owns its handler, routes, and queries:
 | `interest` | Send interest, accept/reject, duplicate prevention |
 | `match` | Auto-created when interest is accepted |
 | `chat` | Text messages, contact sharing (phone/email as special message type) |
+| `rent` | Rent groups, member splits, payment verification, broker commissions |
 | `database` | PostgreSQL connection, inline `CREATE TABLE IF NOT EXISTS` migrations |
 | `middleware` | JWT extraction and user ID injection into context |
 
@@ -106,6 +109,17 @@ User A sends interest on User B's listing
       → Backend creates match (user1_id, user2_id, listing_id)
         → Chat enabled between A and B
           → Either user can share contact info
+```
+
+### Rent Tracking Flow
+
+```
+Creator or broker creates a rent group
+  → Members are added with share amounts
+    → Each member records payment for a month
+      → Counterparty verifies the payment
+        → If all month payments are verified, broker commission is auto-created
+          → Broker can mark commission as collected
 ```
 
 ---

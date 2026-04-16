@@ -35,6 +35,7 @@ CREATE TABLE profiles (
     work_schedule VARCHAR(20),
     pets VARCHAR(20),
     food_preference VARCHAR(20),
+    is_broker BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
@@ -126,6 +127,77 @@ Images stored on disk under `uploads/{listing_id}/{random_hex}.{ext}`. Max 10 pe
 
 ---
 
+## Rent Groups
+
+```sql
+CREATE TABLE rent_groups (
+    id UUID PRIMARY KEY,
+    listing_id UUID REFERENCES listings(id) ON DELETE CASCADE,
+    name VARCHAR(100),
+    total_rent INT NOT NULL,
+    due_day INT DEFAULT 1,
+    created_by UUID REFERENCES users(id) ON DELETE CASCADE,
+    base_rent INT,
+    commission_type VARCHAR(20),
+    commission_value INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+> `listing_id` can be null for standalone groups created by brokers or third parties.
+
+## Rent Members
+
+```sql
+CREATE TABLE rent_members (
+    id UUID PRIMARY KEY,
+    rent_group_id UUID REFERENCES rent_groups(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    share_amount INT NOT NULL,
+    role VARCHAR(20) DEFAULT 'tenant',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(rent_group_id, user_id)
+);
+```
+
+## Rent Payments
+
+```sql
+CREATE TABLE rent_payments (
+    id UUID PRIMARY KEY,
+    rent_group_id UUID REFERENCES rent_groups(id) ON DELETE CASCADE,
+    payer_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    amount INT NOT NULL,
+    month VARCHAR(7) NOT NULL,
+    payment_method VARCHAR(50),
+    note TEXT,
+    payer_confirmed BOOLEAN DEFAULT TRUE,
+    receiver_confirmed BOOLEAN DEFAULT FALSE,
+    confirmed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    confirmed_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(rent_group_id, payer_id, month)
+);
+```
+
+## Rent Commissions
+
+```sql
+CREATE TABLE rent_commissions (
+    id UUID PRIMARY KEY,
+    rent_group_id UUID REFERENCES rent_groups(id) ON DELETE CASCADE,
+    broker_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    month VARCHAR(7) NOT NULL,
+    amount INT NOT NULL,
+    status VARCHAR(20) DEFAULT 'pending',
+    collected_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(rent_group_id, month)
+);
+```
+
+---
+
 ## Relationships
 
 ```
@@ -137,6 +209,11 @@ users 1:N reviews (as reviewer)
 users N:N interests (sender/receiver)
 interests -> matches (on accept)
 matches 1:N messages
+rent_groups 1:N rent_members
+rent_groups 1:N rent_payments
+rent_groups 1:N rent_commissions
+users 1:N rent_groups (as creator/broker)
+users 1:N rent_payments (as payer)
 ```
 
 ---
@@ -162,6 +239,8 @@ CREATE TABLE reviews (
 ## Notes
 
 - `users.plan` column: `VARCHAR(20) DEFAULT 'free'` — controls access to review details
+- Broker status is stored in `profiles.is_broker`
 - No separate migration files — all DDL runs inline from `database.RunMigrations()` at startup
 - All IDs are UUIDs generated in Go
-- No indexes beyond primary keys currently (add based on query patterns as needed)
+- Rent tables include uniqueness protection for member membership, monthly payments, and monthly commission creation
+- `rent_groups.listing_id` uses a partial unique index when present so one listing can only have one linked rent group

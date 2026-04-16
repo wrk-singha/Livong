@@ -28,9 +28,11 @@ func (h *Handler) GetListings(c *gin.Context) {
 
 	query := `SELECT l.id, l.user_id, l.title, l.description, l.rent, l.location, l.property_type, l.available_from, l.created_at,
 		(SELECT li.filename FROM listing_images li WHERE li.listing_id = l.id ORDER BY li.position, li.created_at LIMIT 1),
-		COALESCE(u.is_verified, false)
+		COALESCE(u.is_verified, false),
+		pg.sharing_type, pg.meals, pg.gender_preference
 		FROM listings l
 		LEFT JOIN users u ON u.id = l.user_id
+		LEFT JOIN pg_details pg ON pg.listing_id = l.id
 		WHERE 1=1`
 	args := []interface{}{}
 	argIdx := 1
@@ -69,8 +71,9 @@ func (h *Handler) GetListings(c *gin.Context) {
 		var createdAt sql.NullTime
 		var thumbnail sql.NullString
 		var verified bool
+		var pgSharing, pgMeals, pgGender sql.NullString
 
-		if err := rows.Scan(&id, &userID, &title, &description, &rent, &location, &propertyType, &availableFrom, &createdAt, &thumbnail, &verified); err != nil {
+		if err := rows.Scan(&id, &userID, &title, &description, &rent, &location, &propertyType, &availableFrom, &createdAt, &thumbnail, &verified, &pgSharing, &pgMeals, &pgGender); err != nil {
 			continue
 		}
 
@@ -89,6 +92,13 @@ func (h *Handler) GetListings(c *gin.Context) {
 		}
 		if thumbnail.Valid {
 			l["thumbnail"] = "/uploads/" + thumbnail.String
+		}
+		if propertyType == "pg" && pgSharing.Valid {
+			l["pgSummary"] = map[string]interface{}{
+				"sharingType":      pgSharing.String,
+				"meals":            pgMeals.String,
+				"genderPreference": pgGender.String,
+			}
 		}
 		listings = append(listings, l)
 	}
@@ -203,6 +213,32 @@ func (h *Handler) GetListing(c *gin.Context) {
 	}
 	if ownerFoodPref.Valid {
 		result["ownerFoodPref"] = ownerFoodPref.String
+	}
+
+	// Fetch PG details if property_type is 'pg'
+	if propertyType == "pg" {
+		var meals, sharingType, genderPref string
+		var ac, wifi, laundry, attachedBathroom bool
+		var curfew sql.NullString
+		pgErr := h.db.QueryRow(`
+			SELECT meals, sharing_type, ac, wifi, laundry, attached_bathroom, curfew, gender_preference
+			FROM pg_details WHERE listing_id = $1
+		`, id).Scan(&meals, &sharingType, &ac, &wifi, &laundry, &attachedBathroom, &curfew, &genderPref)
+		if pgErr == nil {
+			pgDetails := gin.H{
+				"meals":            meals,
+				"sharingType":      sharingType,
+				"ac":               ac,
+				"wifi":             wifi,
+				"laundry":          laundry,
+				"attachedBathroom": attachedBathroom,
+				"genderPreference": genderPref,
+			}
+			if curfew.Valid {
+				pgDetails["curfew"] = curfew.String
+			}
+			result["pgDetails"] = pgDetails
+		}
 	}
 
 	// Owner's average rating across all their listings

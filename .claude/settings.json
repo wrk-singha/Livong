@@ -37,9 +37,9 @@
       "Bash(tree:*)",
       "Bash(lsof -i:*)",
       "Bash(./test-api.sh:*)",
-      "Read(//Users/rohit/Library/Mobile Documents/com~apple~CloudDocs/RDS/Livong/**)",
-      "Edit(//Users/rohit/Library/Mobile Documents/com~apple~CloudDocs/RDS/Livong/**)",
-      "Write(//Users/rohit/Library/Mobile Documents/com~apple~CloudDocs/RDS/Livong/**)"
+      "Read(//Users/rohit/Code/Livong/**)",
+      "Edit(//Users/rohit/Code/Livong/**)",
+      "Write(//Users/rohit/Code/Livong/**)"
     ],
     "deny": [
       "Bash(git push:*)",

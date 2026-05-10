@@ -179,7 +179,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Mobile top bar */}
       {showNav && !isChat && (
-        <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-surface border-b border-border px-4 py-3 flex items-center justify-between">
+        <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-surface border-b border-border px-4 py-3 flex items-center justify-between pt-[calc(env(safe-area-inset-top)+0.75rem)]">
           <h1 className="text-base font-semibold text-foreground tracking-tight">Livong</h1>
           <button
             onClick={toggle}
@@ -194,7 +194,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* Main content area */}
       <main
         className={`flex-1 ${
-          showNav && !isChat ? "pt-14 pb-16 lg:pt-0 lg:pb-0 lg:pl-60" : showNav && isChat ? "lg:pl-60" : ""
+          showNav && !isChat
+            ? "pt-[calc(env(safe-area-inset-top)+3.5rem)] pb-[calc(env(safe-area-inset-bottom)+4rem)] lg:pt-0 lg:pb-0 lg:pl-60"
+            : showNav && isChat
+              ? "lg:pl-60"
+              : ""
         }`}
       >
         {children}
@@ -202,7 +206,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Mobile bottom nav */}
       {showNav && !isChat && (
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface border-t border-border">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface border-t border-border pb-[env(safe-area-inset-bottom)]">
           <div className="max-w-md mx-auto flex justify-around py-1">
             {navItems.map((item) => {
               const active = pathname.startsWith(item.href);

@@ -3,6 +3,7 @@ package middleware
 import (
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/rohit/livong-backend/internal/auth"
@@ -36,6 +37,8 @@ func Auth() gin.HandlerFunc {
 }
 
 func CORS() gin.HandlerFunc {
+	privateOrigin := regexp.MustCompile(`^http://(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+):\d+$`)
+
 	return func(c *gin.Context) {
 		origin := c.GetHeader("Origin")
 		allowed := os.Getenv("CORS_ORIGINS")
@@ -43,11 +46,20 @@ func CORS() gin.HandlerFunc {
 			allowed = "http://localhost:3000"
 		}
 
+		matched := false
 		for _, o := range strings.Split(allowed, ",") {
 			if strings.TrimSpace(o) == origin {
-				c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+				matched = true
 				break
 			}
+		}
+
+		if !matched && allowed == "http://localhost:3000" && privateOrigin.MatchString(origin) {
+			matched = true
+		}
+
+		if matched {
+			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
 		}
 
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")

@@ -1,0 +1,50 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./livong:*)",
+      "Bash(./livong.bat:*)",
+      "Bash(node cli.mjs:*)",
+      "Bash(pnpm:*)",
+      "Bash(pnpx:*)",
+      "Bash(go:*)",
+      "Bash(gofmt:*)",
+      "Bash(go build:*)",
+      "Bash(go run:*)",
+      "Bash(go test:*)",
+      "Bash(go mod:*)",
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(git show:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)",
+      "Bash(git stash:*)",
+      "Bash(git pull:*)",
+      "Bash(git fetch:*)",
+      "Bash(gh pr:*)",
+      "Bash(gh issue:*)",
+      "Bash(gh repo view:*)",
+      "Bash(psql:*)",
+      "Bash(docker compose:*)",
+      "Bash(docker ps)",
+      "Bash(curl:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(rg:*)",
+      "Bash(find:*)",
+      "Bash(tree:*)",
+      "Bash(lsof -i:*)",
+      "Bash(./test-api.sh:*)",
+      "Read(//Users/rohit/Library/Mobile Documents/com~apple~CloudDocs/RDS/Livong/**)",
+      "Edit(//Users/rohit/Library/Mobile Documents/com~apple~CloudDocs/RDS/Livong/**)",
+      "Write(//Users/rohit/Library/Mobile Documents/com~apple~CloudDocs/RDS/Livong/**)"
+    ],
+    "deny": [
+      "Bash(git push:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(rm -rf:*)"
+    ]
+  }
+}

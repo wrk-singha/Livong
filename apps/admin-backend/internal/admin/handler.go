@@ -718,6 +718,7 @@ func (h *Handler) GetAnalytics(c *gin.Context) {
 
 	result := gin.H{}
 
+	// SAFE: table and extraCols are only ever passed hardcoded literals from the call sites below — never user input
 	queryTimeSeries := func(table string, extraCols string, scanFn func(*sql.Rows) map[string]interface{}) []map[string]interface{} {
 		q := "SELECT DATE_TRUNC('day', created_at)::date AS d" + extraCols + " FROM " + table + " WHERE " + dateFilter + " GROUP BY d ORDER BY d"
 		rows, _ := h.db.Query(q, dateArgs...)

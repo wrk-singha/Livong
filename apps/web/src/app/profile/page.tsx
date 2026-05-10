@@ -273,7 +273,7 @@ export default function ProfilePage() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-white bg-neutral-800">
+                  <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-white bg-neutral-900">
                     {profile.name.charAt(0).toUpperCase()}
                   </div>
                 )}

@@ -153,6 +153,7 @@ func (h *Handler) UpdateProfile(c *gin.Context) {
 		if !ok {
 			continue
 		}
+		// SAFE: col comes from fieldMap whitelist above — never user input
 		_, err := h.db.Exec("UPDATE profiles SET "+col+" = $1 WHERE user_id = $2", val, userID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update profile"})

@@ -4,7 +4,8 @@ Roommate / shared-living platform. Monorepo: Go backend + Next.js frontend + Pos
 
 ## Read first
 
-Project rules live in `.cursorrules` — **read it before any code change**. It defines hard constraints (no ORMs, no UI libs, theme tokens, pnpm only, etc.) that this project depends on.
+- `.cursorrules` — hard constraints + code skeletons + decision tree. **Read before any code change.**
+- `docs/ai-workflow.md` — how AI tools are wired up here (slash commands, permissions, phone workflow, what was already done).
 
 ## Layout
 

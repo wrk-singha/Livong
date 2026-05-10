@@ -17,14 +17,12 @@ How AI tools are wired up for this repo, why each piece exists, and how to use t
 | File | Read by | Purpose |
 |---|---|---|
 | `CLAUDE.md` | Claude Code (CLI + web) | Entry point — points at `.cursorrules` + summarizes layout |
-| `.cursorrules` | Cursor, others | Hard constraints + code skeletons + decision tree |
-| `.clinerules` | Cline (VS Code agentic) | Same content, kept in sync |
-| `.windsurfrules` | Windsurf | Same content, kept in sync |
+| `.cursorrules` | Cursor + many other AI tools (de-facto standard) | Hard constraints + code skeletons + decision tree — single source of truth |
 | `apps/web/CLAUDE.md` → `AGENTS.md` | Claude Code in `apps/web` | Next.js version-specific note |
 | `.claude/settings.json` | Claude Code | Permissions allowlist (no prompts for `pnpm`, `go`, `./livong`, `git` reads) and denylist (blocks `git push`, `rm -rf`, `git reset --hard`) |
 | `.claude/commands/*.md` | Claude Code | Slash commands |
 
-**When you change `.cursorrules`, sync the other two:**
+**If you start using Cline or Windsurf later**, mirror `.cursorrules` to `.clinerules` / `.windsurfrules`:
 ```bash
 cp .cursorrules .clinerules
 cp .cursorrules .windsurfrules
@@ -109,7 +107,7 @@ Useful when:
 For history — if a future session asks "what's already done":
 
 - Created `CLAUDE.md`, `.claude/settings.json`, 4 slash commands
-- Rewrote `.cursorrules` / `.clinerules` / `.windsurfrules` with concrete code skeletons + decision tree
+- Rewrote `.cursorrules` with concrete code skeletons + decision tree (then later dropped the duplicate `.clinerules` / `.windsurfrules` since those tools weren't being used)
 - Fixed prod CSP hardcoded `localhost:8080` → uses `NEXT_PUBLIC_API_URL`
 - Added LAN access for phone testing (CORS RFC1918 regex, hostname fallback in `lib/api.ts`)
 - Added iOS safe-area insets in `AppShell.tsx`

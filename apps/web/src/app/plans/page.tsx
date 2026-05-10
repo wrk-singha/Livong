@@ -21,6 +21,7 @@ const PLANS = [
     missing: [
       "See full review details",
     ],
+    popular: false,
   },
   {
     id: "basic",
@@ -48,6 +49,7 @@ const PLANS = [
       "Boost listings to the top",
     ],
     missing: [],
+    popular: false,
   },
 ] as const;
 

@@ -46,6 +46,15 @@ func main() {
 	router.POST("/auth/login", authHandler.Login)
 	router.POST("/auth/verify-otp", authHandler.VerifyOTP)
 
+	// Dev-only OTP bypass — gated behind env var, refuses to load in production.
+	if os.Getenv("LIVONG_DEV_LOGIN") == "1" {
+		if os.Getenv("APP_ENV") == "production" || os.Getenv("NODE_ENV") == "production" {
+			log.Fatal("LIVONG_DEV_LOGIN must NOT be set in production. Refusing to start.")
+		}
+		log.Println("⚠️  WARNING: dev-login enabled at POST /auth/_dev-login (no OTP). NEVER enable in production.")
+		router.POST("/auth/_dev-login", authHandler.DevLogin)
+	}
+
 	// Protected routes
 	protected := router.Group("/")
 	protected.Use(middleware.Auth())

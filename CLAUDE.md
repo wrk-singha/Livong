@@ -34,6 +34,18 @@ Always prefer the CLI over raw commands:
 ./livong test:web        # Playwright e2e only
 ```
 
+## Authenticated Playwright tests
+
+`apps/web/e2e/authed.spec.ts` covers logged-in flows. They auto-skip if the backend isn't running with the dev-login bypass enabled.
+
+To run them:
+```
+LIVONG_DEV_LOGIN=1 ./livong server:start
+./livong test:web
+```
+
+The dev-login route (`POST /auth/_dev-login`) is gated behind `LIVONG_DEV_LOGIN=1` and refuses to load if `APP_ENV=production` or `NODE_ENV=production`. **Never enable in production.**
+
 ## When making changes
 
 - Frontend changes → check theme tokens (no `dark:`, no hex, no `text-neutral-*` for theming)

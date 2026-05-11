@@ -144,7 +144,7 @@ export default function PlansPage() {
                 ) : !isAuthenticated ? (
                   <Link
                     href="/login"
-                    className="btn-primary w-full py-2.5 rounded-xl text-sm font-medium text-center"
+                    className="btn-accent w-full py-2.5 rounded-xl text-sm font-medium text-center"
                   >
                     {plan.price === 0 ? "Sign in to start" : "Sign in to subscribe"}
                   </Link>

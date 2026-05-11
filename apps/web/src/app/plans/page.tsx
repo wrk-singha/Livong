@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { Alert, PageSpinner } from "@/components/ui";
+import { useAuth } from "@/contexts/auth";
+import { Alert } from "@/components/ui";
 
 const PLANS = [
   {
@@ -55,12 +57,14 @@ const PLANS = [
 
 export default function PlansPage() {
   const queryClient = useQueryClient();
+  const { isAuthenticated, hydrated } = useAuth();
   const [error, setError] = useState("");
 
   const { data } = useQuery({
     queryKey: ["plan"],
     queryFn: api.getPlan,
     staleTime: Infinity,
+    enabled: hydrated && isAuthenticated,
   });
 
   const currentPlan = data?.plan || "free";
@@ -135,7 +139,16 @@ export default function PlansPage() {
                   ))}
                 </div>
 
-                {isCurrent ? (
+                {!hydrated ? (
+                  <div className="w-full py-2.5 rounded-xl bg-surface-alt h-10" />
+                ) : !isAuthenticated ? (
+                  <Link
+                    href="/login"
+                    className="btn-primary w-full py-2.5 rounded-xl text-sm font-medium text-center"
+                  >
+                    {plan.price === 0 ? "Sign in to start" : "Sign in to subscribe"}
+                  </Link>
+                ) : isCurrent ? (
                   <div className="w-full py-2.5 text-center rounded-xl text-sm font-medium bg-success-surface text-success-text border border-success-border">
                     Current Plan
                   </div>

@@ -52,6 +52,12 @@ export default function RootLayout({
     >
       <head>
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        {/* Set theme class before hydration to avoid FOUC. Mirrors getInitialTheme() in contexts/theme.tsx. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme');if(!t){t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}if(t==='dark'){document.documentElement.classList.add('dark');}}catch(e){}})();`,
+          }}
+        />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <ThemeProvider>

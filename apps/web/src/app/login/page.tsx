@@ -125,10 +125,17 @@ export default function LoginPage() {
                       setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
                     }
                     placeholder="Enter your number"
+                    aria-invalid={phone.length > 0 && phone.length < 10}
+                    aria-describedby="phone-hint"
                     className="flex-1 px-3.5 py-3 outline-none text-sm text-secondary placeholder:text-faint bg-transparent"
                     autoFocus
                   />
                 </div>
+                {phone.length > 0 && phone.length < 10 && (
+                  <p id="phone-hint" className="text-xs text-dim mt-1.5">
+                    {10 - phone.length} more digit{10 - phone.length === 1 ? "" : "s"} to enable Continue
+                  </p>
+                )}
               </div>
 
               {error && (

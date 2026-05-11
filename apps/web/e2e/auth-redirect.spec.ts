@@ -7,8 +7,9 @@ const PROTECTED_ROUTES = [
   "/profile/setup",
   "/create-listing",
   "/rent",
-  "/plans",
 ];
+
+const PUBLIC_ROUTES = ["/", "/login", "/plans"];
 
 test.describe("Auth redirects (unauthenticated)", () => {
   for (const route of PROTECTED_ROUTES) {
@@ -19,13 +20,10 @@ test.describe("Auth redirects (unauthenticated)", () => {
     });
   }
 
-  test("/ stays on /", async ({ page }) => {
-    await page.goto("/");
-    await expect(page).toHaveURL("/");
-  });
-
-  test("/login stays on /login", async ({ page }) => {
-    await page.goto("/login");
-    await expect(page).toHaveURL("/login");
-  });
+  for (const route of PUBLIC_ROUTES) {
+    test(`${route} stays on ${route}`, async ({ page }) => {
+      await page.goto(route);
+      await expect(page).toHaveURL(route);
+    });
+  }
 });

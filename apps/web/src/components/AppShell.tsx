@@ -90,7 +90,7 @@ const navItems = [
   { href: "/profile", label: "Profile", Icon: ProfileIcon },
 ];
 
-const PUBLIC_PATHS = ["/", "/login"];
+const PUBLIC_PATHS = ["/", "/login", "/plans"];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

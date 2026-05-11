@@ -403,6 +403,27 @@ function webLint() {
   });
 }
 
+function testBackend() {
+  title("Testing Backend (go test)");
+  execSync("go test ./...", {
+    cwd: BACKEND_DIR,
+    stdio: "inherit",
+  });
+}
+
+function testWeb() {
+  title("Testing Web (Playwright e2e)");
+  execSync(PLATFORM === "win32" ? "pnpm.cmd test:e2e" : "pnpm test:e2e", {
+    cwd: WEB_DIR,
+    stdio: "inherit",
+  });
+}
+
+function testAll() {
+  testBackend();
+  testWeb();
+}
+
 function webInstall() {
   title("Installing Web Dependencies");
   execSync(PLATFORM === "win32" ? "pnpm.cmd install" : "pnpm install", {
@@ -639,6 +660,9 @@ const COMMANDS = {
   restart: restartAll,
   status: showStatus,
   fresh: fresh,
+  test: testAll,
+  "test:backend": testBackend,
+  "test:web": testWeb,
   menu: interactiveMenu,
   interactive: interactiveMenu,
   help: interactiveMenu,

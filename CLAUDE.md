@@ -29,6 +29,9 @@ Always prefer the CLI over raw commands:
 ./livong web:dev         # just frontend
 ./livong admin:dev       # admin panel
 ./livong fresh           # clean + install + start
+./livong test            # run all tests (Go + Playwright)
+./livong test:backend    # Go tests only
+./livong test:web        # Playwright e2e only
 ```
 
 ## When making changes

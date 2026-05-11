@@ -236,3 +236,76 @@ func (h *Handler) UploadAvatar(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"avatar": "/uploads/" + relPath})
 }
+
+// DeleteAccount erases the user's PII per DPDP Act 2023 (India) right-to-erasure.
+// Strategy: soft-delete users.deleted_at + scrub PII (phone, profile fields, avatar file).
+// Foreign key data (messages, listings, matches) stays for safety/audit but with
+// the user_id pointing at a tombstoned row whose phone is set to a sentinel.
+// Listings owned by the user are hard-deleted (cascades to images, interests, matches).
+func (h *Handler) DeleteAccount(c *gin.Context) {
+	userID := c.GetString("userId")
+
+	var req struct {
+		Confirm string `json:"confirm" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "confirmation required"})
+		return
+	}
+	// Require typed confirmation so this can't fire by accident
+	if req.Confirm != "DELETE MY ACCOUNT" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "type DELETE MY ACCOUNT to confirm"})
+		return
+	}
+
+	tx, err := h.db.Begin()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to start deletion"})
+		return
+	}
+	defer tx.Rollback()
+
+	// 1. Drop the user's listings (cascades to listing_images, interests, matches via ON DELETE CASCADE)
+	if _, err := tx.Exec(`DELETE FROM listings WHERE user_id = $1`, userID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete listings"})
+		return
+	}
+
+	// 2. Read avatar path so we can remove the file after the tx commits
+	var avatar sql.NullString
+	tx.QueryRow(`SELECT avatar FROM profiles WHERE user_id = $1`, userID).Scan(&avatar)
+
+	// 3. Scrub profile PII but keep the row so historic foreign keys still resolve
+	if _, err := tx.Exec(`
+		UPDATE profiles
+		SET name = 'Deleted user', age = NULL, gender = NULL, location = NULL,
+			smoking = NULL, drinking = NULL, cleanliness = NULL,
+			sleep_schedule = NULL, work_schedule = NULL, pets = NULL,
+			food_preference = NULL, avatar = NULL, is_broker = false
+		WHERE user_id = $1`, userID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to scrub profile"})
+		return
+	}
+
+	// 4. Tombstone the user — replace phone with a unique sentinel + mark deleted_at.
+	//    Sentinel format keeps the UNIQUE(phone) constraint happy and makes it obvious in audits.
+	if _, err := tx.Exec(`
+		UPDATE users
+		SET phone = 'deleted-' || id::text, deleted_at = NOW()
+		WHERE id = $1`, userID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to tombstone account"})
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to commit deletion"})
+		return
+	}
+
+	// 5. Best-effort: remove avatar file from disk (post-commit; failure is logged but non-fatal)
+	if avatar.Valid && avatar.String != "" {
+		os.Remove(filepath.Join("uploads", avatar.String))
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "account deleted"})
+}

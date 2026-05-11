@@ -55,9 +55,10 @@ func main() {
 		router.POST("/auth/_dev-login", authHandler.DevLogin)
 	}
 
-	// Protected routes
+	// Protected routes — uses AuthWithDB so deleted accounts (DPDP soft-delete)
+	// can't keep using a stale token from another device.
 	protected := router.Group("/")
-	protected.Use(middleware.Auth())
+	protected.Use(middleware.AuthWithDB(db))
 	{
 		// Profile
 		profileHandler := user.NewHandler(db)
@@ -65,6 +66,7 @@ func main() {
 		protected.POST("/profile", profileHandler.CreateProfile)
 		protected.PATCH("/profile", profileHandler.UpdateProfile)
 		protected.POST("/profile/avatar", profileHandler.UploadAvatar)
+		protected.DELETE("/account", profileHandler.DeleteAccount)
 
 		// Listings
 		listingHandler := listing.NewHandler(db)

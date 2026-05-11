@@ -371,4 +371,11 @@ export const api = {
 
   collectCommission: (commissionId: string) =>
     request<{ message: string }>(`/rent-commissions/${commissionId}/collect`, { method: "PATCH" }),
+
+  // DPDP Act 2023 — right to erasure. Backend requires { confirm: "DELETE MY ACCOUNT" }.
+  deleteAccount: (confirm: string) =>
+    request<{ message: string }>(`/account`, {
+      method: "DELETE",
+      body: JSON.stringify({ confirm }),
+    }),
 };

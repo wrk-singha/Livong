@@ -7,7 +7,7 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/auth";
 import type { RentGroupDetail, RentMember, RentPayment, MatchedUser, RentCommission } from "@/lib/types";
 import {
-  PageSpinner, BackButton, Alert, Input, Button, Modal, Badge, Avatar, EmptyState,
+  PageSpinner, BackButton, Alert, Input, Button, Modal, Badge, Avatar, EmptyState, ErrorState,
 } from "@/components/ui";
 
 export default function RentGroupDetailPage() {
@@ -20,9 +20,10 @@ export default function RentGroupDetailPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState("");
 
-  const { data: group, isLoading } = useQuery<RentGroupDetail>({
+  const { data: group, isLoading, error: groupError, refetch: refetchGroup } = useQuery<RentGroupDetail>({
     queryKey: ["rent-group", id],
     queryFn: () => api.getRentGroup(id),
+    retry: false,
   });
 
   const { data: payments = [] } = useQuery<RentPayment[]>({
@@ -60,7 +61,23 @@ export default function RentGroupDetailPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["rent-group", id] }),
   });
 
-  if (isLoading || !group) return <PageSpinner />;
+  // Distinguish loading / not-found / network-error / loaded.
+  if (isLoading) return <PageSpinner />;
+  if (groupError) {
+    return (
+      <div className="min-h-screen px-4 py-6 md:px-8 lg:px-10">
+        <div className="max-w-lg md:max-w-3xl lg:max-w-5xl mx-auto">
+          <BackButton />
+          <ErrorState
+            title="Couldn't load this rent group"
+            subtitle="The group may not exist, or there was a network problem."
+            onRetry={() => refetchGroup()}
+          />
+        </div>
+      </div>
+    );
+  }
+  if (!group) return null;
 
   const isCreator = group.createdBy === userId;
   const currentMonth = group.month;
@@ -104,6 +121,17 @@ export default function RentGroupDetailPage() {
             </button>
           )}
         </div>
+
+        {/* Mutation errors — money/membership actions must never fail silently */}
+        {(verifyMutation.error || collectMutation.error || removeMemberMutation.error || deleteMutation.error) && (
+          <Alert className="mb-4">
+            {(verifyMutation.error as Error | null)?.message ||
+              (collectMutation.error as Error | null)?.message ||
+              (removeMemberMutation.error as Error | null)?.message ||
+              (deleteMutation.error as Error | null)?.message ||
+              "Action failed. Please try again."}
+          </Alert>
+        )}
 
         {/* Members section */}
         <section className="mb-6">

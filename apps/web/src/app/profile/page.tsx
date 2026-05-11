@@ -5,7 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { api, imageUrl } from "@/lib/api";
 import { useAuth } from "@/contexts/auth";
 import { useProfile, type Profile } from "@/contexts/profile";
-import { Input, Select, Alert, Button } from "@/components/ui";
+import { Input, Select, Alert, Button, Modal } from "@/components/ui";
 
 const PREF_OPTIONS: Record<string, string[]> = {
   smoking: ["yes", "no", "occasionally"],
@@ -90,6 +90,7 @@ export default function ProfilePage() {
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({ name: "", location: "" });
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
 
   const saveMutation = useMutation({
     mutationFn: (batch: Record<string, string>) => api.updateProfile(batch),
@@ -425,15 +426,91 @@ export default function ProfilePage() {
         </div>
 
         {/* Danger zone */}
-        <div className="mt-8 pt-6 border-t border-border-light">
+        <div className="mt-8 pt-6 border-t border-border-light space-y-2">
           <button
             onClick={() => { clearProfile(); logout(); }}
-            className="w-full py-2.5 text-dim text-sm font-medium hover:text-error transition-colors"
+            className="w-full py-2.5 text-dim text-sm font-medium hover:text-secondary transition-colors"
           >
             Log out
           </button>
+          <button
+            onClick={() => setShowDeleteAccount(true)}
+            className="w-full py-2.5 text-error text-sm font-medium hover:opacity-80 transition-opacity"
+          >
+            Delete my account
+          </button>
         </div>
       </div>
+
+      <DeleteAccountModal
+        open={showDeleteAccount}
+        onClose={() => setShowDeleteAccount(false)}
+        onDeleted={() => { clearProfile(); logout(); }}
+      />
     </div>
+  );
+}
+
+function DeleteAccountModal({
+  open,
+  onClose,
+  onDeleted,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onDeleted: () => void;
+}) {
+  const [confirm, setConfirm] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const required = "DELETE MY ACCOUNT";
+
+  const handleDelete = async () => {
+    if (confirm !== required || busy) return;
+    setBusy(true); setErr("");
+    try {
+      await api.deleteAccount(confirm);
+      onDeleted();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed to delete account");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Modal open={open} onClose={() => { setConfirm(""); setErr(""); onClose(); }} title="Delete your account">
+      <div className="space-y-3">
+        <p className="text-sm text-secondary leading-relaxed">
+          This permanently removes your profile, listings, and contact info from Livong. Anonymised message records may be retained for safety reviews. <strong>This cannot be undone.</strong>
+        </p>
+        <p className="text-xs text-muted">
+          Type <span className="font-mono font-semibold text-foreground">{required}</span> to confirm.
+        </p>
+        <Input
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+          placeholder={required}
+          autoFocus
+        />
+        {err && <Alert>{err}</Alert>}
+        <div className="flex gap-2">
+          <button
+            onClick={() => { setConfirm(""); setErr(""); onClose(); }}
+            className="flex-1 py-2.5 bg-surface-alt text-secondary rounded-lg text-sm font-medium hover:bg-border transition-colors"
+            disabled={busy}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={confirm !== required || busy}
+            className="flex-1 py-2.5 bg-error text-white rounded-lg text-sm font-medium disabled:opacity-40 hover:opacity-90 transition-opacity"
+          >
+            {busy ? "Deleting..." : "Delete forever"}
+          </button>
+        </div>
+      </div>
+    </Modal>
   );
 }

@@ -77,6 +77,11 @@ func (h *Handler) GetListings(c *gin.Context) {
 			continue
 		}
 
+		// NOTE: omit ownerVerified — users.is_verified is never set true by any
+		// real verification flow yet. Returning a field that always evaluates false
+		// is harmless; returning one that could later become true without an
+		// actual verification process is deceptive. Re-add when ID/photo verify ships.
+		_ = verified
 		l := map[string]interface{}{
 			"id":           id,
 			"userId":       userID,
@@ -85,7 +90,6 @@ func (h *Handler) GetListings(c *gin.Context) {
 			"rent":         rent,
 			"location":     location,
 			"propertyType": propertyType,
-			"ownerVerified": verified,
 		}
 		if availableFrom.Valid {
 			l["availableFrom"] = availableFrom.Time
@@ -192,7 +196,8 @@ func (h *Handler) GetListing(c *gin.Context) {
 	if ownerGender.Valid {
 		result["ownerGender"] = ownerGender.String
 	}
-	result["ownerVerified"] = ownerVerified
+	// NOTE: omit ownerVerified — see GetListings comment. Re-add when real verify ships.
+	_ = ownerVerified
 	if ownerAge.Valid {
 		result["ownerAge"] = ownerAge.Int64
 	}

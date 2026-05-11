@@ -172,6 +172,13 @@ func RunMigrations(db *sql.DB) error {
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			UNIQUE(rent_group_id, payer_id, month)
 		)`,
+		// Account deletion tracking — DPDP Act 2023 (India) Sec. 12 right to erasure.
+		// Soft-delete: keeps anonymized rows for safety/audit while removing PII.
+		`DO $$ BEGIN
+			ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+		EXCEPTION WHEN others THEN NULL;
+		END $$`,
+		`CREATE INDEX IF NOT EXISTS idx_users_deleted_at ON users(deleted_at) WHERE deleted_at IS NOT NULL`,
 	}
 
 	for i, m := range migrations {

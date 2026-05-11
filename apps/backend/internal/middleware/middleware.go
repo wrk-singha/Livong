@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"database/sql"
 	"net/http"
 	"os"
 	"regexp"
@@ -11,6 +12,43 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// AuthWithDB validates the JWT and rejects tokens whose user has been deleted
+// (DPDP soft-delete). Use this in main.go where a *sql.DB is available.
+func AuthWithDB(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		header := c.GetHeader("Authorization")
+		if header == "" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing authorization header"})
+			return
+		}
+
+		token := strings.TrimPrefix(header, "Bearer ")
+		if token == header {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid authorization format"})
+			return
+		}
+
+		claims, err := auth.ValidateToken(token)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+			return
+		}
+
+		// Reject tokens for deleted accounts — token might still be in the user's
+		// localStorage after they delete on another device.
+		var deleted sql.NullTime
+		if err := db.QueryRow(`SELECT deleted_at FROM users WHERE id = $1`, claims.UserID).Scan(&deleted); err == sql.ErrNoRows || (err == nil && deleted.Valid) {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "account no longer exists"})
+			return
+		}
+
+		c.Set("userId", claims.UserID)
+		c.Next()
+	}
+}
+
+// Auth is the legacy entry point — kept so existing tests pass. Skips the deleted-user check.
+// Prefer AuthWithDB in production routes.
 func Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		header := c.GetHeader("Authorization")

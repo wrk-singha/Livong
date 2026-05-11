@@ -46,6 +46,8 @@ export default function ChatPage() {
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewDone, setReviewDone] = useState(false);
   const [matchInfo, setMatchInfo] = useState<MatchInfo | null>(null);
+  // Surface action errors so users know when sends/shares/reviews fail.
+  const [actionError, setActionError] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const lastTimestampRef = useRef<string>("");
 
@@ -106,11 +108,15 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, optimistic]);
     setNewMessage("");
     setSending(true);
+    setActionError("");
     try {
       await api.sendMessage(matchId, text);
       lastTimestampRef.current = optimistic.createdAt;
-    } catch {
+    } catch (err) {
+      // Roll back optimistic message + restore the input so user can retry.
       setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
+      setNewMessage(text);
+      setActionError(err instanceof Error ? err.message : "Couldn't send message. Try again.");
     } finally {
       setSending(false);
     }
@@ -119,6 +125,7 @@ export default function ChatPage() {
   const handleShareContact = async () => {
     if (!shareValue.trim() || sharing) return;
     setSharing(true);
+    setActionError("");
     try {
       await api.shareContact(matchId, shareType, shareValue.trim());
       const optimistic: Message = {
@@ -132,8 +139,9 @@ export default function ChatPage() {
       lastTimestampRef.current = optimistic.createdAt;
       setShowShareModal(false);
       setShareValue("");
-    } catch {
-      // ignore
+    } catch (err) {
+      // Modal stays open + value retained so the user can retry.
+      setActionError(err instanceof Error ? err.message : "Couldn't share contact. Try again.");
     } finally {
       setSharing(false);
     }
@@ -157,6 +165,7 @@ export default function ChatPage() {
   const handleSubmitReview = async () => {
     if (!matchInfo || reviewRating === 0 || reviewSubmitting) return;
     setReviewSubmitting(true);
+    setActionError("");
     try {
       await api.createReview(matchInfo.listingId, reviewRating, reviewComment.trim() || undefined);
       setReviewDone(true);
@@ -165,8 +174,9 @@ export default function ChatPage() {
         setReviewRating(0);
         setReviewComment("");
       }, 1500);
-    } catch {
-      // ignore
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Couldn't submit review. Try again.");
+      setShowReviewModal(false);
     } finally {
       setReviewSubmitting(false);
     }
@@ -206,6 +216,26 @@ export default function ChatPage() {
           </button>
         </div>
       </div>
+
+      {/* Action error banner — covers send / share-contact / review failures */}
+      {actionError && (
+        <div className="px-4 pt-2 pb-1">
+          <div className="flex items-start gap-2 bg-error-surface border border-error-border text-error text-xs rounded-lg px-3 py-2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mt-0.5 shrink-0">
+              <circle cx="12" cy="12" r="10" />
+              <path d="m15 9-6 6M9 9l6 6" />
+            </svg>
+            <span className="flex-1">{actionError}</span>
+            <button
+              onClick={() => setActionError("")}
+              className="text-error/70 hover:text-error"
+              aria-label="Dismiss error"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2.5">
@@ -383,6 +413,18 @@ export default function ChatPage() {
               autoFocus
             />
 
+            <div className="bg-warning-surface border border-warning rounded-lg p-3 text-[12px] text-warning leading-relaxed space-y-1.5">
+              <p className="font-semibold flex items-center gap-1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                Stay safe
+              </p>
+              <ul className="list-disc list-inside space-y-0.5 text-secondary">
+                <li>Meet first in a public place — never alone in a private home.</li>
+                <li>Never share OTPs, bank details, or pay rent before viewing the property in person.</li>
+                <li>Livong staff will never ask for your OTP.</li>
+                <li>Report anyone asking for money upfront or behaving suspiciously.</li>
+              </ul>
+            </div>
             <p className="text-[11px] text-dim leading-snug">
               This will share your {shareType === "phone" ? "phone number" : "email address"} with your match. They&apos;ll be able to contact you directly.
             </p>

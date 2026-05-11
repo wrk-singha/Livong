@@ -462,14 +462,18 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="px-6 lg:px-12 py-8 border-t border-border">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="max-w-6xl mx-auto flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-foreground">Livong</span>
-            <span className="text-xs text-dim">· Find the right people to live with</span>
+            <span className="text-xs text-dim hidden sm:inline">· Find the right people to live with</span>
           </div>
-          <p className="text-xs text-dim">
-            Made in India
-          </p>
+          <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-dim">
+            <Link href="/plans" className="hover:text-secondary transition-colors">Plans</Link>
+            <Link href="/privacy" className="hover:text-secondary transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-secondary transition-colors">Terms</Link>
+            <a href="mailto:hello@livong.app" className="hover:text-secondary transition-colors">Contact</a>
+            <span className="text-faint">· Made in India</span>
+          </nav>
         </div>
       </footer>
     </div>

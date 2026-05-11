@@ -69,12 +69,17 @@ requestInterceptors.push((_endpoint, options) => {
 });
 
 // --- Built-in: 401 auto-logout ---
-errorInterceptors.push((error) => {
-  if (error.status === 401 && typeof window !== "undefined") {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userId");
-    window.location.href = "/login";
-  }
+// Only kicks in when an *authenticated* request is rejected. Without the
+// /auth/* skip, a wrong OTP returns 401 from /auth/verify-otp and the
+// interceptor reload-bounces the user back to the phone screen — making it
+// look like the page just refreshed for no reason.
+errorInterceptors.push((error, endpoint) => {
+  if (error.status !== 401 || typeof window === "undefined") return;
+  if (endpoint.startsWith("/auth/")) return; // login/verify own their own UX
+  if (!localStorage.getItem("token")) return; // never authed in the first place
+  localStorage.removeItem("token");
+  localStorage.removeItem("userId");
+  window.location.href = "/login";
 });
 
 async function request<T>(

@@ -163,6 +163,36 @@ func (h *Handler) VerifyOTP(c *gin.Context) {
 	})
 }
 
+// DevLogin bypasses OTP for local testing of admin tooling. ONLY register this
+// route when LIVONG_DEV_LOGIN=1 is set — see main.go. Mirrors backend's pattern.
+func (h *Handler) DevLogin(c *gin.Context) {
+	var req struct {
+		Phone string `json:"phone" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "phone is required"})
+		return
+	}
+
+	var userID string
+	err := h.db.QueryRow("SELECT id FROM users WHERE phone = $1", req.Phone).Scan(&userID)
+	if err == sql.ErrNoRows {
+		err = h.db.QueryRow("INSERT INTO users (phone) VALUES ($1) RETURNING id", req.Phone).Scan(&userID)
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to process user"})
+		return
+	}
+
+	token, err := GenerateToken(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"userId": userID, "token": token})
+}
+
 func GenerateToken(userID string) (string, error) {
 	secret := getJWTSecret()
 

@@ -8,7 +8,6 @@ import {
   useCallback,
   ReactNode,
 } from "react";
-import { useRouter } from "next/navigation";
 
 interface AuthContextType {
   token: string | null;
@@ -25,7 +24,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     setToken(localStorage.getItem("token"));
@@ -40,13 +38,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUserId(u);
   }, []);
 
+  // No navigation here. AppShell owns the unauth → public-route redirect via
+  // its useEffect; routing from two places caused a race where router.push("/login")
+  // here and router.replace("/") in AppShell fired together and "/" won.
   const logout = useCallback(() => {
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
     setToken(null);
     setUserId(null);
-    router.push("/login");
-  }, [router]);
+  }, []);
 
   return (
     <AuthContext.Provider

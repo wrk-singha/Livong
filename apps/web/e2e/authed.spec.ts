@@ -35,7 +35,7 @@ test.describe("Authenticated flows (skipped if backend dev-login unavailable)", 
     await page.waitForLoadState("networkidle");
   });
 
-  test("logout clears auth and lands on a public route", async ({ page, request }) => {
+  test("logout clears auth and redirects to /", async ({ page, request }) => {
     await loginAs(page, request, "+919900000004");
     await page.goto("/explore");
     await page.waitForLoadState("networkidle");
@@ -48,12 +48,9 @@ test.describe("Authenticated flows (skipped if backend dev-login unavailable)", 
     }
 
     await logout.click();
-    // BUG (2026-05-11): logout calls router.push("/login") but AppShell's redirect
-    // effect simultaneously triggers router.replace("/") because isAuthenticated
-    // flipped to false while pathname is still /explore. The navigations race; in
-    // practice "/" wins. App functions but destination is non-deterministic.
-    // Test what's actually true: token is cleared and we end up on a public route.
-    await page.waitForURL(/^http:\/\/localhost:3000\/(login)?$/, { timeout: 3000 });
+    // After fix: logout no longer navigates itself; AppShell's redirect effect
+    // sends unauthed users on protected paths to /. Single source of truth.
+    await page.waitForURL("/", { timeout: 3000 });
     const tokenAfter = await page.evaluate(() => localStorage.getItem("token"));
     expect(tokenAfter).toBeNull();
   });

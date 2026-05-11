@@ -419,9 +419,18 @@ function testWeb() {
   });
 }
 
+function testAdmin() {
+  title("Testing Admin Web (Playwright e2e)");
+  execSync(PLATFORM === "win32" ? "pnpm.cmd test:e2e" : "pnpm test:e2e", {
+    cwd: ADMIN_DIR,
+    stdio: "inherit",
+  });
+}
+
 function testAll() {
   testBackend();
   testWeb();
+  testAdmin();
 }
 
 function webInstall() {
@@ -663,6 +672,7 @@ const COMMANDS = {
   test: testAll,
   "test:backend": testBackend,
   "test:web": testWeb,
+  "test:admin": testAdmin,
   menu: interactiveMenu,
   interactive: interactiveMenu,
   help: interactiveMenu,

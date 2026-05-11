@@ -83,6 +83,42 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-report-web
           path: apps/web/playwright-report/
+          retention-days: 7
+
+  admin-web-e2e:
+    name: Admin Web (Playwright e2e)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: apps/admin/pnpm-lock.yaml
+      - name: install deps
+        working-directory: apps/admin
+        run: pnpm install --frozen-lockfile
+      - name: typecheck
+        working-directory: apps/admin
+        run: pnpm tsc --noEmit -p .
+      - name: build
+        working-directory: apps/admin
+        run: pnpm build
+      - name: install Playwright browsers
+        working-directory: apps/admin
+        run: pnpm exec playwright install --with-deps chromium
+      - name: run e2e (admin auth tests auto-skip without admin-backend)
+        working-directory: apps/admin
+        run: pnpm exec playwright test
+      - name: upload report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-admin
+          path: apps/admin/playwright-report/
           retention-days: 7

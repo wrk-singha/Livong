@@ -30,6 +30,11 @@ const csp = isDev
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["192.168.1.16"],
   output: "standalone",
+  experimental: {
+    // Tree-shake named imports from these packages so the client bundle
+    // only ships what you actually use. Reduces "unused-javascript" Lighthouse flag.
+    optimizePackageImports: ["@tanstack/react-query"],
+  },
   async headers() {
     return [
       {

@@ -1,11 +1,18 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import dynamic from "next/dynamic";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/auth";
 import { ThemeProvider } from "@/contexts/theme";
 import { QueryProvider } from "@/lib/query";
 import AppShell from "@/components/AppShell";
-import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
+
+// SW registration is non-critical and runs after first paint — lazy-load
+// to keep it out of the initial JS bundle. Component is "use client" + useEffect,
+// so SSR is a no-op anyway; dynamic() defers the chunk download.
+const ServiceWorkerRegistrar = dynamic(
+  () => import("@/components/ServiceWorkerRegistrar")
+);
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

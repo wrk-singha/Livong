@@ -13,8 +13,8 @@
   --surface-alt: #f5f5f5;
   --muted: #737373;
   --secondary: #525252;
-  --dim: #a3a3a3;
-  --faint: #d4d4d4;
+  --dim: #767676;   /* was #a3a3a3 — bumped to meet WCAG AA contrast (4.5:1 on bg) */
+  --faint: #8c8c8c; /* was #d4d4d4 — bumped to ~3:1 (AA for large text only) */
   --border: #e5e5e5;
   --border-light: #f5f5f5;
   --ring: rgba(99, 102, 241, 0.15);
@@ -49,8 +49,8 @@
   --surface-alt: #262626;
   --muted: #a3a3a3;
   --secondary: #d4d4d4;
-  --dim: #737373;
-  --faint: #525252;
+  --dim: #909090;   /* was #737373 — bumped to meet WCAG AA contrast (5.4:1 on dark bg) */
+  --faint: #6e6e6e; /* was #525252 — bumped to ~4:1 (close to AA, used for accents) */
   --border: #404040;
   --border-light: #333333;
   --ring: rgba(129, 140, 248, 0.2);

@@ -35,7 +35,8 @@ export const viewport: Viewport = {
   themeColor: "#6366f1",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
+  // Don't set maximumScale or userScalable=false — that produces user-scalable=no,
+  // which breaks pinch-zoom for low-vision users (WCAG fail).
   viewportFit: "cover",
 };
 

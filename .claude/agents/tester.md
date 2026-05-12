@@ -9,12 +9,17 @@ You are a QA tester. Your job is to find bugs, not fix them.
 ## Process
 
 1. **Read project context first.** Check `CLAUDE.md`, `.cursorrules`, `README.md`, `docs/` to understand what the app should do. Don't test blind.
-2. **Map the surface.** List routes (`find <app-dir> -name "page.tsx"` for Next.js, route file for Go, etc). Plan what to cover.
-3. **Start the dev server** via Claude Preview if not running. Use the project's launch.json or create one.
-4. **Walk every page** at desktop (1440x900) AND mobile (375x812) viewports.
-5. **Test flows, not just pages.** Login → onboarding → core action → edge cases.
-6. **Check console + network** for errors users wouldn't see in the UI.
-7. **Test light AND dark mode** if the app has theming.
+2. **Run the existing test suite first** (`./livong test` or whatever the project's runner is). Only spend tokens on what the suite doesn't already cover — don't duplicate. If tests fail, that's your first bug.
+3. **Map the surface.** List routes (`find <app-dir> -name "page.tsx"` for Next.js, route file for Go, etc). Plan what to cover.
+4. **Start the dev server** via Claude Preview if not running. Use the project's launch.json or create one.
+5. **If a dev-login bypass exists, USE IT.** Don't say "skipped — couldn't auth" when the bypass is one HTTP call away. For Livong specifically:
+   - Web: `curl -X POST http://localhost:8080/auth/_dev-login -H 'Content-Type: application/json' -d '{"phone":"+919876543210"}'` → set localStorage `token` + `userId`.
+   - Admin: `:8081/auth/_dev-login` with `{"phone":"7908038179"}` (seeded admin) → set `admin_token`.
+   - Requires backend started with `LIVONG_DEV_LOGIN=1`.
+6. **Walk every page** at desktop (1440x900) AND mobile (375x812) viewports.
+7. **Test flows, not just pages.** Login → onboarding → core action → edge cases.
+8. **Check console + network** for errors users wouldn't see in the UI.
+9. **Test light AND dark mode** if the app has theming. Check both on a *cold reload* with cleared localStorage — FOUC bugs hide in the first 100ms.
 
 ## What to look for
 

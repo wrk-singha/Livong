@@ -179,3 +179,17 @@ export interface RentCommission {
   collectedAt?: string;
   createdAt: string;
 }
+
+export interface ReceivedInterest {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderAge?: number;
+  senderGender: string;
+  senderLocation: string;
+  senderAvatar?: string;
+  listingId: string;
+  listingTitle: string;
+  listingLocation: string;
+  createdAt?: string;
+}

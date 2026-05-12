@@ -65,6 +65,66 @@ func (h *Handler) SendInterest(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"id": id})
 }
 
+// GetReceived returns pending interests where the current user is the receiver —
+// the listing-owner's "inbox" of people who want to live in their place.
+// Without this endpoint, the matching loop is broken: owners never see who's interested.
+func (h *Handler) GetReceived(c *gin.Context) {
+	userID := c.GetString("userId")
+
+	rows, err := h.db.Query(`
+		SELECT i.id, i.sender_id, i.listing_id, i.created_at,
+			COALESCE(p.name, 'Unknown'),
+			COALESCE(p.age, 0),
+			COALESCE(p.gender, ''),
+			COALESCE(p.location, ''),
+			COALESCE(p.avatar, ''),
+			l.title,
+			l.location
+		FROM interests i
+		LEFT JOIN profiles p ON p.user_id = i.sender_id
+		LEFT JOIN listings l ON l.id = i.listing_id
+		WHERE i.receiver_id = $1 AND i.status = 'pending'
+		ORDER BY i.created_at DESC
+	`, userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch interests"})
+		return
+	}
+	defer rows.Close()
+
+	out := []map[string]interface{}{}
+	for rows.Next() {
+		var id, senderID, listingID, senderName, senderGender, senderLocation, senderAvatar, listingTitle, listingLocation string
+		var senderAge int
+		var createdAt sql.NullTime
+		if err := rows.Scan(&id, &senderID, &listingID, &createdAt, &senderName, &senderAge, &senderGender, &senderLocation, &senderAvatar, &listingTitle, &listingLocation); err != nil {
+			continue
+		}
+		item := map[string]interface{}{
+			"id":              id,
+			"senderId":        senderID,
+			"senderName":      senderName,
+			"senderGender":    senderGender,
+			"senderLocation":  senderLocation,
+			"listingId":       listingID,
+			"listingTitle":    listingTitle,
+			"listingLocation": listingLocation,
+		}
+		if senderAge > 0 {
+			item["senderAge"] = senderAge
+		}
+		if senderAvatar != "" {
+			item["senderAvatar"] = "/uploads/" + senderAvatar
+		}
+		if createdAt.Valid {
+			item["createdAt"] = createdAt.Time
+		}
+		out = append(out, item)
+	}
+
+	c.JSON(http.StatusOK, out)
+}
+
 func (h *Handler) UpdateInterest(c *gin.Context) {
 	userID := c.GetString("userId")
 	interestID := c.Param("id")

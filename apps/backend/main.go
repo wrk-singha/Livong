@@ -78,6 +78,7 @@ func main() {
 		// Interests
 		interestHandler := interest.NewHandler(db)
 		protected.POST("/interests", interestHandler.SendInterest)
+		protected.GET("/interests/received", interestHandler.GetReceived)
 		protected.PATCH("/interests/:id", interestHandler.UpdateInterest)
 
 		// Matches

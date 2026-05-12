@@ -264,6 +264,9 @@ export const api = {
       body: JSON.stringify({ receiverId, listingId }),
     }),
 
+  getReceivedInterests: () =>
+    request<import("./types").ReceivedInterest[]>("/interests/received"),
+
   updateInterest: (id: string, status: "accepted" | "rejected") =>
     request<{ message: string }>(`/interests/${id}`, {
       method: "PATCH",

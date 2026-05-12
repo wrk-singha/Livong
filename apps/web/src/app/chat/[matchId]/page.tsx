@@ -56,9 +56,29 @@ export default function ChatPage() {
       const data = await api.getMessages(matchId, since);
       if (since && data.length > 0) {
         setMessages((prev) => {
+          // Dedup by id (re-fetch overlap) AND replace any optimistic "temp-*"
+          // message whose content + sender matches a real server message.
+          // Without this, sent messages briefly render twice on the next 5s poll
+          // because the optimistic id never matches the server's real UUID.
           const existingIds = new Set(prev.map((m) => m.id));
-          const newMsgs = data.filter((m: Message) => !existingIds.has(m.id));
-          return newMsgs.length > 0 ? [...prev, ...newMsgs] : prev;
+          const trulyNew = data.filter((m: Message) => !existingIds.has(m.id));
+          if (trulyNew.length === 0) return prev;
+
+          const merged = [...prev];
+          for (const incoming of trulyNew) {
+            const tempIdx = merged.findIndex(
+              (m) =>
+                m.id.startsWith("temp-") &&
+                m.senderId === incoming.senderId &&
+                m.message === incoming.message
+            );
+            if (tempIdx !== -1) {
+              merged[tempIdx] = incoming; // swap optimistic for canonical
+            } else {
+              merged.push(incoming);
+            }
+          }
+          return merged;
         });
       } else if (!since) {
         setMessages(data || []);
@@ -201,7 +221,9 @@ export default function ChatPage() {
           </svg>
         </div>
         <div>
-          <h1 className="font-medium text-sm text-foreground">Chat</h1>
+          <h1 className="font-medium text-sm text-foreground truncate max-w-[180px] sm:max-w-none">
+            {matchInfo?.user?.name || "Chat"}
+          </h1>
           <div className="flex items-center gap-1">
             <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse-dot" />
             <span className="text-[10px] text-dim">Online</span>

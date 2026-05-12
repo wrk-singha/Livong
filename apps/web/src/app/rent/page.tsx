@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -153,6 +153,14 @@ function CreateGroupModal({ open, onClose, onCreated }: { open: boolean; onClose
   const [form, setForm] = useState({ listingId: "", name: "", totalRent: "", dueDay: "1", baseRent: "", commissionType: "percentage" as "percentage" | "flat", commissionValue: "" });
   const [enableCommission, setEnableCommission] = useState(false);
   const [error, setError] = useState("");
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  // Scroll the error into view + flash so users on long modals don't miss it.
+  useEffect(() => {
+    if (error && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [error]);
 
   // Fetch all listings and filter to user's own
   const { data: allListings = [] } = useQuery({
@@ -334,7 +342,11 @@ function CreateGroupModal({ open, onClose, onCreated }: { open: boolean; onClose
           </div>
         )}
 
-        {error && <Alert>{error}</Alert>}
+        {error && (
+          <div ref={errorRef} className="animate-fade-in-up">
+            <Alert>{error}</Alert>
+          </div>
+        )}
         <Button onClick={handleSubmit} loading={createMutation.isPending} fullWidth>
           Create Group
         </Button>

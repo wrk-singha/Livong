@@ -66,6 +66,9 @@ const TYPE_COLORS: Record<string, string> = {
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
+  // Clamp negatives — server clock skew or future-dated rows shouldn't render
+  // as "-275m ago". Treat "future or just-now" both as "just now".
+  if (diff < 60_000) return "just now";
   const mins = Math.floor(diff / 60000);
   if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);

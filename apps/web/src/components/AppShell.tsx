@@ -98,8 +98,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, hydrated, logout } = useAuth();
   const { theme, toggle } = useTheme();
 
-  const showNav = hydrated && isAuthenticated;
+  // Hide chrome on chat (full-screen conversation) AND on /profile/setup
+  // (no nav to dodge during onboarding — user must complete the form first).
   const isChat = pathname.startsWith("/chat/");
+  const isOnboarding = pathname === "/profile/setup";
+  const showNav = hydrated && isAuthenticated && !isOnboarding;
   const needsRedirect = hydrated && !isAuthenticated && !PUBLIC_PATHS.includes(pathname);
 
   useEffect(() => {

@@ -6,6 +6,7 @@ import { AuthProvider } from "@/contexts/auth";
 import { ThemeProvider } from "@/contexts/theme";
 import { QueryProvider } from "@/lib/query";
 import AppShell from "@/components/AppShell";
+import { PageTitle } from "@/lib/PageTitle";
 
 // SW registration is non-critical and runs after first paint — lazy-load
 // to keep it out of the initial JS bundle. Component is "use client" + useEffect,
@@ -25,7 +26,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Livong — Find your perfect roommate",
+  // No `title` here — per-route titles set via <PageTitle> in lib/PageTitle.tsx.
+  // Adding a title here would cause Next.js MetadataOutlet to render a 2nd
+  // <title> tag in <head> after PageTitle's, and the browser uses the last one.
   description: "The smarter way to find compatible people to share a home with",
   manifest: "/manifest.json",
   appleWebApp: {
@@ -68,6 +71,8 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
+        {/* Default title — any page-level <PageTitle> overrides via React 19 hoist. */}
+        <PageTitle title={null} />
         <ThemeProvider>
           <AuthProvider>
             <QueryProvider>

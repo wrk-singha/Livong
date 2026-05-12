@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import { PageTitle } from "@/lib/PageTitle";
 import { useAuth } from "@/contexts/auth";
 import { Modal, StarRatingPicker, Avatar, BackButton, Alert } from "@/components/ui";
 
@@ -204,6 +205,7 @@ export default function ChatPage() {
 
   return (
     <div className="flex flex-col h-screen bg-background lg:max-w-3xl lg:mx-auto lg:border-x lg:border-border">
+      <PageTitle title={matchInfo?.user?.name ? `Chat with ${matchInfo.user.name}` : "Chat"} />
       {/* Header */}
       <div className="bg-surface border-b border-border px-4 py-3 flex items-center gap-3 z-10">
         <button
@@ -360,8 +362,10 @@ export default function ChatPage() {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
-      <div className="bg-surface border-t border-border px-4 py-3">
+      {/* Input — pad bottom for iOS home indicator + system safe area so the
+          send/share buttons don't hug the screen edge or get covered by browser
+          chrome on PWA installs. */}
+      <div className="bg-surface border-t border-border px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
         <form onSubmit={handleSend} className="flex gap-2 max-w-2xl mx-auto">
           <button
             type="button"

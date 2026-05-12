@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
+import { PageTitle } from "@/lib/PageTitle";
 import { useAuth } from "@/contexts/auth";
 import { useTheme } from "@/contexts/theme";
 import Link from "next/link";
@@ -57,6 +58,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <PageTitle title={step === "phone" ? "Sign in" : "Verify OTP"} />
       {/* Header */}
       <div className="px-6 pt-6 flex items-center justify-between">
         <Link

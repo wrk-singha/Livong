@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { api, imageUrl } from "@/lib/api";
+import { PageTitle } from "@/lib/PageTitle";
 import { EmptyState, SkeletonCard, VerifiedBadge } from "@/components/ui";
 
 type Listing = {
@@ -57,6 +58,7 @@ export default function ExplorePage() {
 
   return (
     <div className="min-h-screen px-4 py-6 md:px-8 lg:px-10">
+      <PageTitle title="Explore" />
       <div className="max-w-lg md:max-w-3xl lg:max-w-5xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-5">

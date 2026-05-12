@@ -61,9 +61,12 @@ export default function ProfileSetupPage() {
         </div>
 
         <div className="mb-6">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-accent mb-2">
+            Step 1 of 1 · One-time setup
+          </p>
           <h1 className="text-xl font-semibold text-foreground">Set up your profile</h1>
           <p className="text-dim text-sm mt-1">
-            Help us find the best matches for you
+            We need a few basics so others can find compatible matches. Takes 30 seconds.
           </p>
         </div>
 

@@ -5,10 +5,10 @@ Livong is a roommate/shared-living platform. Go backend + Next.js frontend + Pos
 ## Architecture
 
 ```
-apps/backend/        → Go API (Gin, raw SQL, JWT auth, :8080)
-apps/admin-backend/  → Admin API (Go, independent module, :8081)
-apps/web/            → Next.js 16 frontend (React 19, TypeScript, Tailwind v4, App Router, :3000)
-apps/admin/          → Admin panel (Next.js, :3100)
+apps/backend/        → Go API (Gin, raw SQL, JWT auth, :6980)
+apps/admin-backend/  → Admin API (Go, independent module, :6981)
+apps/web/            → Next.js 16 frontend (React 19, TypeScript, Tailwind v4, App Router, :6900)
+apps/admin/          → Admin panel (Next.js, :6910)
 docs/                → PRD, Architecture, API, DB Schema
 ```
 
@@ -166,7 +166,7 @@ func (h *Handler) Create(c *gin.Context) {
 
 - Package manager: `pnpm` (not npm or yarn)
 - Dev CLI: `node cli.mjs start|stop|status|fresh`
-- Backend port: 8080, Admin backend port: 8081, Frontend port: 3000, Admin port: 3100
+- Backend port: 6980, Admin backend port: 6981, Frontend port: 6900, Admin port: 6910
 - No unnecessary abstractions — keep it simple and direct
 - No docstrings or comments unless logic is non-obvious
 - Do not add dependencies without asking — the stack is intentionally minimal

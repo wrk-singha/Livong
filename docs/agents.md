@@ -47,7 +47,7 @@ Or programmatically via the Task tool with `subagent_type: "tester"` (etc).
 
 These were taught to the agents based on real friction in past sessions:
 
-- **Dev-login bypass** for testing authed flows: `POST :8080/auth/_dev-login` (web) and `:8081/auth/_dev-login` (admin). Requires `LIVONG_DEV_LOGIN=1` on backend.
+- **Dev-login bypass** for testing authed flows: `POST :6980/auth/_dev-login` (web) and `:6981/auth/_dev-login` (admin). Requires `LIVONG_DEV_LOGIN=1` on backend.
 - **Test runner:** `./livong test` covers Go + Playwright across all 4 surfaces.
 - **Migrations:** appended to `apps/backend/internal/database/migrations.go` — never edit shipped entries.
 - **Deploy:** see `docs/deploy.md` (Vercel + Fly.io Mumbai + Neon + Sentry + PostHog, all free tier).

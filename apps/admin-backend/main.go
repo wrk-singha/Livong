@@ -62,7 +62,7 @@ func main() {
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8081"
+		port = "6981"
 	}
 
 	log.Printf("Admin server starting on :%s", port)

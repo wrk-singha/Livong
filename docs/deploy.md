@@ -162,7 +162,7 @@ app = "livong-api"
 primary_region = "bom"
 
 [http_service]
-  internal_port = 8080
+  internal_port = 6980
   force_https = true
   auto_stop_machines = "stop"
   auto_start_machines = true
@@ -192,7 +192,7 @@ fly secrets set \
 | `JWT_SECRET` | 64-char hex from `openssl rand -hex 64` | Never commit this; rotating it logs everyone out |
 | `OTP_EXPIRY_MINUTES` | `5` | Matches `.env.example` |
 | `APP_ENV` | `production` | This is the kill-switch that prevents `LIVONG_DEV_LOGIN` from ever activating in prod (see `apps/backend/main.go` line 51) |
-| `PORT` | (do not set) | Fly injects this automatically; the code defaults to 8080 |
+| `PORT` | (do not set) | Fly injects this automatically; the code defaults to 6980 |
 
 **Do NOT set:** `LIVONG_DEV_LOGIN`, `NODE_ENV`. Either of those plus `LIVONG_DEV_LOGIN=1` would crash the app at startup, but it's clearer to just leave them unset.
 
@@ -211,7 +211,7 @@ curl https://livong-api.fly.dev/auth/login -X POST -H "content-type: application
 # Expect a 200 with {"message":"OTP sent"} or similar — NOT a connection error or 500.
 
 fly logs -a livong-api
-# You should see "Server starting on :8080" and migration log lines.
+# You should see "Server starting on :6980" and migration log lines.
 ```
 
 If migrations error, go check the Neon connection string. If you see `LIVONG_DEV_LOGIN must NOT be set in production`, you accidentally set both — `fly secrets unset LIVONG_DEV_LOGIN`.
@@ -240,7 +240,7 @@ FROM alpine:3.19
 RUN apk --no-cache add ca-certificates tzdata
 WORKDIR /app
 COPY --from=builder /app/server .
-EXPOSE 8081
+EXPOSE 6981
 CMD ["./server"]
 ```
 
@@ -263,14 +263,14 @@ fly launch --no-deploy
 - **Region:** `bom`
 - **Postgres / Redis:** No
 
-In the generated `fly.toml`, change `internal_port` to **8081**:
+In the generated `fly.toml`, change `internal_port` to **6981**:
 
 ```toml
 app = "livong-admin-api"
 primary_region = "bom"
 
 [http_service]
-  internal_port = 8081
+  internal_port = 6981
   force_https = true
   auto_stop_machines = "stop"
   auto_start_machines = true
@@ -302,7 +302,7 @@ curl -i https://livong-admin-api.fly.dev/auth/login -X POST -H "content-type: ap
 # Expect 200.
 
 fly logs -a livong-admin-api
-# "Admin server starting on :8081"
+# "Admin server starting on :6981"
 ```
 
 **Heads-up:** both backends call `database.RunMigrations(db)` at startup. They each carry their own copy under `internal/database/migrations.go`. If both deploy simultaneously and try to `CREATE TABLE IF NOT EXISTS` the same tables, Postgres handles it fine (the `IF NOT EXISTS` is the safety net), but if you ever change a schema you should deploy the main backend first, wait for it to finish, then the admin backend.
@@ -351,14 +351,14 @@ Click **Deploy**. Takes ~2 min.
 
 ### 7.1 — Update the admin's CSP first
 
-The admin's `next.config.ts` currently hardcodes `http://localhost:8081` in the CSP. That will block the production admin API. Fix it:
+The admin's `next.config.ts` currently hardcodes `http://localhost:6981` in the CSP. That will block the production admin API. Fix it:
 
 Edit `apps/admin/next.config.ts` to read the API origin from an env var (mirroring `apps/web/next.config.ts`):
 
 ```ts
 import type { NextConfig } from "next";
 
-const apiOrigin = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081";
+const apiOrigin = process.env.NEXT_PUBLIC_API_URL || "http://localhost:6981";
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["192.168.1.16"],
@@ -532,8 +532,8 @@ The backend's CORS middleware is at `apps/backend/internal/middleware/`. Open it
 allowedOrigins := []string{
     "https://app.livong.app",
     "https://admin.livong.app",
-    "http://localhost:3000",
-    "http://localhost:3100",
+    "http://localhost:6900",
+    "http://localhost:6910",
 }
 ```
 
@@ -683,7 +683,7 @@ Migration is roughly: add `R2_ACCESS_KEY` / `R2_SECRET` / `R2_BUCKET` secrets, s
 | 2 | Admin loads | `curl -I https://admin.livong.app` | `200 OK` |
 | 3 | API responds | `curl -I https://api.livong.app/auth/login -X POST -d '{}' -H 'content-type: application/json'` | `400` (missing field) — confirms reachable + handler ran |
 | 4 | Admin API responds | Same against `https://admin-api.livong.app` | `400` |
-| 5 | DB connected | `fly logs -a livong-api` | "Server starting on :8080", no migration errors |
+| 5 | DB connected | `fly logs -a livong-api` | "Server starting on :6980", no migration errors |
 | 6 | Login flow | Open `app.livong.app` in browser, complete phone+OTP | Lands on profile page |
 | 7 | Dev-login is OFF | `curl -X POST https://api.livong.app/auth/_dev-login` | `404` — proves prod gating works |
 | 8 | CSP headers present | `curl -I https://app.livong.app \| grep -i content-security` | Header present, no `unsafe-eval` for prod |

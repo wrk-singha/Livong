@@ -18,10 +18,10 @@ const WEB_DIR = join(__dirname, "apps", "web");
 const ADMIN_DIR = join(__dirname, "apps", "admin");
 
 const PLATFORM = os.platform(); // 'darwin', 'win32', 'linux'
-const BACKEND_PORT = process.env.PORT || "8080";
-const ADMIN_BACKEND_PORT = process.env.ADMIN_BACKEND_PORT || "8081";
-const WEB_PORT = process.env.WEB_PORT || "3000";
-const ADMIN_PORT = process.env.ADMIN_PORT || "3100";
+const BACKEND_PORT = process.env.PORT || "6980";
+const ADMIN_BACKEND_PORT = process.env.ADMIN_BACKEND_PORT || "6981";
+const WEB_PORT = process.env.WEB_PORT || "6900";
+const ADMIN_PORT = process.env.ADMIN_PORT || "6910";
 const DB_URL =
   process.env.DATABASE_URL ||
   `postgres://${os.userInfo().username}@localhost:5432/livong?sslmode=disable`;

@@ -26,11 +26,11 @@ func TestCORS_AllowsLocalhostOrigin(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest("GET", "/ping", nil)
-	req.Header.Set("Origin", "http://localhost:3000")
+	req.Header.Set("Origin", "http://localhost:6900")
 	r.ServeHTTP(w, req)
 
-	if got := w.Header().Get("Access-Control-Allow-Origin"); got != "http://localhost:3000" {
-		t.Errorf("ACAO = %q, want http://localhost:3000", got)
+	if got := w.Header().Get("Access-Control-Allow-Origin"); got != "http://localhost:6900" {
+		t.Errorf("ACAO = %q, want http://localhost:6900", got)
 	}
 }
 
@@ -39,11 +39,11 @@ func TestCORS_AllowsPrivateIPInDevDefault(t *testing.T) {
 	r := newRouter()
 
 	cases := []string{
-		"http://192.168.1.16:3000",
-		"http://192.168.0.1:8080",
-		"http://10.0.0.5:3000",
-		"http://172.16.5.5:3000",
-		"http://172.31.255.255:8080",
+		"http://192.168.1.16:6900",
+		"http://192.168.0.1:6980",
+		"http://10.0.0.5:6900",
+		"http://172.16.5.5:6900",
+		"http://172.31.255.255:6980",
 	}
 	for _, origin := range cases {
 		w := httptest.NewRecorder()
@@ -61,12 +61,12 @@ func TestCORS_BlocksPublicIPInDevDefault(t *testing.T) {
 	r := newRouter()
 
 	cases := []string{
-		"http://1.2.3.4:3000",
+		"http://1.2.3.4:6900",
 		"http://example.com",
-		"http://172.15.0.1:3000",   // outside 16-31 range
-		"http://172.32.0.1:3000",   // outside 16-31 range
-		"http://192.169.1.1:3000",  // typo of 192.168
-		"https://192.168.1.1:3000", // https not http
+		"http://172.15.0.1:6900",   // outside 16-31 range
+		"http://172.32.0.1:6900",   // outside 16-31 range
+		"http://192.169.1.1:6900",  // typo of 192.168
+		"https://192.168.1.1:6900", // https not http
 	}
 	for _, origin := range cases {
 		w := httptest.NewRecorder()
@@ -87,7 +87,7 @@ func TestCORS_ProdConfigDoesNotAllowPrivateIP(t *testing.T) {
 	// private IP must NOT be allowed when CORS_ORIGINS is set explicitly
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest("GET", "/ping", nil)
-	req.Header.Set("Origin", "http://192.168.1.16:3000")
+	req.Header.Set("Origin", "http://192.168.1.16:6900")
 	r.ServeHTTP(w, req)
 	if got := w.Header().Get("Access-Control-Allow-Origin"); got != "" {
 		t.Errorf("private IP in prod: ACAO = %q, want empty", got)
@@ -109,7 +109,7 @@ func TestCORS_OptionsPreflight(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest("OPTIONS", "/ping", nil)
-	req.Header.Set("Origin", "http://localhost:3000")
+	req.Header.Set("Origin", "http://localhost:6900")
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusNoContent {
 		t.Errorf("OPTIONS status = %d, want 204", w.Code)

@@ -4,7 +4,7 @@
 
 REST API built with Go + Gin. All endpoints return JSON.
 
-**Base URL (dev):** `http://localhost:8080`
+**Base URL (dev):** `http://localhost:6980`
 **Base URL (prod):** `https://api.livong.app`
 
 ---

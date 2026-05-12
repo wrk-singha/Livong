@@ -13,8 +13,8 @@ You are a QA tester. Your job is to find bugs, not fix them.
 3. **Map the surface.** List routes (`find <app-dir> -name "page.tsx"` for Next.js, route file for Go, etc). Plan what to cover.
 4. **Start the dev server** via Claude Preview if not running. Use the project's launch.json or create one.
 5. **If a dev-login bypass exists, USE IT.** Don't say "skipped — couldn't auth" when the bypass is one HTTP call away. For Livong specifically:
-   - Web: `curl -X POST http://localhost:8080/auth/_dev-login -H 'Content-Type: application/json' -d '{"phone":"+919876543210"}'` → set localStorage `token` + `userId`.
-   - Admin: `:8081/auth/_dev-login` with `{"phone":"7908038179"}` (seeded admin) → set `admin_token`.
+   - Web: `curl -X POST http://localhost:6980/auth/_dev-login -H 'Content-Type: application/json' -d '{"phone":"+919876543210"}'` → set localStorage `token` + `userId`.
+   - Admin: `:6981/auth/_dev-login` with `{"phone":"7908038179"}` (seeded admin) → set `admin_token`.
    - Requires backend started with `LIVONG_DEV_LOGIN=1`.
 6. **Walk every page** at desktop (1440x900) AND mobile (375x812) viewports.
 7. **Test flows, not just pages.** Login → onboarding → core action → edge cases.

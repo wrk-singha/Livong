@@ -40,7 +40,7 @@ func CORS() gin.HandlerFunc {
 		origin := c.GetHeader("Origin")
 		allowed := os.Getenv("CORS_ORIGINS")
 		if allowed == "" {
-			allowed = "http://localhost:3100"
+			allowed = "http://localhost:6910"
 		}
 
 		allowedOrigins := strings.Split(allowed, ",")

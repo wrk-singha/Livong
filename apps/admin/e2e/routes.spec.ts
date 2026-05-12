@@ -29,7 +29,7 @@ test.describe("Admin routes (authed)", () => {
       });
       page.on("response", (r) => {
         // Surface 4xx/5xx from API calls
-        if (r.status() >= 400 && r.url().includes(":8081/")) {
+        if (r.status() >= 400 && r.url().includes(":6981/")) {
           errors.push(`HTTP ${r.status()} on ${r.url().slice(0, 80)}`);
         }
       });

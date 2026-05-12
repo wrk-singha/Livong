@@ -81,7 +81,7 @@ func CORS() gin.HandlerFunc {
 		origin := c.GetHeader("Origin")
 		allowed := os.Getenv("CORS_ORIGINS")
 		if allowed == "" {
-			allowed = "http://localhost:3000"
+			allowed = "http://localhost:6900"
 		}
 
 		matched := false
@@ -92,7 +92,7 @@ func CORS() gin.HandlerFunc {
 			}
 		}
 
-		if !matched && allowed == "http://localhost:3000" && privateOrigin.MatchString(origin) {
+		if !matched && allowed == "http://localhost:6900" && privateOrigin.MatchString(origin) {
 			matched = true
 		}
 

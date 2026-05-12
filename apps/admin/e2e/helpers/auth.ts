@@ -1,6 +1,6 @@
 import type { Page, APIRequestContext } from "@playwright/test";
 
-const ADMIN_BACKEND_URL = process.env.LIVONG_ADMIN_BACKEND_URL || "http://localhost:8081";
+const ADMIN_BACKEND_URL = process.env.LIVONG_ADMIN_BACKEND_URL || "http://localhost:6981";
 
 /**
  * Sign in as the seeded admin user by hitting admin-backend's dev-only OTP

@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV !== "production";
-const apiOrigin = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const apiOrigin = process.env.NEXT_PUBLIC_API_URL || "http://localhost:6980";
 
 const csp = isDev
   ? [

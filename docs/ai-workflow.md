@@ -108,7 +108,7 @@ For history — if a future session asks "what's already done":
 
 - Created `CLAUDE.md`, `.claude/settings.json`, 4 slash commands
 - Rewrote `.cursorrules` with concrete code skeletons + decision tree (then later dropped the duplicate `.clinerules` / `.windsurfrules` since those tools weren't being used)
-- Fixed prod CSP hardcoded `localhost:8080` → uses `NEXT_PUBLIC_API_URL`
+- Fixed prod CSP hardcoded `localhost:6980` → uses `NEXT_PUBLIC_API_URL`
 - Added LAN access for phone testing (CORS RFC1918 regex, hostname fallback in `lib/api.ts`)
 - Added iOS safe-area insets in `AppShell.tsx`
 - Annotated two safe-but-fragile SQL string-concat sites with `SAFE:` comments

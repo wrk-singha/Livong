@@ -7,7 +7,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : "list",
   use: {
-    baseURL: "http://localhost:3100",
+    baseURL: "http://localhost:6910",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
   },
@@ -18,8 +18,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "PORT=3100 pnpm dev",
-    url: "http://localhost:3100",
+    command: "PORT=6910 pnpm dev",
+    url: "http://localhost:6910",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

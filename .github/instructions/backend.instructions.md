@@ -152,7 +152,7 @@ c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to X"})  // 500
 - Phone validation: regex `^\+?[1-9]\d{6,14}$`
 - Input length limits: name ≤100, description ≤5000, message ≤2000, location ≤200, title ≤200, rent 0–10M, age 18–120
 - Security headers in middleware: X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy, CSP (`default-src 'none'; frame-ancestors 'none'`), X-DNS-Prefetch-Control, X-Download-Options, X-XSS-Protection:0
-- CORS: restricted to `CORS_ORIGINS` env (default `http://localhost:3000`)
+- CORS: restricted to `CORS_ORIGINS` env (default `http://localhost:6900`)
 - Image uploads: content-type sniffing via `http.DetectContentType`, max 5MB, allowed extensions `.jpg/.jpeg/.png/.webp`
 - Auth: Bearer token in Authorization header (not cookies) — CSRF not needed
 - JWT signing method validation: `alg` must be HS256

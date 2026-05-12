@@ -17,7 +17,7 @@ Frontend (Next.js)  →  REST API (Go/Gin)  →  PostgreSQL
 ```
 Livong/
 ├── apps/
-│   ├── backend/              # Go API server (:8080)
+│   ├── backend/              # Go API server (:6980)
 │   │   ├── main.go           # Entry point
 │   │   ├── internal/
 │   │   │   ├── auth/         # Login, OTP, JWT
@@ -33,7 +33,7 @@ Livong/
 │   │   │   └── middleware/    # JWT auth middleware
 │   │   ├── go.mod
 │   │   └── go.sum
-│   ├── admin-backend/        # Admin API server (:8081, independent Go module)
+│   ├── admin-backend/        # Admin API server (:6981, independent Go module)
 │   │   ├── main.go           # Entry point
 │   │   ├── internal/
 │   │   │   ├── admin/        # Admin endpoints (stats, CRUD, revenue, analytics)
@@ -42,8 +42,8 @@ Livong/
 │   │   │   └── middleware/    # JWT auth + CORS (own copy)
 │   │   ├── go.mod
 │   │   └── go.sum
-│   ├── admin/                # Admin panel (Next.js, :3100)
-│   └── web/                  # Next.js frontend (:3000)
+│   ├── admin/                # Admin panel (Next.js, :6910)
+│   └── web/                  # Next.js frontend (:6900)
 │       └── src/
 │           ├── app/          # Pages (App Router)
 │           │   ├── page.tsx          # Landing
@@ -151,12 +151,12 @@ OTP is stored in-memory (Go map). JWT uses `JWT_SECRET` env var with a hardcoded
 ## Environment Variables
 
 **Backend:**
-- `PORT` — server port (default: 8080)
+- `PORT` — server port (default: 6980)
 - `DATABASE_URL` — PostgreSQL connection string
 - `JWT_SECRET` — JWT signing key
 
 **Frontend:**
-- `NEXT_PUBLIC_API_URL` — backend URL (default: http://localhost:8080)
+- `NEXT_PUBLIC_API_URL` — backend URL (default: http://localhost:6980)
 
 ---
 

@@ -1,7 +1,7 @@
-// Defaults to admin backend (8081), NOT main backend (8080). The admin web
-// only talks to admin-backend; CSP in next.config.ts allows only :8081.
+// Defaults to admin backend (6981), NOT main backend (6980). The admin web
+// only talks to admin-backend; CSP in next.config.ts allows only :6981.
 // Override with NEXT_PUBLIC_API_URL when deploying.
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:6981";
 
 function getToken(): string {
   if (typeof window === "undefined") return "";

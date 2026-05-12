@@ -10,10 +10,10 @@ Roommate / shared-living platform. Monorepo: Go backend + Next.js frontend + Pos
 ## Layout
 
 ```
-apps/backend/         Go 1.26, Gin, raw SQL, JWT  (:8080)
-apps/admin-backend/   Admin API, separate Go module (:8081)
-apps/web/             Next.js 16, React 19, TS, Tailwind v4 (:3000)
-apps/admin/           Admin panel Next.js (:3100)
+apps/backend/         Go 1.26, Gin, raw SQL, JWT  (:6980)
+apps/admin-backend/   Admin API, separate Go module (:6981)
+apps/web/             Next.js 16, React 19, TS, Tailwind v4 (:6900)
+apps/admin/           Admin panel Next.js (:6910)
 docs/                 PRD, architecture, API, DB schema
 cli.mjs               Cross-platform dev CLI (entry: ./livong)
 ```

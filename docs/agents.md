@@ -6,6 +6,7 @@ Five specialized Claude Code subagents live in `.claude/agents/`. They run with 
 
 | Agent | Role | Best triggers |
 |---|---|---|
+| `ceo` | Founder/CEO — sets priorities, dispatches the team in parallel, decides ship/queue/cut, synthesises reports. **Plans, doesn't code.** | "make a plan", "what should I do next", "you're the CEO" |
 | `tester` | QA — runs the suite, walks pages, finds bugs. **Never edits.** | "test the app", "is it working", after non-trivial changes |
 | `reviewer` | Code review — reads diffs, runs tests, checks CI. **Never edits.** | "review this", before commits/pushes |
 | `devops` | Deploy, CI/CD, infra, secrets | "deploy", "set up CI", env work |

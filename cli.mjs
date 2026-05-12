@@ -411,6 +411,15 @@ function testBackend() {
   });
 }
 
+function seed() {
+  title("Seeding test data");
+  execSync("go run ./cmd/seed", {
+    cwd: BACKEND_DIR,
+    stdio: "inherit",
+    env: { ...process.env, DATABASE_URL: DB_URL, JWT_SECRET },
+  });
+}
+
 function testWeb() {
   title("Testing Web (Playwright e2e)");
   execSync(PLATFORM === "win32" ? "pnpm.cmd test:e2e" : "pnpm test:e2e", {
@@ -673,6 +682,7 @@ const COMMANDS = {
   "test:backend": testBackend,
   "test:web": testWeb,
   "test:admin": testAdmin,
+  seed: seed,
   menu: interactiveMenu,
   interactive: interactiveMenu,
   help: interactiveMenu,

@@ -39,6 +39,24 @@ const ICONS: Record<string, string> = {
   foodPreference: "🍽️",
 };
 
+// Deterministic gradient picker for the default avatar — same name always
+// gets the same color, so people are visually distinguishable across the app
+// instead of all getting a flat black square.
+const AVATAR_GRADIENTS = [
+  "from-indigo-500 to-violet-600",
+  "from-emerald-500 to-teal-600",
+  "from-blue-500 to-cyan-600",
+  "from-amber-500 to-orange-600",
+  "from-rose-500 to-pink-600",
+  "from-purple-500 to-fuchsia-600",
+];
+
+function pickGradient(seed: string) {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;
+  return AVATAR_GRADIENTS[Math.abs(h) % AVATAR_GRADIENTS.length];
+}
+
 function CheckIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -196,7 +214,7 @@ export default function ProfilePage() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-white bg-neutral-900">
+                  <div className={`w-full h-full flex items-center justify-center text-2xl font-bold text-white bg-gradient-to-br ${pickGradient(profile.name)}`}>
                     {profile.name.charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -309,18 +327,14 @@ export default function ProfilePage() {
             const currentVal = profile[key as keyof Profile] as string | undefined;
             return (
               <div key={key} className="card p-4">
-                <div className="flex items-center justify-between mb-2.5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm">{ICONS[key]}</span>
-                    <label className="text-sm font-medium text-secondary">
-                      {LABELS[key]}
-                    </label>
-                  </div>
-                  {currentVal && (
-                    <span className="text-[10px] font-medium text-accent uppercase tracking-wider">
-                      {currentVal}
-                    </span>
-                  )}
+                {/* Header: icon + label only. The selected pill below already
+                    shows the current value — duplicating it as a top-right
+                    badge added visual noise without info. */}
+                <div className="flex items-center gap-2 mb-2.5">
+                  <span className="text-sm">{ICONS[key]}</span>
+                  <label className="text-sm font-medium text-secondary">
+                    {LABELS[key]}
+                  </label>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {options.map((opt) => {

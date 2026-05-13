@@ -437,7 +437,12 @@ export default function ChatPage() {
           <button
             type="submit"
             disabled={!newMessage.trim() || sending}
-            className="btn-primary px-4 py-2.5 rounded-lg disabled:opacity-40"
+            aria-label="Send message"
+            // btn-accent (purple) instead of btn-primary (black) so the active
+            // send action reads as the primary purple accent like the rest of
+            // the app's CTAs. Disabled state stays at 50% opacity so it's
+            // clearly inactive but still visibly a button.
+            className="btn-accent px-4 py-2.5 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="m22 2-7 20-4-9-9-4z" />

@@ -11,7 +11,12 @@ export default function TermsPage() {
           Back
         </Link>
         <h1 className="text-2xl font-bold text-foreground mb-2">Terms of Service</h1>
-        <p className="text-xs text-muted mb-8">Last updated: 2026-05-11 — placeholder.</p>
+        <div className="mb-8 p-3 bg-warning-surface border border-warning rounded-lg text-xs text-warning">
+          <p className="font-semibold">⚠️ Pre-launch draft — not yet legally binding.</p>
+          <p className="mt-1 text-secondary leading-relaxed">
+            These terms are a working document. They will be reviewed by legal counsel and updated before public launch. By using Livong during this preview period, you accept our intent in good faith, not these specific terms as a contract.
+          </p>
+        </div>
 
         <div className="space-y-6 text-sm text-secondary leading-relaxed">
           <section>

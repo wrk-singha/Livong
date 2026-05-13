@@ -35,6 +35,9 @@ export async function loginAs(
     ({ token, userId }) => {
       localStorage.setItem("token", token);
       localStorage.setItem("userId", userId);
+      // Dismiss the DPDP consent banner so it doesn't cover click targets in
+      // tests. Real users accept it once and never see it again.
+      localStorage.setItem("livong_consent_v1", "accepted");
     },
     body
   );

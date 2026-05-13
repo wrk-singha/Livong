@@ -6,6 +6,7 @@ import { AuthProvider } from "@/contexts/auth";
 import { ThemeProvider } from "@/contexts/theme";
 import { QueryProvider } from "@/lib/query";
 import AppShell from "@/components/AppShell";
+import { ConsentBanner } from "@/components/ConsentBanner";
 import { PageTitle } from "@/lib/PageTitle";
 
 // SW registration is non-critical and runs after first paint — lazy-load
@@ -78,6 +79,7 @@ export default function RootLayout({
             <QueryProvider>
               <ServiceWorkerRegistrar />
               <AppShell>{children}</AppShell>
+              <ConsentBanner />
             </QueryProvider>
           </AuthProvider>
         </ThemeProvider>

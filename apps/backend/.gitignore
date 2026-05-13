@@ -1,0 +1,15 @@
+# User-uploaded content lives here in dev. In prod this should be on object
+# storage (R2, S3) — see docs/deploy.md. Either way, never commit uploads.
+uploads/
+
+# Compiled binaries
+bin/
+*.exe
+
+# Go test outputs
+*.test
+*.out
+
+# Local env
+.env
+.env.local

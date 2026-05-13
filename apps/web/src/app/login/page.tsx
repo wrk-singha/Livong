@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 import { PageTitle } from "@/lib/PageTitle";
@@ -8,16 +8,42 @@ import { useAuth } from "@/contexts/auth";
 import { useTheme } from "@/contexts/theme";
 import Link from "next/link";
 
+const RESEND_COOLDOWN_SECONDS = 30;
+
+/**
+ * Strip the various ways an Indian number gets pasted into a 10-digit local
+ * number: "+91 98765 43210" / "91-9876543210" / "098765 43210" → "9876543210".
+ * The old code naively slice(0,10)'d after stripping non-digits, which kept
+ * the leading "91" and silently truncated the real number.
+ */
+function normalizePastedPhone(raw: string): string {
+  const digits = raw.replace(/\D/g, "");
+  // 12 digits starting with 91 → drop country code
+  if (digits.length === 12 && digits.startsWith("91")) return digits.slice(2);
+  // 11 digits starting with 0 → drop trunk prefix (legacy STD habit)
+  if (digits.length === 11 && digits.startsWith("0")) return digits.slice(1);
+  return digits.slice(0, 10);
+}
+
 export default function LoginPage() {
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resending, setResending] = useState(false);
 
   const router = useRouter();
   const { login } = useAuth();
   const { theme, toggle } = useTheme();
+
+  // Tick the resend cooldown down once per second while > 0.
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const id = setInterval(() => setResendCooldown((s) => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(id);
+  }, [resendCooldown]);
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,10 +56,25 @@ export default function LoginPage() {
     try {
       const res = await api.login(phone);
       setStep("otp");
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send OTP");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0 || resending) return;
+    setResending(true);
+    setError("");
+    try {
+      await api.login(phone);
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to resend OTP");
+    } finally {
+      setResending(false);
     }
   };
 
@@ -100,11 +141,11 @@ export default function LoginPage() {
               </svg>
             </div>
             <h1 className="text-xl font-semibold text-foreground">
-              {step === "phone" ? "Welcome to Livong" : "Verify your number"}
+              {step === "phone" ? "Sign in with your phone" : "Verify your number"}
             </h1>
             <p className="text-sm text-dim mt-1">
               {step === "phone"
-                ? "Enter your phone number to get started"
+                ? "We'll text you a 6-digit code. No password to remember."
                 : <>OTP sent to <span className="font-medium text-secondary">+91 {phone}</span></>
               }
             </p>
@@ -113,7 +154,7 @@ export default function LoginPage() {
           {step === "phone" ? (
             <form onSubmit={handleSendOtp} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-muted mb-1.5">
+                <label htmlFor="phone-input" className="block text-xs font-medium text-muted mb-1.5">
                   Phone Number
                 </label>
                 <div className="flex items-center border border-border rounded-lg overflow-hidden focus-within:border-accent focus-within:shadow-[0_0_0_3px_var(--ring)] transition-[border-color,box-shadow] bg-surface">
@@ -121,11 +162,13 @@ export default function LoginPage() {
                     +91
                   </span>
                   <input
+                    id="phone-input"
+                    name="phone"
                     type="tel"
+                    inputMode="numeric"
+                    autoComplete="tel-national"
                     value={phone}
-                    onChange={(e) =>
-                      setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
-                    }
+                    onChange={(e) => setPhone(normalizePastedPhone(e.target.value))}
                     placeholder="Enter your number"
                     aria-invalid={phone.length > 0 && phone.length < 10}
                     aria-describedby="phone-hint"
@@ -138,6 +181,9 @@ export default function LoginPage() {
                     {10 - phone.length} more digit{10 - phone.length === 1 ? "" : "s"} to enable Continue
                   </p>
                 )}
+                <p className="text-[11px] text-dim mt-2 leading-relaxed">
+                  Your number is private — never shared, never sold. We use it only to sign you in and to verify other users.
+                </p>
               </div>
 
               {error && (
@@ -164,16 +210,26 @@ export default function LoginPage() {
                   "Continue"
                 )}
               </button>
+
+              <p className="text-[11px] text-dim text-center leading-relaxed">
+                By continuing, you agree to our{" "}
+                <Link href="/terms" className="text-accent underline">Terms</Link> and{" "}
+                <Link href="/privacy" className="text-accent underline">Privacy Policy</Link>.
+              </p>
             </form>
           ) : (
             <form onSubmit={handleVerifyOtp} className="space-y-4">
 
               <div>
-                <label className="block text-xs font-medium text-muted mb-1.5">
+                <label htmlFor="otp-input" className="block text-xs font-medium text-muted mb-1.5">
                   Verification Code
                 </label>
                 <input
+                  id="otp-input"
+                  name="otp"
                   type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
                   value={otp}
                   onChange={(e) =>
                     setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
@@ -181,6 +237,7 @@ export default function LoginPage() {
                   placeholder="• • • • • •"
                   className="input text-center text-lg tracking-[0.5em] font-medium py-3!"
                   autoFocus
+                  aria-label="6-digit verification code"
                 />
               </div>
 
@@ -209,17 +266,34 @@ export default function LoginPage() {
                 )}
               </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setStep("phone");
-                  setOtp("");
-                  setError("");
-                }}
-                className="w-full text-sm text-dim hover:text-secondary transition-colors"
-              >
-                Change number
-              </button>
+              {/* Resend + change-number row. Resend is disabled with countdown
+                  while the cooldown is active to prevent SMS spam. */}
+              <div className="flex items-center justify-between text-sm">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep("phone");
+                    setOtp("");
+                    setError("");
+                    setResendCooldown(0);
+                  }}
+                  className="text-dim hover:text-secondary transition-colors"
+                >
+                  Change number
+                </button>
+                {resendCooldown > 0 ? (
+                  <span className="text-dim">Resend in {resendCooldown}s</span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleResendOtp}
+                    disabled={resending}
+                    className="text-accent hover:underline disabled:opacity-60"
+                  >
+                    {resending ? "Sending..." : "Resend code"}
+                  </button>
+                )}
+              </div>
             </form>
           )}
         </div>

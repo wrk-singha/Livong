@@ -138,7 +138,7 @@ export default function Home() {
           <div className="animate-fade-in-up">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-accent-surface border border-accent/20 rounded-full mb-6">
               <span className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse-dot" />
-              <span className="text-xs font-medium text-accent">Free roommate matching platform</span>
+              <span className="text-xs font-medium text-accent">Free · Made in India 🇮🇳</span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-bold leading-[1.1] tracking-tight mb-5">
@@ -175,12 +175,14 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Stats */}
+            {/* Stats — concrete trust signals over vague marketing claims.
+                Indian renters are skeptical of brokers and afraid of fake listings,
+                so this row leans on what we DON'T do. */}
             <div className="mt-12 flex items-center gap-6 pt-6 border-t border-border/50">
               {[
-                { value: "100%", label: "Free to use" },
-                { value: "7+", label: "Lifestyle filters" },
-                { value: "Instant", label: "Match & chat" },
+                { value: "Free", label: "No paywall, no ads" },
+                { value: "0", label: "Brokers, ever" },
+                { value: "OTP", label: "Verified users" },
               ].map((s, i) => (
                 <div key={s.label} className="flex items-center gap-6">
                   {i > 0 && <div className="w-px h-8 bg-border" />}

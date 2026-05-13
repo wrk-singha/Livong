@@ -185,7 +185,7 @@ export default function MatchesPage() {
               </svg>
             }
             title="No matches yet"
-            subtitle="Send interest on listings to get matched"
+            subtitle="Browse listings, tap Show Interest on ones you like, and you'll match when the owner accepts."
             action={
               <Link
                 href="/explore"

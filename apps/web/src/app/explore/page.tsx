@@ -151,14 +151,36 @@ export default function ExplorePage() {
                 <polyline points="9 22 9 12 15 12 15 22" />
               </svg>
             }
-            title="No listings found"
+            title={
+              appliedFilters.location || appliedFilters.minBudget || appliedFilters.maxBudget
+                ? "No listings match your filters"
+                : "No listings in your area yet"
+            }
+            subtitle={
+              appliedFilters.location || appliedFilters.minBudget || appliedFilters.maxBudget
+                ? "Try a wider budget or different location"
+                : "Livong is new — check back soon, or share a room you have."
+            }
             action={
-              <Link
-                href="/create-listing"
-                className="text-foreground font-medium text-sm hover:underline transition-colors"
-              >
-                Post the first listing →
-              </Link>
+              <div className="flex flex-col sm:flex-row items-center gap-2 justify-center">
+                {(appliedFilters.location || appliedFilters.minBudget || appliedFilters.maxBudget) && (
+                  <button
+                    onClick={() => {
+                      setFilters({ location: "", minBudget: "", maxBudget: "" });
+                      setAppliedFilters({ location: "", minBudget: "", maxBudget: "" });
+                    }}
+                    className="btn-accent px-4 py-2 rounded-lg text-sm font-medium"
+                  >
+                    Clear filters
+                  </button>
+                )}
+                <Link
+                  href="/create-listing"
+                  className="text-secondary text-sm hover:text-foreground hover:underline transition-colors"
+                >
+                  Have a room to share? Post it →
+                </Link>
+              </div>
             }
           />
         ) : (

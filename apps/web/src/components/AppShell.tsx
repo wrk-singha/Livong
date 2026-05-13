@@ -82,12 +82,15 @@ function ProfileIcon({ active }: { active: boolean }) {
   );
 }
 
+// Labels are intentionally short to fit the mobile bottom nav (10px font, 5 items).
+// `tip` is shown as a hover tooltip on the desktop sidebar — first-time users
+// often can't tell what "Rent" or "List" do without context.
 const navItems = [
-  { href: "/explore", label: "Explore", Icon: ExploreIcon },
-  { href: "/matches", label: "Matches", Icon: MatchesIcon },
-  { href: "/create-listing", label: "Post", Icon: PostIcon },
-  { href: "/rent", label: "Rent", Icon: RentIcon },
-  { href: "/profile", label: "Profile", Icon: ProfileIcon },
+  { href: "/explore", label: "Explore", Icon: ExploreIcon, tip: "Browse rooms and roommates" },
+  { href: "/matches", label: "Matches", Icon: MatchesIcon, tip: "People who matched with you" },
+  { href: "/create-listing", label: "List", Icon: PostIcon, tip: "List a room you have to share" },
+  { href: "/rent", label: "Rent", Icon: RentIcon, tip: "Track rent splits with current roommates" },
+  { href: "/profile", label: "Profile", Icon: ProfileIcon, tip: "Edit your profile and preferences" },
 ];
 
 const PUBLIC_PATHS = ["/", "/login", "/plans", "/privacy", "/terms"];
@@ -139,6 +142,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <Link
                   key={item.href}
                   href={item.href}
+                  title={item.tip}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
                     active
                       ? "bg-accent/10 text-accent"
@@ -217,6 +221,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <Link
                   key={item.href}
                   href={item.href}
+                  aria-label={item.tip}
                   className={`flex flex-col items-center py-2 px-4 transition-all ${
                     active
                       ? "text-accent"

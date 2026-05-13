@@ -58,6 +58,8 @@ func main() {
 		adminGroup.GET("/interests", adminHandler.GetInterests)
 		adminGroup.GET("/revenue", adminHandler.GetRevenue)
 		adminGroup.GET("/analytics", adminHandler.GetAnalytics)
+		adminGroup.GET("/reports", adminHandler.GetReports)
+		adminGroup.PATCH("/reports/:id", adminHandler.UpdateReport)
 	}
 
 	port := os.Getenv("PORT")

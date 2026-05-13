@@ -10,6 +10,7 @@ const ADMIN_ROUTES = [
   "/reviews",
   "/revenue",
   "/analytics",
+  "/reports",
 ];
 
 test.describe("Admin routes (authed)", () => {

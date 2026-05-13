@@ -13,6 +13,7 @@ const NAV = [
   { href: "/reviews", label: "Reviews", icon: "★" },
   { href: "/matches", label: "Matches", icon: "⊕" },
   { href: "/interests", label: "Interests", icon: "♡" },
+  { href: "/reports", label: "Reports", icon: "⚑" },
 ];
 
 export default function Shell({ children }: { children: React.ReactNode }) {

@@ -79,4 +79,8 @@ export const admin = {
     const q = params.toString();
     return request(`/admin/analytics${q ? `?${q}` : ""}`);
   },
+  getReports: (status: "pending" | "reviewed" | "dismissed" | "actioned" | "all" = "pending", page = 1, limit = 50) =>
+    request(`/admin/reports?status=${status}&page=${page}&limit=${limit}`),
+  updateReport: (id: string, status: "dismissed" | "actioned" | "reviewed") =>
+    request(`/admin/reports/${id}`, { method: "PATCH", body: JSON.stringify({ status }) }),
 };

@@ -62,6 +62,14 @@ func (h *Handler) GetProfile(c *gin.Context) {
 		return
 	}
 
+	// DB stores avatar as a relative path like "avatars/<filename>".
+	// Frontend's imageUrl(path) just prepends API_BASE — so we must return
+	// the "/uploads/" prefix here, matching what UploadAvatar returns.
+	if profile.Avatar != nil && *profile.Avatar != "" && !strings.HasPrefix(*profile.Avatar, "/uploads/") {
+		full := "/uploads/" + *profile.Avatar
+		profile.Avatar = &full
+	}
+
 	c.JSON(http.StatusOK, profile)
 }
 

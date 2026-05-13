@@ -4,18 +4,20 @@ import (
 	"log"
 	"os"
 
-	"github.com/rohit/livong-backend/internal/database"
-	"github.com/rohit/livong-backend/internal/middleware"
 	"github.com/rohit/livong-backend/internal/auth"
-	"github.com/rohit/livong-backend/internal/user"
-	"github.com/rohit/livong-backend/internal/listing"
-	"github.com/rohit/livong-backend/internal/interest"
-	"github.com/rohit/livong-backend/internal/match"
+	"github.com/rohit/livong-backend/internal/block"
 	"github.com/rohit/livong-backend/internal/chat"
-	"github.com/rohit/livong-backend/internal/review"
-	"github.com/rohit/livong-backend/internal/plan"
+	"github.com/rohit/livong-backend/internal/database"
+	"github.com/rohit/livong-backend/internal/interest"
+	"github.com/rohit/livong-backend/internal/listing"
+	"github.com/rohit/livong-backend/internal/match"
+	"github.com/rohit/livong-backend/internal/middleware"
 	"github.com/rohit/livong-backend/internal/pg"
+	"github.com/rohit/livong-backend/internal/plan"
 	"github.com/rohit/livong-backend/internal/rent"
+	"github.com/rohit/livong-backend/internal/report"
+	"github.com/rohit/livong-backend/internal/review"
+	"github.com/rohit/livong-backend/internal/user"
 
 	"github.com/gin-gonic/gin"
 )
@@ -80,6 +82,15 @@ func main() {
 		protected.POST("/interests", interestHandler.SendInterest)
 		protected.GET("/interests/received", interestHandler.GetReceived)
 		protected.PATCH("/interests/:id", interestHandler.UpdateInterest)
+
+		// Reports + blocks (safety primitives — UI in a follow-up sprint)
+		reportHandler := report.NewHandler(db)
+		protected.POST("/reports", reportHandler.Create)
+
+		blockHandler := block.NewHandler(db)
+		protected.POST("/blocks", blockHandler.Create)
+		protected.DELETE("/blocks/:userId", blockHandler.Delete)
+		protected.GET("/blocks", blockHandler.List)
 
 		// Matches
 		matchHandler := match.NewHandler(db)

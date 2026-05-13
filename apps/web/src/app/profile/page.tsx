@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { api, imageUrl } from "@/lib/api";
+import { PageTitle } from "@/lib/PageTitle";
 import { useAuth } from "@/contexts/auth";
 import { useProfile, type Profile } from "@/contexts/profile";
 import { Input, Select, Alert, Button, Modal } from "@/components/ui";
@@ -190,6 +191,7 @@ export default function ProfilePage() {
 
     return (
       <div className="min-h-screen px-4 py-8">
+        <PageTitle title="Set up your profile" />
         <div className="max-w-sm md:max-w-lg lg:max-w-xl mx-auto animate-fade-in-up">
           <div className="mb-6">
             <h1 className="text-xl font-semibold text-foreground">Set up your profile</h1>
@@ -245,6 +247,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen px-4 py-6 md:px-8 lg:px-10 pb-24 md:pb-6">
+      <PageTitle title={profile?.name ? `${profile.name} · Profile` : "Profile"} />
       <div className="max-w-lg md:max-w-3xl lg:max-w-5xl mx-auto">
         {/* Save indicator */}
         {message && (

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { PageTitle } from "@/lib/PageTitle";
 import { useProfile } from "@/contexts/profile";
 import { Input, TextArea, Select, Alert, Button, PageSpinner, EmptyState } from "@/components/ui";
 
@@ -136,6 +137,7 @@ export default function CreateListingPage() {
 
   return (
     <div className="min-h-screen px-4 py-6 pb-28 md:pb-6">
+      <PageTitle title="Post a listing" />
       <div className="max-w-sm md:max-w-lg lg:max-w-xl mx-auto animate-fade-in-up">
 
         {/* Header */}

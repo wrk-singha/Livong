@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { PageTitle } from "@/lib/PageTitle";
 import { useAuth } from "@/contexts/auth";
 import { Alert } from "@/components/ui";
 
@@ -80,6 +81,7 @@ export default function PlansPage() {
 
   return (
     <div className="min-h-screen px-4 py-6 md:px-8 lg:px-10">
+      <PageTitle title="Plans" />
       <div className="max-w-lg md:max-w-3xl lg:max-w-5xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-foreground">Choose your plan</h1>

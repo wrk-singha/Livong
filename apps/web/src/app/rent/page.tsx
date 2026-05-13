@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { PageTitle } from "@/lib/PageTitle";
 import { useAuth } from "@/contexts/auth";
 import { useProfile } from "@/contexts/profile";
 import type { RentGroup } from "@/lib/types";
@@ -22,6 +23,7 @@ export default function RentPage() {
 
   return (
     <div className="min-h-screen px-4 py-6 md:px-8 lg:px-10">
+      <PageTitle title="Rent" />
       <div className="max-w-lg md:max-w-3xl lg:max-w-5xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-5">

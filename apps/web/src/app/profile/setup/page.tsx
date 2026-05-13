@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import { PageTitle } from "@/lib/PageTitle";
 import { Input, Select, Alert, Button } from "@/components/ui";
 
 const GENDER_OPTIONS = [
@@ -52,12 +53,12 @@ export default function ProfileSetupPage() {
 
   return (
     <div className="min-h-screen px-4 py-8">
+      <PageTitle title="Set up your profile" />
       <div className="max-w-sm md:max-w-lg lg:max-w-xl mx-auto animate-fade-in-up">
-        {/* Progress indicator */}
+        {/* Single-segment progress bar — matches "Step 1 of 1" copy below.
+            Was 3 segments earlier when this assumed a multi-step flow. */}
         <div className="flex items-center gap-2 mb-6">
           <div className="h-1 flex-1 bg-accent rounded-full" />
-          <div className="h-1 flex-1 bg-border rounded-full" />
-          <div className="h-1 flex-1 bg-border rounded-full" />
         </div>
 
         <div className="mb-6">

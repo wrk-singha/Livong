@@ -93,13 +93,22 @@ func (h *Handler) SendMessage(c *gin.Context) {
 		return
 	}
 
-	// Verify user is part of this match
-	var exists bool
+	// Verify user is part of this match AND no block exists either way.
+	// A single query covers both: NOT EXISTS the block in either direction.
+	var allowed bool
 	h.db.QueryRow(`
-		SELECT EXISTS(SELECT 1 FROM matches WHERE id = $1 AND (user1_id = $2 OR user2_id = $2))
-	`, req.MatchID, userID).Scan(&exists)
+		SELECT EXISTS(
+			SELECT 1 FROM matches m
+			WHERE m.id = $1 AND ($2 IN (m.user1_id, m.user2_id))
+			AND NOT EXISTS (
+				SELECT 1 FROM user_blocks b
+				WHERE (b.blocker_id = $2 AND b.blocked_id IN (m.user1_id, m.user2_id))
+				   OR (b.blocked_id = $2 AND b.blocker_id IN (m.user1_id, m.user2_id))
+			)
+		)
+	`, req.MatchID, userID).Scan(&allowed)
 
-	if !exists {
+	if !allowed {
 		c.JSON(http.StatusForbidden, gin.H{"error": "not authorized to send messages in this match"})
 		return
 	}

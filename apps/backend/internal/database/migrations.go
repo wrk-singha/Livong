@@ -179,6 +179,37 @@ func RunMigrations(db *sql.DB) error {
 		EXCEPTION WHEN others THEN NULL;
 		END $$`,
 		`CREATE INDEX IF NOT EXISTS idx_users_deleted_at ON users(deleted_at) WHERE deleted_at IS NOT NULL`,
+
+		// User reports — for safety incidents on listings, profiles, messages.
+		// target_type one of 'listing' | 'profile' | 'message'.
+		// status: 'pending' | 'reviewed' | 'dismissed' | 'actioned'.
+		`CREATE TABLE IF NOT EXISTS reports (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			reporter_id UUID NOT NULL REFERENCES users(id),
+			target_type VARCHAR(20) NOT NULL,
+			target_id UUID NOT NULL,
+			reason VARCHAR(40) NOT NULL,
+			details TEXT,
+			status VARCHAR(20) DEFAULT 'pending',
+			reviewed_at TIMESTAMP,
+			reviewed_by UUID REFERENCES users(id),
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		)`,
+		`CREATE INDEX IF NOT EXISTS idx_reports_status_created ON reports(status, created_at DESC)`,
+		`CREATE INDEX IF NOT EXISTS idx_reports_target ON reports(target_type, target_id)`,
+
+		// User blocks — symmetric soft-block. blocker stops seeing/being-seen-by blocked.
+		// UNIQUE on the pair so a single user can't block the same person twice.
+		`CREATE TABLE IF NOT EXISTS user_blocks (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			blocker_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+			blocked_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			UNIQUE(blocker_id, blocked_id),
+			CHECK (blocker_id <> blocked_id)
+		)`,
+		`CREATE INDEX IF NOT EXISTS idx_user_blocks_blocker ON user_blocks(blocker_id)`,
+		`CREATE INDEX IF NOT EXISTS idx_user_blocks_blocked ON user_blocks(blocked_id)`,
 	}
 
 	for i, m := range migrations {

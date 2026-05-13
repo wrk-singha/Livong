@@ -40,14 +40,29 @@ func (h *Handler) SendInterest(c *gin.Context) {
 		return
 	}
 
-	// Check for duplicate
-	var exists bool
+	// Block re-sending while pending or already accepted. Rejected interests
+	// CAN be re-sent — circumstances change (different listing, mind changed
+	// after meeting, etc.) and locking it forever after a single reject feels
+	// unkind. We delete the old rejected row and insert fresh.
+	var existingStatus sql.NullString
 	h.db.QueryRow(`
-		SELECT EXISTS(SELECT 1 FROM interests WHERE sender_id = $1 AND receiver_id = $2 AND listing_id = $3)
-	`, senderID, req.ReceiverID, req.ListingID).Scan(&exists)
-	if exists {
-		c.JSON(http.StatusConflict, gin.H{"error": "interest already sent"})
-		return
+		SELECT status FROM interests WHERE sender_id = $1 AND receiver_id = $2 AND listing_id = $3
+	`, senderID, req.ReceiverID, req.ListingID).Scan(&existingStatus)
+	if existingStatus.Valid {
+		switch existingStatus.String {
+		case "pending":
+			c.JSON(http.StatusConflict, gin.H{"error": "interest already sent — waiting for response"})
+			return
+		case "accepted":
+			c.JSON(http.StatusConflict, gin.H{"error": "you already matched on this listing"})
+			return
+		case "rejected":
+			// Allow re-send: clear the old rejection.
+			if _, err := h.db.Exec(`DELETE FROM interests WHERE sender_id = $1 AND receiver_id = $2 AND listing_id = $3 AND status = 'rejected'`, senderID, req.ReceiverID, req.ListingID); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to send interest"})
+				return
+			}
+		}
 	}
 
 	var id string

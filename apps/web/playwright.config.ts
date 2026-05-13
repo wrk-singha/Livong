@@ -23,9 +23,12 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "pnpm dev",
+    // Use the production build in CI — much faster cold start than `pnpm dev`
+    // on a tiny Linux runner, and closer to what users hit. `pnpm dev` is fine
+    // locally because reuseExistingServer picks up an already-running dev.
+    command: process.env.CI ? "pnpm build && PORT=6900 pnpm start" : "pnpm dev",
     url: "http://localhost:6900",
     reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
+    timeout: 300_000,
   },
 });

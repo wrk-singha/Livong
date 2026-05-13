@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, imageUrl } from "@/lib/api";
 import { PageTitle } from "@/lib/PageTitle";
 import { useAuth } from "@/contexts/auth";
 import { useProfile, type Profile } from "@/contexts/profile";
-import { Input, Select, Alert, Button, Modal } from "@/components/ui";
+import { Input, Alert, Modal } from "@/components/ui";
 
 const PREF_OPTIONS: Record<string, string[]> = {
   smoking: ["yes", "no", "occasionally"],
@@ -37,12 +38,6 @@ const ICONS: Record<string, string> = {
   pets: "🐾",
   foodPreference: "🍽️",
 };
-
-const GENDER_OPTIONS = [
-  { value: "male", label: "Male" },
-  { value: "female", label: "Female" },
-  { value: "other", label: "Other" },
-];
 
 function CheckIcon() {
   return (
@@ -79,19 +74,24 @@ function MapPinIcon() {
 }
 
 export default function ProfilePage() {
+  const router = useRouter();
   const { logout } = useAuth();
   const { profile, loading, setProfile, clearProfile } = useProfile();
   const [message, setMessage] = useState("");
   const pendingRef = useRef<Record<string, string>>({});
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [setupForm, setSetupForm] = useState({ name: "", age: "", gender: "", location: "" });
-  const [setupError, setSetupError] = useState("");
-  const [setupLoading, setSetupLoading] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({ name: "", location: "" });
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+
+  // /profile is the editor only. If the user has no profile yet (first visit),
+  // send them through the proper /profile/setup flow instead of duplicating
+  // the setup form here.
+  useEffect(() => {
+    if (!loading && !profile) router.replace("/profile/setup");
+  }, [loading, profile, router]);
 
   const saveMutation = useMutation({
     mutationFn: (batch: Record<string, string>) => api.updateProfile(batch),
@@ -153,92 +153,11 @@ export default function ProfilePage() {
     return Math.round((filled / fields.length) * 100);
   };
 
-  if (loading) {
+  // Loading OR redirecting (no profile → /profile/setup) — show spinner.
+  if (loading || !profile) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="w-8 h-8 border-3 border-border border-t-secondary rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (!profile) {
-    const updateField = (key: string, value: string) =>
-      setSetupForm((prev) => ({ ...prev, [key]: value }));
-
-    const handleCreate = async (e: React.FormEvent) => {
-      e.preventDefault();
-      setSetupError("");
-      if (!setupForm.name || !setupForm.age || !setupForm.gender || !setupForm.location) {
-        setSetupError("All fields are required");
-        return;
-      }
-      setSetupLoading(true);
-      try {
-        await api.createProfile({
-          name: setupForm.name,
-          age: parseInt(setupForm.age),
-          gender: setupForm.gender,
-          location: setupForm.location,
-        });
-        const full = await api.getProfile();
-        setProfile(full);
-      } catch (err) {
-        setSetupError(err instanceof Error ? err.message : "Failed to create profile");
-      } finally {
-        setSetupLoading(false);
-      }
-    };
-
-    return (
-      <div className="min-h-screen px-4 py-8">
-        <PageTitle title="Set up your profile" />
-        <div className="max-w-sm md:max-w-lg lg:max-w-xl mx-auto animate-fade-in-up">
-          <div className="mb-6">
-            <h1 className="text-xl font-semibold text-foreground">Set up your profile</h1>
-            <p className="text-dim text-sm mt-1">Help us find the best matches for you</p>
-          </div>
-
-          <form onSubmit={handleCreate} className="space-y-4">
-            <Input
-              label="Name"
-              type="text"
-              value={setupForm.name}
-              onChange={(e) => updateField("name", e.target.value)}
-              placeholder="Your name"
-            />
-            <div className="grid grid-cols-2 gap-3">
-              <Input
-                label="Age"
-                type="number"
-                value={setupForm.age}
-                onChange={(e) => updateField("age", e.target.value)}
-                placeholder="25"
-                min={18}
-                max={60}
-              />
-              <Select
-                label="Gender"
-                options={GENDER_OPTIONS}
-                value={setupForm.gender}
-                onChange={(v) => updateField("gender", v)}
-                placeholder="Select"
-              />
-            </div>
-            <Input
-              label="Preferred Location"
-              type="text"
-              value={setupForm.location}
-              onChange={(e) => updateField("location", e.target.value)}
-              placeholder="e.g. HSR Layout, Bangalore"
-            />
-
-            {setupError && <Alert>{setupError}</Alert>}
-
-            <Button type="submit" loading={setupLoading} fullWidth size="lg">
-              {setupLoading ? "Creating..." : "Save Profile"}
-            </Button>
-          </form>
-        </div>
       </div>
     );
   }

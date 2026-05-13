@@ -24,12 +24,16 @@ type Listing = {
   };
 };
 
-const TYPE_COLORS: Record<string, string> = {
-  room: "bg-info-surface text-info",
-  flat: "bg-success-surface text-success",
-  shared: "bg-warning-surface text-warning",
-  pg: "bg-accent/10 text-accent",
+// Per-type display config. Gradient is used for the no-photo card placeholder
+// (a big, visible signal of property type) — so the chip badge can stay neutral
+// and consistent across all types instead of competing colors.
+const TYPE_DISPLAY: Record<string, { label: string; gradient: string }> = {
+  pg:     { label: "PG",     gradient: "from-violet-500 to-purple-600" },
+  room:   { label: "Room",   gradient: "from-indigo-500 to-blue-600" },
+  flat:   { label: "Flat",   gradient: "from-emerald-500 to-teal-600" },
+  shared: { label: "Shared", gradient: "from-amber-500 to-orange-600" },
 };
+const DEFAULT_TYPE = { label: "Listing", gradient: "from-slate-500 to-slate-600" };
 
 export default function ExplorePage() {
   const [filters, setFilters] = useState({
@@ -191,23 +195,33 @@ export default function ExplorePage() {
                 href={`/listings/${listing.id}`}
                 className="card block group h-full overflow-hidden"
               >
-                {listing.thumbnail ? (
-                  <div className="w-full h-36 bg-surface-alt">
-                    <img
-                      src={imageUrl(listing.thumbnail)}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-full h-36 bg-surface-alt flex items-center justify-center text-faint">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-                      <circle cx="9" cy="9" r="2" />
-                      <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-                    </svg>
-                  </div>
-                )}
+                {(() => {
+                  const td = TYPE_DISPLAY[listing.propertyType] || DEFAULT_TYPE;
+                  return listing.thumbnail ? (
+                    <div className="relative w-full h-36 bg-surface-alt">
+                      <img
+                        src={imageUrl(listing.thumbnail)}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
+                      {/* Type pill over photo so it's still legible when image is busy */}
+                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/55 backdrop-blur-sm text-white text-[11px] font-medium">
+                        {td.label}
+                      </span>
+                    </div>
+                  ) : (
+                    // No-photo placeholder: colored gradient per type with the type
+                    // label spelled out — way more useful than a generic image icon.
+                    <div className={`w-full h-36 bg-gradient-to-br ${td.gradient} flex flex-col items-center justify-center text-white`}>
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="opacity-80">
+                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                        <polyline points="9 22 9 12 15 12 15 22" />
+                      </svg>
+                      <span className="mt-1.5 text-sm font-semibold tracking-wide">{td.label}</span>
+                      <span className="text-[10px] opacity-75 mt-0.5">No photos yet</span>
+                    </div>
+                  );
+                })()}
                 <div className="p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
@@ -229,27 +243,37 @@ export default function ExplorePage() {
                       <p className="text-[10px] text-dim">/month</p>
                     </div>
                   </div>
-                  <div className="mt-3 flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className={`inline-block px-2.5 py-1 rounded-md text-[11px] font-medium ${TYPE_COLORS[listing.propertyType] || "bg-surface-alt text-muted"}`}>
-                        {listing.propertyType === "pg" ? "PG" : listing.propertyType}
-                      </span>
-                      {listing.pgSummary && (
-                        <>
-                          <span className="px-2 py-0.5 rounded-md bg-surface-alt text-[10px] text-muted capitalize">{listing.pgSummary.sharingType}</span>
-                          {listing.pgSummary.meals !== "none" && (
-                            <span className="px-2 py-0.5 rounded-md bg-surface-alt text-[10px] text-muted capitalize">{listing.pgSummary.meals === "veg" ? "Veg" : "Meals"}</span>
-                          )}
-                        </>
-                      )}
+                  {/* Secondary tag row — type is already on the photo, so this row
+                      is just for sharing/meals etc. All chips share one neutral
+                      style so they feel like a list, not a rainbow. */}
+                  {listing.pgSummary && (
+                    <div className="mt-3 flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="px-2 py-0.5 rounded-md bg-surface-alt border border-border-light text-[10px] text-muted capitalize">
+                          {listing.pgSummary.sharingType}
+                        </span>
+                        {listing.pgSummary.meals !== "none" && (
+                          <span className="px-2 py-0.5 rounded-md bg-surface-alt border border-border-light text-[10px] text-muted capitalize">
+                            {listing.pgSummary.meals === "veg" ? "Veg" : "Meals"}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {listing.ownerVerified && <VerifiedBadge size={14} />}
+                        <svg className="text-faint group-hover:text-muted transition-colors" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="m9 18 6-6-6-6" />
+                        </svg>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      {listing.ownerVerified && <VerifiedBadge size={14} />}
+                  )}
+                  {!listing.pgSummary && (listing.ownerVerified) && (
+                    <div className="mt-3 flex items-center justify-end gap-1.5">
+                      <VerifiedBadge size={14} />
                       <svg className="text-faint group-hover:text-muted transition-colors" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="m9 18 6-6-6-6" />
                       </svg>
                     </div>
-                  </div>
+                  )}
                 </div>
               </Link>
             ))}

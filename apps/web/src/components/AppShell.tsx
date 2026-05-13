@@ -158,8 +158,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             })}
           </nav>
 
-          {/* Bottom actions */}
-          <div className="px-3 pb-4 space-y-1">
+          {/* Bottom actions — divider above so Plans/Logout don't visually
+              run into the main nav. */}
+          <div className="px-3 pt-3 pb-4 mt-2 space-y-1 border-t border-border-light">
             <Link
               href="/plans"
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg w-full transition-colors ${

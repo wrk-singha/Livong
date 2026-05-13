@@ -38,26 +38,28 @@ export function ConsentBanner() {
       aria-label="Cookie and analytics consent"
       className="fixed bottom-0 left-0 right-0 z-50 bg-surface border-t border-border shadow-lg pb-[env(safe-area-inset-bottom)]"
     >
-      <div className="max-w-3xl mx-auto px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-        <p className="text-xs text-secondary leading-relaxed flex-1">
-          Livong uses essential cookies for sign-in. With your consent we&apos;ll also use analytics to improve the product (no ads, no third-party data sales).{" "}
-          <Link href="/privacy" className="text-accent underline">
-            Privacy
-          </Link>
-          .
+      {/* One-row layout on every viewport. Long-form explanation lives on
+          /privacy — this banner is just the choice. */}
+      <div className="max-w-3xl mx-auto px-4 py-2.5 flex items-center gap-3">
+        <p className="text-xs text-secondary leading-snug flex-1 min-w-0">
+          <span className="hidden sm:inline">Cookies keep you signed in. Add analytics to help us improve? </span>
+          <span className="sm:hidden">Cookies for sign-in. Add analytics? </span>
+          <Link href="/privacy" className="text-accent underline whitespace-nowrap">Privacy</Link>
         </p>
-        <div className="flex gap-2 shrink-0">
+        <div className="flex gap-1.5 shrink-0">
           <button
             onClick={() => decide("essential-only")}
-            className="px-3 py-1.5 text-xs font-medium text-dim hover:text-secondary border border-border rounded-lg transition-colors"
+            className="px-2.5 py-1.5 text-xs font-medium text-dim hover:text-secondary border border-border rounded-lg transition-colors"
           >
-            Essential only
+            <span className="hidden sm:inline">Essential only</span>
+            <span className="sm:hidden">Essential</span>
           </button>
           <button
             onClick={() => decide("accepted")}
-            className="btn-accent px-4 py-1.5 text-xs font-medium rounded-lg"
+            className="btn-accent px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap"
           >
-            Accept all
+            <span className="hidden sm:inline">Accept all</span>
+            <span className="sm:hidden">Accept</span>
           </button>
         </div>
       </div>

@@ -98,8 +98,39 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col lg:flex-row">
       <PageTitle title={step === "phone" ? "Sign in" : "Verify OTP"} />
+
+      {/* Marketing panel — desktop only. Fills the left half of the screen
+          with the same value props as the landing hero so the login feels
+          continuous with the brand instead of a sterile form on a sea of grey. */}
+      <aside className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-accent/10 via-accent-secondary/5 to-transparent">
+        <div className="m-auto max-w-md px-12 py-16">
+          <h2 className="text-3xl font-bold text-foreground tracking-tight mb-3">Livong</h2>
+          <p className="text-base text-secondary leading-relaxed mb-10">
+            Find people who actually fit how you live — not just what you can pay.
+          </p>
+          <ul className="space-y-5">
+            {[
+              { icon: "🇮🇳", title: "Made in India, free forever", desc: "No paywall, no ads, no third-party data sales." },
+              { icon: "🚫", title: "Zero brokers, ever", desc: "Talk directly to the person renting the room." },
+              { icon: "🔒", title: "OTP-verified users", desc: "Your number stays private until you choose to share it." },
+            ].map((v) => (
+              <li key={v.title} className="flex items-start gap-3">
+                <span className="text-xl shrink-0">{v.icon}</span>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{v.title}</p>
+                  <p className="text-xs text-dim mt-0.5 leading-relaxed">{v.desc}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </aside>
+
+      {/* Form column */}
+      <div className="flex-1 flex flex-col lg:w-1/2">
+
       {/* Header */}
       <div className="px-6 pt-6 flex items-center justify-between">
         <Link
@@ -297,6 +328,7 @@ export default function LoginPage() {
             </form>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

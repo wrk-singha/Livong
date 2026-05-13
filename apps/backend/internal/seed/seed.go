@@ -42,15 +42,29 @@ func Run(db *sql.DB) error {
 // cleanup deletes everything reachable from test users. Order matters: child
 // rows first (FKs cascade where defined; explicit deletes elsewhere).
 func cleanup(db *sql.DB) error {
+	// All cleanup keyed off the test phone prefix so we never touch real users.
+	// Delete in FK order: child rows first, parents last. Anything that
+	// references users (directly or transitively) needs a row here.
+	testUsers := `(SELECT id FROM users WHERE phone LIKE '` + TestPhonePrefix + `%')`
 	stmts := []string{
-		// Match rows referencing test users
-		`DELETE FROM messages WHERE match_id IN (SELECT id FROM matches WHERE user1_id IN (SELECT id FROM users WHERE phone LIKE '` + TestPhonePrefix + `%') OR user2_id IN (SELECT id FROM users WHERE phone LIKE '` + TestPhonePrefix + `%'))`,
-		`DELETE FROM matches WHERE user1_id IN (SELECT id FROM users WHERE phone LIKE '` + TestPhonePrefix + `%') OR user2_id IN (SELECT id FROM users WHERE phone LIKE '` + TestPhonePrefix + `%')`,
-		`DELETE FROM interests WHERE sender_id IN (SELECT id FROM users WHERE phone LIKE '` + TestPhonePrefix + `%') OR receiver_id IN (SELECT id FROM users WHERE phone LIKE '` + TestPhonePrefix + `%')`,
-		`DELETE FROM reviews WHERE reviewer_id IN (SELECT id FROM users WHERE phone LIKE '` + TestPhonePrefix + `%')`,
-		// listings cascades to listing_images via ON DELETE CASCADE
-		`DELETE FROM listings WHERE user_id IN (SELECT id FROM users WHERE phone LIKE '` + TestPhonePrefix + `%')`,
-		`DELETE FROM profiles WHERE user_id IN (SELECT id FROM users WHERE phone LIKE '` + TestPhonePrefix + `%')`,
+		// Rent (newest cascade chain — payments + commissions + members + groups)
+		`DELETE FROM rent_payments WHERE payer_id IN ` + testUsers + ` OR confirmed_by IN ` + testUsers,
+		`DELETE FROM rent_commissions WHERE broker_id IN ` + testUsers,
+		`DELETE FROM rent_members WHERE user_id IN ` + testUsers,
+		`DELETE FROM rent_groups WHERE created_by IN ` + testUsers,
+		// Safety primitives — reports + blocks
+		`DELETE FROM reports WHERE reporter_id IN ` + testUsers + ` OR reviewed_by IN ` + testUsers,
+		`DELETE FROM user_blocks WHERE blocker_id IN ` + testUsers + ` OR blocked_id IN ` + testUsers,
+		// Plan payments
+		`DELETE FROM payments WHERE user_id IN ` + testUsers,
+		// Match-related
+		`DELETE FROM messages WHERE match_id IN (SELECT id FROM matches WHERE user1_id IN ` + testUsers + ` OR user2_id IN ` + testUsers + `)`,
+		`DELETE FROM matches WHERE user1_id IN ` + testUsers + ` OR user2_id IN ` + testUsers,
+		`DELETE FROM interests WHERE sender_id IN ` + testUsers + ` OR receiver_id IN ` + testUsers,
+		`DELETE FROM reviews WHERE reviewer_id IN ` + testUsers,
+		// listings cascades to listing_images + pg_details via ON DELETE CASCADE
+		`DELETE FROM listings WHERE user_id IN ` + testUsers,
+		`DELETE FROM profiles WHERE user_id IN ` + testUsers,
 		`DELETE FROM users WHERE phone LIKE '` + TestPhonePrefix + `%'`,
 	}
 	for _, s := range stmts {

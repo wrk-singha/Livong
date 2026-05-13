@@ -97,7 +97,7 @@ func (h *Handler) GetPayments(c *gin.Context) {
 	}
 	defer rows.Close()
 
-	var payments []map[string]interface{}
+	payments := []map[string]interface{}{}
 	for rows.Next() {
 		var id, payerID, payMonth, method, payerName string
 		var amount int

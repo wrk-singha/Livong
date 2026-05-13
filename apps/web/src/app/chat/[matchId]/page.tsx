@@ -2,10 +2,12 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { PageTitle } from "@/lib/PageTitle";
 import { useAuth } from "@/contexts/auth";
 import { Modal, StarRatingPicker, Avatar, BackButton, Alert } from "@/components/ui";
+import { ReportModal } from "@/components/ReportModal";
 
 type Message = {
   id: string;
@@ -47,8 +49,19 @@ export default function ChatPage() {
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewDone, setReviewDone] = useState(false);
   const [matchInfo, setMatchInfo] = useState<MatchInfo | null>(null);
-  // Surface action errors so users know when sends/shares/reviews fail.
   const [actionError, setActionError] = useState("");
+  const [showSafetyMenu, setShowSafetyMenu] = useState(false);
+  const [showReport, setShowReport] = useState(false);
+  const [showBlockConfirm, setShowBlockConfirm] = useState(false);
+  const queryClient = useQueryClient();
+  const blockMutation = useMutation({
+    mutationFn: () => api.blockUser(matchInfo!.user.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["matches"] });
+      router.push("/matches");
+    },
+    onError: (e) => setActionError(e instanceof Error ? e.message : "Couldn't block user"),
+  });
   const bottomRef = useRef<HTMLDivElement>(null);
   const lastTimestampRef = useRef<string>("");
 
@@ -231,13 +244,46 @@ export default function ChatPage() {
             <span className="text-[10px] text-dim">Online</span>
           </div>
         </div>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-1.5">
           <button
             onClick={() => setShowReviewModal(true)}
             className="px-3 py-1.5 text-xs font-medium text-accent bg-accent-surface rounded-lg hover:opacity-80 transition-opacity"
           >
             Leave Review
           </button>
+          {/* Safety menu — three-dot, opens Report / Block */}
+          <div className="relative">
+            <button
+              onClick={() => setShowSafetyMenu((v) => !v)}
+              className="p-1.5 rounded-lg text-dim hover:text-secondary hover:bg-surface-alt transition-colors"
+              aria-label="Safety actions"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" />
+              </svg>
+            </button>
+            {showSafetyMenu && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowSafetyMenu(false)} />
+                <div className="absolute right-0 top-full mt-1 w-44 bg-surface border border-border rounded-lg shadow-lg z-20 overflow-hidden">
+                  <button
+                    onClick={() => { setShowSafetyMenu(false); setShowReport(true); }}
+                    className="w-full text-left px-3 py-2.5 text-sm text-secondary hover:bg-surface-alt transition-colors flex items-center gap-2"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><line x1="4" y1="22" x2="4" y2="15" /></svg>
+                    Report
+                  </button>
+                  <button
+                    onClick={() => { setShowSafetyMenu(false); setShowBlockConfirm(true); }}
+                    className="w-full text-left px-3 py-2.5 text-sm text-error hover:bg-error-surface transition-colors flex items-center gap-2"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="4.93" y1="4.93" x2="19.07" y2="19.07" /></svg>
+                    Block
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -519,6 +565,49 @@ export default function ChatPage() {
             </div>
           </>
         )}
+      </Modal>
+
+      {/* Safety: Report message — uses the user as the target since "report a
+          specific message" is uncommon vs "report the user". */}
+      {matchInfo && (
+        <ReportModal
+          open={showReport}
+          onClose={() => setShowReport(false)}
+          targetType="profile"
+          targetId={matchInfo.user.id}
+          context={`Conversation with ${matchInfo.user.name}`}
+        />
+      )}
+
+      {/* Block confirmation — separate from Report so the user can do either. */}
+      <Modal open={showBlockConfirm} onClose={() => setShowBlockConfirm(false)} title={`Block ${matchInfo?.user?.name || "this user"}?`}>
+        <div className="space-y-3">
+          <p className="text-sm text-secondary leading-relaxed">
+            They won&apos;t be able to message you, and you won&apos;t see their listings or future messages from them. You can unblock from your profile settings.
+          </p>
+          <p className="text-xs text-dim">
+            Blocking is private — they aren&apos;t notified.
+          </p>
+          {blockMutation.error && (
+            <Alert>{blockMutation.error instanceof Error ? blockMutation.error.message : "Couldn't block. Try again."}</Alert>
+          )}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowBlockConfirm(false)}
+              className="flex-1 py-2.5 bg-surface-alt text-secondary rounded-lg text-sm font-medium hover:bg-border transition-colors"
+              disabled={blockMutation.isPending}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => blockMutation.mutate()}
+              disabled={blockMutation.isPending}
+              className="flex-1 py-2.5 bg-error text-white rounded-lg text-sm font-medium disabled:opacity-40 hover:opacity-90 transition-opacity"
+            >
+              {blockMutation.isPending ? "Blocking..." : "Block user"}
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

@@ -7,6 +7,7 @@ import { api, imageUrl } from "@/lib/api";
 import { useAuth } from "@/contexts/auth";
 import { useProfile } from "@/contexts/profile";
 import { BackButton, PageSpinner, EmptyState, Avatar, StarRatingDisplay, Alert, VerifiedBadge } from "@/components/ui";
+import { ReportModal } from "@/components/ReportModal";
 import Link from "next/link";
 
 type ListingImage = {
@@ -86,6 +87,7 @@ export default function ListingDetailPage() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
   const [currentImg, setCurrentImg] = useState(0);
+  const [showReport, setShowReport] = useState(false);
 
   const { data: listing, isLoading: loading } = useQuery<Listing>({
     queryKey: ["listing", params.id],
@@ -485,7 +487,28 @@ export default function ListingDetailPage() {
             </span>
           </div>
         )}
+
+        {/* Safety: report button for non-owners */}
+        {!isOwner && (
+          <div className="text-center pt-4 pb-2">
+            <button
+              onClick={() => setShowReport(true)}
+              className="text-xs text-dim hover:text-error transition-colors inline-flex items-center gap-1"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><line x1="4" y1="22" x2="4" y2="15" /></svg>
+              Report this listing
+            </button>
+          </div>
+        )}
       </div>
+
+      <ReportModal
+        open={showReport}
+        onClose={() => setShowReport(false)}
+        targetType="listing"
+        targetId={listing.id}
+        context={listing.title}
+      />
     </div>
   );
 }

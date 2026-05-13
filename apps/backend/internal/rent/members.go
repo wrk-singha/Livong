@@ -187,7 +187,7 @@ func (h *Handler) GetMatchedUsers(c *gin.Context) {
 	}
 	defer rows.Close()
 
-	var users []map[string]interface{}
+	users := []map[string]interface{}{}
 	for rows.Next() {
 		var id, name string
 		if rows.Scan(&id, &name) == nil {

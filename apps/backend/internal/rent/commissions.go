@@ -71,7 +71,7 @@ func (h *Handler) GetCommissions(c *gin.Context) {
 	}
 	defer rows.Close()
 
-	var commissions []map[string]interface{}
+	commissions := []map[string]interface{}{}
 	for rows.Next() {
 		var id, month, status string
 		var amount int

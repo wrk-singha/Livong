@@ -53,7 +53,7 @@ func (h *Handler) GetMessages(c *gin.Context) {
 	}
 	defer rows.Close()
 
-	var messages []map[string]interface{}
+	messages := []map[string]interface{}{}
 	for rows.Next() {
 		var id, senderID, message, messageType string
 		var createdAt sql.NullTime

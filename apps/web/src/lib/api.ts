@@ -386,4 +386,30 @@ export const api = {
       method: "DELETE",
       body: JSON.stringify({ confirm }),
     }),
+
+  // Safety: reports + blocks
+  reportTarget: (params: {
+    targetType: "listing" | "profile" | "message";
+    targetId: string;
+    reason: "spam" | "harassment" | "scam" | "fake_profile" | "inappropriate" | "other";
+    details?: string;
+  }) =>
+    request<{ id: string; message: string }>("/reports", {
+      method: "POST",
+      body: JSON.stringify(params),
+    }),
+
+  blockUser: (blockedId: string) =>
+    request<{ message: string }>("/blocks", {
+      method: "POST",
+      body: JSON.stringify({ blockedId }),
+    }),
+
+  unblockUser: (userId: string) =>
+    request<{ message: string }>(`/blocks/${userId}`, {
+      method: "DELETE",
+    }),
+
+  getBlockedUsers: () =>
+    request<{ userId: string; name: string; createdAt?: string }[]>("/blocks"),
 };

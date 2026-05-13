@@ -62,7 +62,7 @@ func (h *Handler) GetListings(c *gin.Context) {
 	}
 	defer rows.Close()
 
-	var listings []map[string]interface{}
+	listings := []map[string]interface{}{}
 	for rows.Next() {
 		var id, userID, title, location, propertyType string
 		var description sql.NullString
@@ -158,7 +158,7 @@ func (h *Handler) GetListing(c *gin.Context) {
 		SELECT id, filename, position FROM listing_images
 		WHERE listing_id = $1 ORDER BY position, created_at
 	`, id)
-	var images []map[string]interface{}
+	images := []map[string]interface{}{}
 	if err == nil {
 		defer rows.Close()
 		for rows.Next() {
@@ -368,7 +368,7 @@ func (h *Handler) UploadImages(c *gin.Context) {
 	var maxPos int
 	h.db.QueryRow(`SELECT COALESCE(MAX(position), -1) FROM listing_images WHERE listing_id = $1`, listingID).Scan(&maxPos)
 
-	var uploaded []map[string]interface{}
+	uploaded := []map[string]interface{}{}
 	for i, file := range files {
 		if file.Size > 5*1024*1024 {
 			continue // skip files > 5MB

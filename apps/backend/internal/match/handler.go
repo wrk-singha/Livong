@@ -31,7 +31,7 @@ func (h *Handler) GetMatches(c *gin.Context) {
 	}
 	defer rows.Close()
 
-	var matches []map[string]interface{}
+	matches := []map[string]interface{}{}
 	for rows.Next() {
 		var matchID, listingID, matchedUserID string
 		var createdAt sql.NullTime

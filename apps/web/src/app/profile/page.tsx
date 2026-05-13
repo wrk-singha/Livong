@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, imageUrl } from "@/lib/api";
 import { PageTitle } from "@/lib/PageTitle";
 import { useAuth } from "@/contexts/auth";
@@ -428,6 +428,9 @@ export default function ProfilePage() {
           })}
         </div>
 
+        {/* Blocked users — collapsed by default, only shown if any exist */}
+        <BlockedUsersSection />
+
         {/* Danger zone */}
         <div className="mt-8 pt-6 border-t border-border-light space-y-2">
           <button
@@ -515,5 +518,46 @@ function DeleteAccountModal({
         </div>
       </div>
     </Modal>
+  );
+}
+
+function BlockedUsersSection() {
+  const queryClient = useQueryClient();
+  const { data: blocked = [], isLoading } = useQuery({
+    queryKey: ["blocked-users"],
+    queryFn: () => api.getBlockedUsers(),
+  });
+  const unblockMutation = useMutation({
+    mutationFn: (userId: string) => api.unblockUser(userId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["blocked-users"] }),
+  });
+
+  if (isLoading || blocked.length === 0) return null;
+
+  return (
+    <div className="mt-8 pt-6 border-t border-border-light">
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-dim mb-3">
+        Blocked users ({blocked.length})
+      </h3>
+      <div className="space-y-2">
+        {blocked.map((u) => (
+          <div key={u.userId} className="flex items-center justify-between bg-surface-alt rounded-lg px-3 py-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-7 h-7 rounded-full bg-surface flex items-center justify-center text-[11px] font-semibold text-muted shrink-0">
+                {u.name.charAt(0).toUpperCase()}
+              </div>
+              <span className="text-sm text-secondary truncate">{u.name}</span>
+            </div>
+            <button
+              onClick={() => unblockMutation.mutate(u.userId)}
+              disabled={unblockMutation.isPending}
+              className="text-xs text-accent hover:underline disabled:opacity-40 shrink-0"
+            >
+              Unblock
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

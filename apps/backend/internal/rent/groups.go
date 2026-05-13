@@ -145,7 +145,7 @@ func (h *Handler) GetGroups(c *gin.Context) {
 	}
 	defer rows.Close()
 
-	var groups []map[string]interface{}
+	groups := []map[string]interface{}{}
 	for rows.Next() {
 		var id, createdBy string
 		var listingID, name, listingTitle, listingLocation, commType sql.NullString
@@ -248,7 +248,7 @@ func (h *Handler) GetGroup(c *gin.Context) {
 	now := time.Now()
 	currentMonth := fmt.Sprintf("%d-%02d", now.Year(), now.Month())
 
-	var members []map[string]interface{}
+	members := []map[string]interface{}{}
 	for memberRows.Next() {
 		var mUserID, role, memberName string
 		var shareAmount int

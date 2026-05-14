@@ -86,9 +86,13 @@ test.describe("Feature flags", () => {
     );
     await page.goto("/explore");
 
-    // Explore + Matches + Profile are always-on. List + Rent should be hidden.
-    // Use sidebar (desktop) — both projects render it on the desktop viewport.
-    await expect(page.getByRole("link", { name: /explore/i }).first()).toBeVisible({ timeout: 5000 });
+    // Confirm we got past auth-redirect (i.e. landed on /explore with nav rendered).
+    // Use the page heading instead of the nav link because the mobile bottom
+    // nav uses aria-label for accessibility (the `tip` text), not the visible
+    // label — so "name: /explore/i" misses on mobile.
+    await expect(page.getByRole("heading", { name: /^explore$/i })).toBeVisible({ timeout: 5000 });
+
+    // The two flag-gated nav items should be absent from every nav surface.
     await expect(page.getByRole("link", { name: /^list$/i })).toHaveCount(0);
     await expect(page.getByRole("link", { name: /^rent$/i })).toHaveCount(0);
   });

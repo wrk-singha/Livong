@@ -6,7 +6,7 @@
 
 import { execSync, spawn } from "child_process";
 import { createInterface } from "readline";
-import { existsSync } from "fs";
+import { existsSync, readFileSync, writeFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import os from "os";
@@ -548,6 +548,107 @@ async function fresh() {
   await startAll();
 }
 
+// ── Tunnel ──────────────────────────────────────
+
+// Spawn `cloudflared tunnel --url http://localhost:<port>` and resolve once
+// the public *.trycloudflare.com URL appears in stderr. Keeps the child
+// running — caller is responsible for killing it (we wire SIGINT below).
+function startQuickTunnel(port) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(
+      "cloudflared",
+      ["tunnel", "--url", `http://localhost:${port}`],
+      { stdio: ["ignore", "pipe", "pipe"] }
+    );
+    child.on("error", (e) => reject(e));
+    let resolved = false;
+    const onChunk = (buf) => {
+      const m = buf.toString().match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/);
+      if (m && !resolved) {
+        resolved = true;
+        resolve({ url: m[0], child });
+      }
+    };
+    child.stdout.on("data", onChunk);
+    child.stderr.on("data", onChunk);
+    setTimeout(() => {
+      if (!resolved) reject(new Error(`tunnel for :${port} didn't print a URL in 30s`));
+    }, 30000);
+  });
+}
+
+// One-shot helper: write/replace a single KEY=value line in a .env file.
+// Pass an empty `value` to remove the line entirely (used on tunnel cleanup
+// so local dev returns to localhost).
+function setEnvLine(path, key, value) {
+  let body = "";
+  try { body = readFileSync(path, "utf8"); } catch {}
+  const lines = body.split("\n").filter((l) => l && !l.startsWith(`${key}=`));
+  if (value) lines.push(`${key}=${value}`);
+  writeFileSync(path, lines.length ? lines.join("\n") + "\n" : "");
+}
+
+async function tunnel() {
+  title("Cloudflare Tunnel — Tester URL");
+
+  // 1. Need cloudflared.
+  try {
+    execSync("cloudflared --version", { stdio: "ignore" });
+  } catch {
+    fail("cloudflared not installed");
+    info("Install with: brew install cloudflared");
+    info("Then re-run: ./livong tunnel");
+    process.exit(1);
+  }
+
+  // 2. Need backend + frontend up.
+  if (!isPortUsed(BACKEND_PORT) || !isPortUsed(WEB_PORT)) {
+    warn("Backend or frontend not running — starting them now");
+    await startAll();
+    // Give Next.js a beat to actually serve.
+    await sleep(3000);
+  }
+
+  // 3. Tunnel the backend, then point the frontend at the tunneled URL.
+  info("Starting backend tunnel…");
+  const back = await startQuickTunnel(BACKEND_PORT);
+  ok(`Backend public URL: ${back.url}`);
+
+  const envPath = join(WEB_DIR, ".env.local");
+  setEnvLine(envPath, "NEXT_PUBLIC_API_URL", back.url);
+  ok(`Wrote NEXT_PUBLIC_API_URL → ${envPath}`);
+
+  info("Restarting frontend so it picks up the new API URL…");
+  await webRestart();
+  await sleep(3000);
+
+  // 4. Tunnel the frontend itself — that's the URL testers visit.
+  info("Starting frontend tunnel…");
+  const front = await startQuickTunnel(WEB_PORT);
+
+  console.log("");
+  console.log(`${c.bold}${c.g}━━━ Send this URL to testers ━━━${c.nc}`);
+  console.log("");
+  console.log(`  ${c.bold}${front.url}${c.nc}`);
+  console.log("");
+  console.log(`  Backend tunnel: ${c.b}${back.url}${c.nc}`);
+  console.log("");
+  console.log(`  ${c.y}Keep this terminal open. Ctrl+C to stop.${c.nc}`);
+  console.log(`  ${c.y}URLs die when this exits or your Mac sleeps.${c.nc}`);
+  console.log("");
+
+  // Restore .env.local on exit (any path — Ctrl+C, kill, crash) so the next
+  // local dev session doesn't keep calling the dead tunnel URL.
+  // `exit` runs synchronously after the existing SIGINT handler (which
+  // calls stopAll + process.exit). Children get SIGHUP automatically.
+  process.on("exit", () => {
+    setEnvLine(envPath, "NEXT_PUBLIC_API_URL", "");
+  });
+
+  // Block forever — the tunnels are children of this process.
+  await new Promise(() => {});
+}
+
 // ── Interactive Menu ────────────────────────────
 
 async function interactiveMenu() {
@@ -683,6 +784,7 @@ const COMMANDS = {
   "test:web": testWeb,
   "test:admin": testAdmin,
   seed: seed,
+  tunnel: tunnel,
   menu: interactiveMenu,
   interactive: interactiveMenu,
   help: interactiveMenu,

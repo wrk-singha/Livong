@@ -32,6 +32,7 @@ Always prefer the CLI over raw commands:
 ./livong test            # run all tests (Go + Playwright)
 ./livong test:backend    # Go tests only
 ./livong test:web        # Playwright e2e only
+./livong tunnel          # public Cloudflare tunnel for testers (see docs/tunnel.md)
 ```
 
 ## Authenticated Playwright tests

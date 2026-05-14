@@ -8,6 +8,16 @@ import { PageTitle } from "@/lib/PageTitle";
 import { useAuth } from "@/contexts/auth";
 import { useProfile, type Profile } from "@/contexts/profile";
 import { Input, Alert, Modal } from "@/components/ui";
+import {
+  Cigarette,
+  Beer,
+  Sparkles,
+  Moon,
+  Briefcase,
+  PawPrint,
+  UtensilsCrossed,
+  type LucideIcon,
+} from "lucide-react";
 
 const PREF_OPTIONS: Record<string, string[]> = {
   smoking: ["yes", "no", "occasionally"],
@@ -29,14 +39,18 @@ const LABELS: Record<string, string> = {
   foodPreference: "Food Preference",
 };
 
-const ICONS: Record<string, string> = {
-  smoking: "🚬",
-  drinking: "🍺",
-  cleanliness: "✨",
-  sleepSchedule: "🌙",
-  workSchedule: "💼",
-  pets: "🐾",
-  foodPreference: "🍽️",
+// Lucide icons instead of emojis: emojis render with the user's OS-specific
+// font (Apple vs Google vs Samsung vs Xiaomi all differ), so users see
+// inconsistent shapes for the same preference. SVG icons are pixel-identical
+// everywhere AND pick up the current text color via stroke="currentColor".
+const ICONS: Record<string, LucideIcon> = {
+  smoking: Cigarette,
+  drinking: Beer,
+  cleanliness: Sparkles,
+  sleepSchedule: Moon,
+  workSchedule: Briefcase,
+  pets: PawPrint,
+  foodPreference: UtensilsCrossed,
 };
 
 // Deterministic gradient picker for the default avatar — same name always
@@ -331,7 +345,10 @@ export default function ProfilePage() {
                     shows the current value — duplicating it as a top-right
                     badge added visual noise without info. */}
                 <div className="flex items-center gap-2 mb-2.5">
-                  <span className="text-sm">{ICONS[key]}</span>
+                  {(() => {
+                    const Icon = ICONS[key];
+                    return <Icon size={16} strokeWidth={1.75} className="text-muted shrink-0" />;
+                  })()}
                   <label className="text-sm font-medium text-secondary">
                     {LABELS[key]}
                   </label>

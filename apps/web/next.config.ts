@@ -31,7 +31,11 @@ const csp = isDev
     ].join("; ");
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ["192.168.1.16"],
+  // 192.168.1.16: LAN phone testing. trycloudflare.com: testers via `./livong
+  // tunnel`. Next.js dev mode rejects asset/HMR requests from origins not
+  // listed here — without trycloudflare, public tunnel URLs serve HTML but
+  // _next/static chunks 404, producing a blank white screen on testers' phones.
+  allowedDevOrigins: ["192.168.1.16", "*.trycloudflare.com"],
   output: "standalone",
   experimental: {
     // Tree-shake named imports from these packages so the client bundle

@@ -63,7 +63,8 @@ export function ensureConnected(): Promise<void> {
   if (socket && socket.readyState === ReconnectingWS.OPEN) return Promise.resolve();
   if (connectingPromise) return connectingPromise;
 
-  connectingPromise = (async () => {
+  connectingPromise = new Promise<void>((resolve, reject) => {
+    let opened = false;
     try {
       // The url-provider is called on every (re)connect attempt — perfect
       // place to mint a fresh single-use ticket each time.
@@ -85,10 +86,29 @@ export function ensureConnected(): Promise<void> {
           // Ignore malformed messages — server only sends JSON.
         }
       });
-    } finally {
-      connectingPromise = null;
+      // Resolve only after the actual OPEN — earlier we resolved on object
+      // creation, which let consumers send messages before the handshake
+      // finished. partysocket buffers but our authz subscribe needs to land
+      // BEFORE any broadcast can include this client.
+      socket.addEventListener("open", () => {
+        if (opened) return;
+        opened = true;
+        // Expose a window flag so e2e tests can deterministically wait for
+        // "WS truly open" instead of guessing with arbitrary timeouts.
+        if (typeof window !== "undefined") {
+          (window as unknown as { __livongWsOpen?: boolean }).__livongWsOpen = true;
+        }
+        resolve();
+      });
+      // Don't reject on error — partysocket retries automatically. The
+      // open listener will fire when reconnect succeeds. If the consumer
+      // wants a deadline, they wrap this with their own timeout.
+    } catch (e) {
+      reject(e);
     }
-  })();
+  }).finally(() => {
+    connectingPromise = null;
+  });
   return connectingPromise;
 }
 
@@ -121,4 +141,7 @@ export function disconnect() {
   socket?.close();
   socket = null;
   listeners.clear();
+  if (typeof window !== "undefined") {
+    (window as unknown as { __livongWsOpen?: boolean }).__livongWsOpen = false;
+  }
 }

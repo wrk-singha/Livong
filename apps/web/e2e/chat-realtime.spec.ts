@@ -57,17 +57,26 @@ test.describe("Chat real-time delivery (WebSocket)", () => {
     await pageA.goto(`/chat/${matchId}`);
     await pageB.goto(`/chat/${matchId}`);
 
-    // Wait for both pages to render the input — proxy for "WS likely connected".
-    // partysocket auto-connects on first ensureConnected() call, which the
-    // useChatStream hook fires on mount.
+    // Wait for both pages to render the input AND for the WS singleton to
+    // report OPEN. The window.__livongWsOpen flag is set by lib/ws.ts in the
+    // socket's "open" handler — using it here is deterministic where a fixed
+    // sleep was prod-build-flaky (handshake takes longer in fresh prod).
     await pageA.waitForSelector('input[placeholder="Type a message..."]', { timeout: 5000 });
     await pageB.waitForSelector('input[placeholder="Type a message..."]', { timeout: 5000 });
-
-    // Give partysocket a beat to actually open the connection + subscribe.
-    // 750ms is comfortable under the 5s polling threshold so we don't accidentally
-    // give polling a head start on the assertion below.
-    await pageA.waitForTimeout(750);
-    await pageB.waitForTimeout(750);
+    await pageA.waitForFunction(
+      () => (window as unknown as { __livongWsOpen?: boolean }).__livongWsOpen === true,
+      { timeout: 10000 }
+    );
+    await pageB.waitForFunction(
+      () => (window as unknown as { __livongWsOpen?: boolean }).__livongWsOpen === true,
+      { timeout: 10000 }
+    );
+    // One more beat so the subscribe message we send right after ensureConnected
+    // resolves has actually landed at the server before the broadcast fires.
+    // Cheap insurance against the gap between "OPEN fired" and "subscribe RTT
+    // completes" — the latter is sub-50ms but non-zero.
+    await pageA.waitForTimeout(150);
+    await pageB.waitForTimeout(150);
 
     const uniqueText = `realtime-test-${Date.now()}`;
 

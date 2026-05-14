@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV !== "production";
 const apiOrigin = process.env.NEXT_PUBLIC_API_URL || "http://localhost:6980";
+// CSP `connect-src` needs the scheme to match — http://host doesn't cover
+// ws://host. Derive the WS origin from the API origin (http→ws, https→wss).
+const wsOrigin = apiOrigin.replace(/^http/, "ws");
 
 const csp = isDev
   ? [
@@ -20,7 +23,7 @@ const csp = isDev
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline'",
       `img-src 'self' data: blob: ${apiOrigin}`,
-      `connect-src 'self' ${apiOrigin}`,
+      `connect-src 'self' ${apiOrigin} ${wsOrigin}`,
       "font-src 'self'",
       "frame-ancestors 'none'",
       "base-uri 'self'",

@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { PageTitle } from "@/lib/PageTitle";
 import { useAuth } from "@/contexts/auth";
+import { useChatStream } from "@/lib/useChatStream";
 import { Modal, StarRatingPicker, Avatar, BackButton, Alert } from "@/components/ui";
 import { ReportModal } from "@/components/ReportModal";
 
@@ -65,7 +66,7 @@ export default function ChatPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const lastTimestampRef = useRef<string>("");
 
-  const fetchMessages = async (since?: string) => {
+  const fetchMessages = useCallback(async (since?: string) => {
     try {
       const data = await api.getMessages(matchId, since);
       if (since && data.length > 0) {
@@ -105,16 +106,27 @@ export default function ChatPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [matchId]);
+
+  // WS push: when the server tells us there are new messages for this match,
+  // immediately fetch the delta. Hook returns connected=true once subscribed,
+  // which we use to stretch the polling interval (60s safety net) instead of
+  // dropping it entirely — covers WS gaps without doubling the work.
+  const onWSInvalidate = useCallback(() => {
+    fetchMessages(lastTimestampRef.current || undefined);
+  }, [fetchMessages]);
+  const { connected: wsConnected } = useChatStream(matchId, onWSInvalidate);
 
   useEffect(() => {
     fetchMessages();
+    // 5s when WS is down (close to live feel), 60s when WS is doing the work
+    // (just a heartbeat/safety net in case a push was missed).
+    const intervalMs = wsConnected ? 60000 : 5000;
     const interval = setInterval(() => {
       fetchMessages(lastTimestampRef.current || undefined);
-    }, 5000);
+    }, intervalMs);
     return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [matchId]);
+  }, [matchId, fetchMessages, wsConnected]);
 
   useEffect(() => {
     api.getMatches().then((matches) => {

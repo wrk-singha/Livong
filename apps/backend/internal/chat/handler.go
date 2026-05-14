@@ -6,14 +6,29 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rohit/livong-backend/internal/ws"
 )
 
 type Handler struct {
-	db *sql.DB
+	db  *sql.DB
+	hub *ws.Hub // optional — nil-safe; broadcast no-ops if not wired
 }
 
-func NewHandler(db *sql.DB) *Handler {
-	return &Handler{db: db}
+func NewHandler(db *sql.DB, hub *ws.Hub) *Handler {
+	return &Handler{db: db, hub: hub}
+}
+
+// notifyMessages tells subscribers of "messages:<matchId>" that there's
+// something new. Pushes only an invalidation envelope — the client refetches
+// via the existing GET /messages/:matchId. Keeps REST as source of truth.
+func (h *Handler) notifyMessages(matchID string) {
+	if h.hub == nil {
+		return
+	}
+	h.hub.Broadcast("messages:"+matchID, ws.Event{
+		Type:   "invalidate",
+		Entity: []string{"messages", matchID},
+	})
 }
 
 func (h *Handler) GetMessages(c *gin.Context) {
@@ -123,6 +138,7 @@ func (h *Handler) SendMessage(c *gin.Context) {
 		return
 	}
 
+	h.notifyMessages(req.MatchID)
 	c.JSON(http.StatusCreated, gin.H{"id": id})
 }
 
@@ -172,5 +188,6 @@ func (h *Handler) ShareContact(c *gin.Context) {
 		return
 	}
 
+	h.notifyMessages(req.MatchID)
 	c.JSON(http.StatusCreated, gin.H{"id": id, "messageType": "contact_share"})
 }

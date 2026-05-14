@@ -46,6 +46,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("userId");
     setToken(null);
     setUserId(null);
+    // Tear down the chat WebSocket so the next user doesn't inherit a
+    // connection authenticated as the previous one. Lazy-import to avoid
+    // pulling partysocket into the auth bundle on first paint.
+    import("@/lib/ws").then((m) => m.disconnect()).catch(() => {});
   }, []);
 
   return (

@@ -18,6 +18,7 @@ import (
 	"github.com/rohit/livong-backend/internal/report"
 	"github.com/rohit/livong-backend/internal/review"
 	"github.com/rohit/livong-backend/internal/user"
+	"github.com/rohit/livong-backend/internal/ws"
 
 	"github.com/gin-gonic/gin"
 )
@@ -35,6 +36,12 @@ func main() {
 		log.Fatalf("Failed to run migrations: %v", err)
 	}
 
+	// WebSocket infra — single in-process hub. When we add a 2nd VM, swap
+	// in-handler hub.Broadcast for pg_notify + a LISTEN goroutine in this
+	// package; no API surface change. See internal/ws/hub.go.
+	wsHub := ws.NewHub()
+	wsTickets := ws.NewTicketStore()
+
 	router := gin.Default()
 
 	// CORS middleware
@@ -42,6 +49,12 @@ func main() {
 
 	// Serve uploaded images
 	router.Static("/uploads", "./uploads")
+
+	// WebSocket accept — public route (auth via single-use ticket in query).
+	// Browsers can't set Authorization on a WS open; ticket pattern is the
+	// modern alternative to JWT-in-URL. See internal/ws/ticket.go.
+	wsHandler := ws.NewHandler(wsHub, wsTickets, db)
+	router.GET("/chat/ws", wsHandler.Accept)
 
 	// Public routes
 	authHandler := auth.NewHandler(db)
@@ -97,10 +110,14 @@ func main() {
 		protected.GET("/matches", matchHandler.GetMatches)
 
 		// Messages
-		chatHandler := chat.NewHandler(db)
+		chatHandler := chat.NewHandler(db, wsHub)
 		protected.GET("/messages/:matchId", chatHandler.GetMessages)
 		protected.POST("/messages", chatHandler.SendMessage)
 		protected.POST("/messages/share-contact", chatHandler.ShareContact)
+
+		// WS ticket — issue behind normal JWT middleware. Client immediately
+		// opens GET /chat/ws?ticket=<token> with the returned token.
+		protected.POST("/chat/ws-ticket", wsHandler.IssueTicket)
 
 		// Reviews
 		reviewHandler := review.NewHandler(db)

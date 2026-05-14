@@ -310,6 +310,43 @@ Response:
 
 ---
 
+## Real-time (WebSocket)
+
+The chat page uses a WebSocket to push *invalidation events* — the client refetches via the existing REST endpoints when it sees one. Falls back to 5s polling if the WS can't connect.
+
+### POST /chat/ws-ticket
+Exchange the bearer JWT for a single-use ticket. Browsers can't set custom headers on a WebSocket open, so the ticket is what goes in the WS URL.
+
+Request: empty body, requires `Authorization: Bearer <jwt>`.
+
+Response:
+```json
+{ "ticket": "hex-string", "expiresIn": 30 }
+```
+
+> Ticket is single-use, 30s TTL. Burned on the next `/chat/ws` accept.
+
+### GET /chat/ws?ticket=...
+Upgrade to WebSocket. No auth header — the ticket query param IS the auth.
+
+Client → server messages:
+```json
+{ "type": "subscribe",   "topic": "messages:<matchId>" }
+{ "type": "unsubscribe", "topic": "messages:<matchId>" }
+{ "type": "ping" }
+```
+
+Server → client events:
+```json
+{ "type": "invalidate", "entity": ["messages", "<matchId>"] }
+{ "type": "pong" }
+{ "type": "error",      "entity": ["subscribe-denied", "<topic>"] }
+```
+
+> Subscribe authz: `messages:<matchId>` requires the user to be in that match. The server enforces this at subscribe time, not at broadcast time.
+
+---
+
 ## Rent Tracking & Broker Commissions
 
 ### POST /rent-groups

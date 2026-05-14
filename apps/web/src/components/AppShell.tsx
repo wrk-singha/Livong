@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth";
 import { useTheme } from "@/contexts/theme";
+import { useFlags, FLAG_KEYS } from "@/contexts/flags";
 
 function LogoutIcon() {
   return (
@@ -100,6 +101,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { isAuthenticated, hydrated, logout } = useAuth();
   const { theme, toggle } = useTheme();
+  const { isEnabled } = useFlags();
+
+  // Filter nav items by feature flags so admin-disabled features just
+  // disappear from the menu (vs. linking to a 503'd endpoint).
+  const visibleNavItems = navItems.filter((item) => {
+    if (item.href === "/create-listing") return isEnabled(FLAG_KEYS.CREATE_LISTING);
+    if (item.href === "/rent") return isEnabled(FLAG_KEYS.RENT);
+    return true;
+  });
 
   // Hide chrome on chat (full-screen conversation) AND on /profile/setup
   // (no nav to dodge during onboarding — user must complete the form first).
@@ -136,7 +146,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
           {/* Nav links */}
           <nav className="flex-1 px-3 space-y-0.5">
-            {navItems.map((item) => {
+            {visibleNavItems.map((item) => {
               const active = pathname.startsWith(item.href);
               return (
                 <Link
@@ -216,7 +226,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {showNav && !isChat && (
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface border-t border-border pb-[env(safe-area-inset-bottom)]">
           <div className="max-w-md mx-auto flex justify-around py-1">
-            {navItems.map((item) => {
+            {visibleNavItems.map((item) => {
               const active = pathname.startsWith(item.href);
               return (
                 <Link

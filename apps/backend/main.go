@@ -8,6 +8,7 @@ import (
 	"github.com/rohit/livong-backend/internal/block"
 	"github.com/rohit/livong-backend/internal/chat"
 	"github.com/rohit/livong-backend/internal/database"
+	"github.com/rohit/livong-backend/internal/flags"
 	"github.com/rohit/livong-backend/internal/interest"
 	"github.com/rohit/livong-backend/internal/listing"
 	"github.com/rohit/livong-backend/internal/match"
@@ -42,10 +43,28 @@ func main() {
 	wsHub := ws.NewHub()
 	wsTickets := ws.NewTicketStore()
 
+	// Feature flags — admin-toggleable kill switches with 5s cache.
+	flagStore := flags.NewStore(db)
+	flagHandler := flags.NewHandler(flagStore)
+
 	router := gin.Default()
 
 	// CORS middleware
 	router.Use(middleware.CORS())
+
+	// Maintenance-mode gate. Runs before everything else. Exempt routes (auth,
+	// flags read, ws ticket exchange) stay alive so admins can flip it off
+	// and users can finish in-progress logins.
+	router.Use(flags.MaintenanceMiddleware(flagStore, map[string]bool{
+		"/auth/login":      true,
+		"/auth/verify-otp": true,
+		"/auth/_dev-login": true,
+		"/flags":           true,
+		"/chat/ws":         true, // WS connect must work to receive maintenance state
+	}))
+
+	// Public flags endpoint — frontend hits this on boot to gate UI.
+	router.GET("/flags", flagHandler.GetFlags)
 
 	// Serve uploaded images
 	router.Static("/uploads", "./uploads")
@@ -81,18 +100,19 @@ func main() {
 		protected.POST("/profile", profileHandler.CreateProfile)
 		protected.PATCH("/profile", profileHandler.UpdateProfile)
 		protected.POST("/profile/avatar", profileHandler.UploadAvatar)
-		protected.DELETE("/account", profileHandler.DeleteAccount)
+		protected.DELETE("/account", flags.Guard(flagStore, flags.ProfileDeleteEnabled), profileHandler.DeleteAccount)
 
-		// Listings
+		// Listings — reads are always on; only NEW listings gate behind the flag.
 		listingHandler := listing.NewHandler(db)
 		protected.GET("/listings", listingHandler.GetListings)
 		protected.GET("/listings/:id", listingHandler.GetListing)
-		protected.POST("/listings", listingHandler.CreateListing)
-		protected.POST("/listings/:id/images", listingHandler.UploadImages)
+		protected.POST("/listings", flags.Guard(flagStore, flags.CreateListingEnabled), listingHandler.CreateListing)
+		protected.POST("/listings/:id/images", flags.Guard(flagStore, flags.CreateListingEnabled), listingHandler.UploadImages)
 
-		// Interests
+		// Interests — gate sending; reading received interests stays on so
+		// owners can clear their inbox even while sending is paused.
 		interestHandler := interest.NewHandler(db)
-		protected.POST("/interests", interestHandler.SendInterest)
+		protected.POST("/interests", flags.Guard(flagStore, flags.InterestsEnabled), interestHandler.SendInterest)
 		protected.GET("/interests/received", interestHandler.GetReceived)
 		protected.PATCH("/interests/:id", interestHandler.UpdateInterest)
 
@@ -109,11 +129,12 @@ func main() {
 		matchHandler := match.NewHandler(db)
 		protected.GET("/matches", matchHandler.GetMatches)
 
-		// Messages
+		// Messages — gate writes; reads stay on so users can see history of a
+		// conversation while sending is paused.
 		chatHandler := chat.NewHandler(db, wsHub)
 		protected.GET("/messages/:matchId", chatHandler.GetMessages)
-		protected.POST("/messages", chatHandler.SendMessage)
-		protected.POST("/messages/share-contact", chatHandler.ShareContact)
+		protected.POST("/messages", flags.Guard(flagStore, flags.ChatEnabled), chatHandler.SendMessage)
+		protected.POST("/messages/share-contact", flags.Guard(flagStore, flags.ChatEnabled), chatHandler.ShareContact)
 
 		// WS ticket — issue behind normal JWT middleware. Client immediately
 		// opens GET /chat/ws?ticket=<token> with the returned token.
@@ -134,21 +155,23 @@ func main() {
 		protected.PUT("/listings/:id/pg-details", pgHandler.Upsert)
 		protected.GET("/listings/:id/pg-details", pgHandler.Get)
 
-		// Rent
+		// Rent — gate the whole sub-API behind one flag. Reads + writes both
+		// blocked when rent_enabled=false (testers don't need partial access).
+		rentGroup := protected.Group("/", flags.Guard(flagStore, flags.RentEnabled))
 		rentHandler := rent.NewHandler(db)
-		protected.POST("/rent-groups", rentHandler.CreateGroup)
-		protected.GET("/rent-groups", rentHandler.GetGroups)
-		protected.GET("/rent-groups/:id", rentHandler.GetGroup)
-		protected.DELETE("/rent-groups/:id", rentHandler.DeleteGroup)
-		protected.POST("/rent-groups/:id/members", rentHandler.AddMember)
-		protected.DELETE("/rent-groups/:id/members/:userId", rentHandler.RemoveMember)
-		protected.PATCH("/rent-groups/:id/members/:userId", rentHandler.UpdateMember)
-		protected.GET("/rent-groups/:id/matched-users", rentHandler.GetMatchedUsers)
-		protected.POST("/rent-groups/:id/payments", rentHandler.RecordPayment)
-		protected.GET("/rent-groups/:id/payments", rentHandler.GetPayments)
-		protected.PATCH("/rent-payments/:paymentId/verify", rentHandler.VerifyPayment)
-		protected.GET("/rent-groups/:id/commissions", rentHandler.GetCommissions)
-		protected.PATCH("/rent-commissions/:commissionId/collect", rentHandler.CollectCommission)
+		rentGroup.POST("/rent-groups", rentHandler.CreateGroup)
+		rentGroup.GET("/rent-groups", rentHandler.GetGroups)
+		rentGroup.GET("/rent-groups/:id", rentHandler.GetGroup)
+		rentGroup.DELETE("/rent-groups/:id", rentHandler.DeleteGroup)
+		rentGroup.POST("/rent-groups/:id/members", rentHandler.AddMember)
+		rentGroup.DELETE("/rent-groups/:id/members/:userId", rentHandler.RemoveMember)
+		rentGroup.PATCH("/rent-groups/:id/members/:userId", rentHandler.UpdateMember)
+		rentGroup.GET("/rent-groups/:id/matched-users", rentHandler.GetMatchedUsers)
+		rentGroup.POST("/rent-groups/:id/payments", rentHandler.RecordPayment)
+		rentGroup.GET("/rent-groups/:id/payments", rentHandler.GetPayments)
+		rentGroup.PATCH("/rent-payments/:paymentId/verify", rentHandler.VerifyPayment)
+		rentGroup.GET("/rent-groups/:id/commissions", rentHandler.GetCommissions)
+		rentGroup.PATCH("/rent-commissions/:commissionId/collect", rentHandler.CollectCommission)
 	}
 
 	port := os.Getenv("PORT")

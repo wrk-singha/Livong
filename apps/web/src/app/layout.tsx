@@ -4,9 +4,11 @@ import dynamic from "next/dynamic";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/auth";
 import { ThemeProvider } from "@/contexts/theme";
+import { FlagsProvider } from "@/contexts/flags";
 import { QueryProvider } from "@/lib/query";
 import AppShell from "@/components/AppShell";
 import { ConsentBanner } from "@/components/ConsentBanner";
+import { MaintenanceGate } from "@/components/MaintenanceGate";
 import { PageTitle } from "@/lib/PageTitle";
 
 // SW registration is non-critical and runs after first paint — lazy-load
@@ -77,9 +79,13 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <QueryProvider>
-              <ServiceWorkerRegistrar />
-              <AppShell>{children}</AppShell>
-              <ConsentBanner />
+              <FlagsProvider>
+                <ServiceWorkerRegistrar />
+                <MaintenanceGate>
+                  <AppShell>{children}</AppShell>
+                </MaintenanceGate>
+                <ConsentBanner />
+              </FlagsProvider>
             </QueryProvider>
           </AuthProvider>
         </ThemeProvider>

@@ -7,6 +7,7 @@ import (
 	"github.com/rohit/livong-admin-backend/internal/admin"
 	"github.com/rohit/livong-admin-backend/internal/auth"
 	"github.com/rohit/livong-admin-backend/internal/database"
+	"github.com/rohit/livong-admin-backend/internal/flags"
 	"github.com/rohit/livong-admin-backend/internal/middleware"
 
 	"github.com/gin-gonic/gin"
@@ -60,6 +61,12 @@ func main() {
 		adminGroup.GET("/analytics", adminHandler.GetAnalytics)
 		adminGroup.GET("/reports", adminHandler.GetReports)
 		adminGroup.PATCH("/reports/:id", adminHandler.UpdateReport)
+
+		// Feature flags — read/write to the shared feature_flags table. The
+		// main backend picks up changes within its 5s cache TTL, no restart.
+		flagsHandler := flags.NewHandler(db)
+		adminGroup.GET("/flags", flagsHandler.List)
+		adminGroup.PATCH("/flags/:key", flagsHandler.Patch)
 	}
 
 	port := os.Getenv("PORT")

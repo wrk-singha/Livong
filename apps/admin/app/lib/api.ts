@@ -8,7 +8,8 @@ function getToken(): string {
   return localStorage.getItem("admin_token") || "";
 }
 
-async function request(path: string, options: RequestInit = {}) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function request<T = any>(path: string, options: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
@@ -83,4 +84,8 @@ export const admin = {
     request(`/admin/reports?status=${status}&page=${page}&limit=${limit}`),
   updateReport: (id: string, status: "dismissed" | "actioned" | "reviewed") =>
     request(`/admin/reports/${id}`, { method: "PATCH", body: JSON.stringify({ status }) }),
+  getFlags: () =>
+    request<{ key: string; enabled: boolean; description: string; updatedAt: string }[]>(`/admin/flags`),
+  setFlag: (key: string, enabled: boolean) =>
+    request(`/admin/flags/${key}`, { method: "PATCH", body: JSON.stringify({ enabled }) }),
 };

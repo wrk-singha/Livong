@@ -210,6 +210,25 @@ func RunMigrations(db *sql.DB) error {
 		)`,
 		`CREATE INDEX IF NOT EXISTS idx_user_blocks_blocker ON user_blocks(blocker_id)`,
 		`CREATE INDEX IF NOT EXISTS idx_user_blocks_blocked ON user_blocks(blocked_id)`,
+
+		// Feature flags — admin-toggleable kill switches. Read by both
+		// backends; only admin writes. `key` is a stable string (e.g.
+		// "maintenance_mode", "chat_enabled"); new flag = INSERT here.
+		`CREATE TABLE IF NOT EXISTS feature_flags (
+			key TEXT PRIMARY KEY,
+			enabled BOOLEAN NOT NULL DEFAULT TRUE,
+			description TEXT,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		)`,
+		// Seed the known flags (idempotent). Adding a new flag = add it here.
+		`INSERT INTO feature_flags (key, enabled, description) VALUES
+			('maintenance_mode', FALSE, 'When ON: API returns 503 except auth/admin/flags; frontend shows maintenance page'),
+			('chat_enabled', TRUE, 'In-app messaging between matched users'),
+			('rent_enabled', TRUE, 'Rent group tracking + broker commissions'),
+			('interests_enabled', TRUE, 'Sending interest on listings'),
+			('create_listing_enabled', TRUE, 'Posting new listings'),
+			('profile_delete_enabled', TRUE, 'DPDP §12 self-serve account deletion')
+		ON CONFLICT (key) DO NOTHING`,
 	}
 
 	for i, m := range migrations {

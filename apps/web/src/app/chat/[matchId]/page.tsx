@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { PageTitle } from "@/lib/PageTitle";
 import { useAuth } from "@/contexts/auth";
+import { useFlags, FLAG_KEYS } from "@/contexts/flags";
 import { useChatStream } from "@/lib/useChatStream";
 import { Modal, StarRatingPicker, Avatar, BackButton, Alert } from "@/components/ui";
 import { ReportModal } from "@/components/ReportModal";
@@ -33,6 +34,8 @@ export default function ChatPage() {
   const params = useParams();
   const router = useRouter();
   const { userId } = useAuth();
+  const { isEnabled } = useFlags();
+  const chatEnabled = isEnabled(FLAG_KEYS.CHAT);
   const matchId = params.matchId as string;
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -422,8 +425,14 @@ export default function ChatPage() {
 
       {/* Input — pad bottom for iOS home indicator + system safe area so the
           send/share buttons don't hug the screen edge or get covered by browser
-          chrome on PWA installs. */}
+          chrome on PWA installs. When the chat flag is off, replace the input
+          row with a static banner — message history above is still readable. */}
       <div className="bg-surface border-t border-border px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
+        {!chatEnabled ? (
+          <div className="max-w-2xl mx-auto py-2 px-3 text-xs text-center text-dim bg-surface-alt border border-border rounded-lg">
+            Sending messages is paused right now. History above is still safe.
+          </div>
+        ) : (
         <form onSubmit={handleSend} className="flex gap-2 max-w-2xl mx-auto">
           <button
             type="button"
@@ -462,6 +471,7 @@ export default function ChatPage() {
             </svg>
           </button>
         </form>
+        )}
       </div>
 
       {/* Share Contact Modal */}

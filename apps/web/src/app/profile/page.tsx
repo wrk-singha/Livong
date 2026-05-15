@@ -8,6 +8,7 @@ import { PageTitle } from "@/lib/PageTitle";
 import { useAuth } from "@/contexts/auth";
 import { useProfile, type Profile } from "@/contexts/profile";
 import { Input, Alert, Modal } from "@/components/ui";
+import { useFlags, FLAG_KEYS } from "@/contexts/flags";
 import {
   Cigarette,
   Beer,
@@ -109,6 +110,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const { logout } = useAuth();
   const { profile, loading, setProfile, clearProfile } = useProfile();
+  const { isEnabled } = useFlags();
   const [message, setMessage] = useState("");
   const pendingRef = useRef<Record<string, string>>({});
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -389,12 +391,14 @@ export default function ProfilePage() {
           >
             Log out
           </button>
-          <button
-            onClick={() => setShowDeleteAccount(true)}
-            className="w-full py-2.5 text-error text-sm font-medium hover:opacity-80 transition-opacity"
-          >
-            Delete my account
-          </button>
+          {isEnabled(FLAG_KEYS.PROFILE_DELETE) && (
+            <button
+              onClick={() => setShowDeleteAccount(true)}
+              className="w-full py-2.5 text-error text-sm font-medium hover:opacity-80 transition-opacity"
+            >
+              Delete my account
+            </button>
+          )}
         </div>
       </div>
 

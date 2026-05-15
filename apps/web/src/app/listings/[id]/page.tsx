@@ -6,6 +6,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { api, imageUrl } from "@/lib/api";
 import { useAuth } from "@/contexts/auth";
 import { useProfile } from "@/contexts/profile";
+import { useFlags, FLAG_KEYS } from "@/contexts/flags";
 import { BackButton, PageSpinner, EmptyState, Avatar, StarRatingDisplay, Alert, VerifiedBadge } from "@/components/ui";
 import { ReportModal } from "@/components/ReportModal";
 import Link from "next/link";
@@ -84,6 +85,7 @@ export default function ListingDetailPage() {
   const router = useRouter();
   const { userId } = useAuth();
   const { hasProfile } = useProfile();
+  const { isEnabled } = useFlags();
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
   const [currentImg, setCurrentImg] = useState(0);
@@ -446,8 +448,16 @@ export default function ListingDetailPage() {
         {/* Error */}
         {error && <Alert className="mb-4">{error}</Alert>}
 
-        {/* CTA */}
-        {!isOwner && (
+        {/* CTA — hidden entirely when the interests feature flag is off so
+            users don't see a button that would 503. The owner-side flow
+            (accept/reject in /matches) stays available so requests in flight
+            can still be cleared. */}
+        {!isOwner && !isEnabled(FLAG_KEYS.INTERESTS) && (
+          <div className="w-full py-3 px-4 rounded-xl text-xs text-center text-dim bg-surface-alt border border-border">
+            Sending interest is paused right now — check back soon.
+          </div>
+        )}
+        {!isOwner && isEnabled(FLAG_KEYS.INTERESTS) && (
           <button
             onClick={handleSendInterest}
             disabled={interestMutation.isPending || sent}

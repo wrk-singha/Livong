@@ -14,9 +14,9 @@ Livong helps you find compatible roommates and shared rooms in India. We're at t
 
 ## Step 1 — Open it
 
-[Insert your URL here once deployed — e.g. `https://livong.in` or `https://livong.vercel.app`]
+👉 **https://became-sustainability-enabled-manchester.trycloudflare.com**
 
-If we're not live yet, the URL will be a Cloudflare Tunnel link the founder shares directly.
+This is a temporary tunnel URL (pre-launch). It'll change each time we restart — I'll DM you the new one if that happens. Bookmark loosely.
 
 ---
 
@@ -29,7 +29,7 @@ You'll need a phone number. We use OTP sign-in (no password, no email).
 If you'd rather skip OTP entirely for testing, paste this in your browser console (Cmd+Option+J on Mac, Ctrl+Shift+J on Windows) on the Livong tab:
 
 ```js
-fetch('https://[BACKEND_URL]/auth/_dev-login', {
+fetch('https://favour-verse-bare-drawing.trycloudflare.com/auth/_dev-login', {
   method:'POST',
   headers:{'Content-Type':'application/json'},
   body: JSON.stringify({phone: '+91YOUR_NUMBER_HERE'})
